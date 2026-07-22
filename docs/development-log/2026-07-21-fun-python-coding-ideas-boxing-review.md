@@ -4,11 +4,13 @@
 **Conversation window:** 2026-07-22 01:29:47–06:36:29 UTC  
 **Scope:** The latest 13 assistant responses concerning the boxing video game only. Unrelated boxing betting and settlement material is excluded.
 
+> **Superseded on 2026-07-22:** The original phase order recorded below is retained as conversation history, but it is no longer authoritative. CPU vs. CPU simulation is now first, Human vs. CPU second, and career mode plus all related systems are deferred to the next version at its lowest priority. Project Uppercut uses one unified combat system; beginners and children learn through concise modular training rather than named player tiers or separate beginner systems. See [Decision 0001](../decisions/0001-simulation-first-unified-training.md).
+
 ## Executive review
 
 The 13 responses form a coherent preproduction requirements baseline for an original arcade-boxing game currently called **Project Uppercut**. The strongest through-line is that boxing knowledge should be implemented as game logic rather than decorative flavor: the lore system, advice system, score isolation, anti-spam rules, commentary, time model, and attribute economy all reinforce that goal.
 
-No implementation evidence was found. These responses describe proposed requirements and architecture, not completed code, assets, tests, or a playable build. No Project Uppercut repository is currently visible to the connected GitHub account.
+No implementation evidence was found. These responses describe proposed requirements and architecture, not completed code, assets, tests, or a playable build. The dedicated Project Uppercut repository now exists and preserves the evolving requirements.
 
 The latest corrections supersede earlier flexibility in two areas:
 
@@ -182,12 +184,13 @@ The latest corrections supersede earlier flexibility in two areas:
 |---|---|---|
 | Originality | Original spiritual successor; no copied audiovisual package | Binding project rule |
 | Engine/tooling | UE 5.8 + Blueprint/C++ + Python proposed | Validate before scaffolding |
-| First playable | Two-fighter Human-vs.-CPU vertical slice | Binding scope anchor |
+| First functional priority | CPU-vs.-CPU simulation foundation | Supersedes the original H-v-CPU-first plan |
 | Lore | Data-driven boxing principles affect mechanics and presentation | Core differentiator |
 | Advice rewards | Tiny, valid-action-only, non-stackable | Needs visible/telemetric rules |
 | Scorecards | Strict live isolation with gated later reveal | Binding engine law |
 | Anti-spam | Shared, readable pattern adaptation; no hidden punishment | Binding combat law |
-| Phase order | H-v-CPU → H-v-H → CPU-v-CPU → Career → Online | Binding roadmap |
+| Phase order | CPU-v-CPU → H-v-CPU → H-v-H → Online/polish | Career deferred to the next version at lowest priority |
+| Learning model | One unified combat system with concise modular training | No named player tiers or separate beginner engine |
 | Commentary | Scaled 1/2/3-person crews; broad original ensemble | Data model now; content later |
 | Clock | Accelerated toggle or fixed 1/2/authentic options | Latest response supersedes prior flexibility |
 | Breaks | 30 real seconds; live menu/stats; per-break skip; dual consent in PvP | Binding flow rule |
@@ -205,17 +208,17 @@ The latest corrections supersede earlier flexibility in two areas:
 
 ## Recommended next repository actions
 
-1. Create a dedicated private `project-uppercut` repository.
-2. Add a short `PROJECT_RULES.md` containing originality, score isolation, anti-spam fairness, phase order, clock, break, and attribute laws.
-3. Add data schemas for lore rules, fighter attributes/families, commentator profiles/relationships, match clock configuration, and observable fight events.
-4. Add validator/test specifications before gameplay code:
+1. Add data schemas for lore rules, fighter attributes/families, commentator profiles/relationships, match clock configuration, observable fight events, CPU policies, and training modules.
+2. Add validator/test specifications before gameplay code:
    - official-score access denial tests;
    - legal/illegal fighter-build fixtures;
    - accelerated-clock synchronization tests;
    - dual-consent break-skip tests;
    - repetition-versus-spam behavior tests;
    - advice bonus cap/stacking tests.
-5. Define the two-fighter Human-vs.-CPU vertical-slice exit criteria before adding career or online work.
+3. Define CPU-vs.-CPU simulation exit criteria before Human-vs.-CPU work.
+4. Define modular training acceptance criteria alongside Human-vs.-CPU controls.
+5. Keep all career-mode work out of Version 1 planning and implementation.
 
 ## Evidence limitation
 
