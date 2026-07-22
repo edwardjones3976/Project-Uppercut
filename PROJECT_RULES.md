@@ -10,7 +10,7 @@ Every fighter, commentator, trainer, arena, asset, line, mechanic presentation, 
 
 ## 2. Boxing knowledge is functional
 
-Boxing idioms and principles must connect observable fight events to mechanics, CPU strategy, corner advice, commentary, judging interpretation, training, career development, and post-fight analysis.
+Boxing idioms and principles must connect observable fight events to mechanics, CPU strategy, corner advice, commentary, judging interpretation, training, and post-fight analysis.
 
 Lore must be stored as canonical data-driven rules. Multiple sayings may reference one canonical tactical principle; presentation text must not duplicate the underlying combat rule.
 
@@ -41,7 +41,27 @@ The same recognition and consequence rules apply to human and CPU-controlled fig
 
 Targeted abuse includes one-move loops, safe-animation abuse, stun loops, clinch abuse, excessive running, and meter farming.
 
-## 5. Advice rewards
+## 5. One unified system and modular training
+
+Project Uppercut uses one combat system for every player and mode. Do not create separate beginner, child, intermediate, advanced, or competitive combat engines, progression ladders, or named experience-tier systems.
+
+Beginners and children learn through a dedicated training mode that breaks mechanics into concise, coherent, focused chunks. Training changes instruction, presentation, repetition, and practice conditions—not the underlying rules of boxing or combat.
+
+Training modules should:
+
+- focus on one mechanic or closely related skill group at a time;
+- explain the objective concisely;
+- demonstrate the mechanic;
+- provide guided practice;
+- measure successful execution;
+- offer immediate, truthful feedback;
+- allow repetition without record penalties;
+- connect the skill to real match situations;
+- support optional review without manufacturing competitive success.
+
+Advanced techniques exist in the unified system rather than being artificially unlocked by experience points. Competitive achievement must be earned through demonstrated skill, decision-making, timing, adaptation, and execution.
+
+## 6. Advice rewards
 
 Bonuses for successfully following valid corner, commentary, or crowd advice must remain small, bounded, non-stackable, and resistant to farming.
 
@@ -53,20 +73,21 @@ Reliability order:
 
 Ring Awareness, Coachability, and Corner Chemistry may influence eligibility. Direct combat benefit must not exceed approximately 2%–3% per round and must never use official-score information.
 
-## 6. Development order
+## 7. Development order
 
 The phase order is fixed:
 
-1. Human vs. CPU MVP
-2. Human vs. Human
-3. Complete CPU vs. CPU simulation
-4. Career mode
-5. Online mode
-6. Future updates
+1. Complete CPU vs. CPU simulation foundation
+2. Human vs. CPU
+3. Human vs. Human
+4. Online mode after local competitive play is stable
+5. Version 1 content, presentation, accessibility, and polish
 
 Each phase requires measurable exit criteria and a passed quality gate.
 
-## 7. Commentary crews
+Career mode and all career-related systems are excluded from Version 1. They belong to the next version and remain its lowest priority.
+
+## 8. Commentary crews
 
 - Four- and six-round fights use one commentator.
 - Eight- and ten-round fights use two commentators.
@@ -77,7 +98,7 @@ Each phase requires measurable exit criteria and a passed quality gate.
 
 Themed events may guide selection and editorial emphasis without tokenizing or restricting commentators by identity.
 
-## 8. Fight clock and breaks
+## 9. Fight clock and breaks
 
 The menu exposes an **Accelerated Clock** toggle:
 
@@ -88,7 +109,7 @@ There is no free-form clock customization.
 
 All gameplay systems read one synchronized authoritative fight clock. Between-round breaks last 30 real seconds; menu and statistics access do not pause the countdown. Break skipping is an in-match choice, not a pre-match setting. Human vs. Human requires both players to approve the skip.
 
-## 9. Fighter attribute economy
+## 10. Fighter attribute economy
 
 - Internal attributes range from -100 to +100.
 - Zero represents balance.
@@ -116,7 +137,6 @@ Negative safeguards:
 
 Attribute families and compensating relationships must be explicit data, not inferred from display names.
 
-## 10. Evidence and status honesty
+## 11. Evidence and status honesty
 
 Design documents are not implementation evidence. Do not claim that a feature, test, asset, or playable build exists unless the repository contains verifiable evidence.
-
