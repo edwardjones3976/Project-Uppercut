@@ -1,0 +1,61 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:34 UTC", "end": "2026-08-02 19:34 UTC" },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/fight_event.schema.json",
+  "title": "Fight Event",
+  "description": "The observable event record. This schema is the structural half of the Score Isolation Principle (Rule 3): every event declares a visibility, and only 'observable' events may be consumed by fighter logic, CPU policy, referees, corners, commentary, crowd, difficulty, live replay presentation, and advice systems. Sealed events exist for the Judge subsystem and authoritative Match Controller only.",
+  "type": "object",
+  "required": ["seq", "tick", "clock", "type", "visibility"],
+  "additionalProperties": false,
+  "properties": {
+    "seq": { "type": "integer", "minimum": 0, "description": "Monotonic, gapless. Determinism anchor." },
+    "tick": { "type": "integer", "minimum": 0, "description": "Authoritative fixed-tick index (T4.A)." },
+    "clock": {
+      "type": "object",
+      "required": ["round", "display_ms", "real_ms"],
+      "additionalProperties": false,
+      "description": "Rule 9: all systems read one synchronized authoritative fight clock. display_ms and real_ms diverge when the Accelerated Clock is ON.",
+      "properties": {
+        "round": { "type": "integer", "minimum": 0 },
+        "display_ms": { "type": "integer", "minimum": 0 },
+        "real_ms": { "type": "integer", "minimum": 0 },
+        "segment": { "enum": ["entrance", "round", "break", "count", "doctor_check", "post_fight"] }
+      }
+    },
+    "visibility": {
+      "enum": ["observable", "sealed"],
+      "description": "'sealed' marks Judge/Match-Controller-private records. Rule 3 forbids sealed events reaching any listed consumer during the fight and immediate post-fight flow."
+    },
+    "type": {
+      "enum": [
+        "bout_start", "round_start", "round_end", "break_start", "break_end", "bout_end",
+        "step", "pivot", "stance_change", "range_change",
+        "punch_thrown", "punch_outcome", "guard_impact", "evasion", "clinch_start", "clinch_end",
+        "condition_change", "stamina_change", "balance_change", "composure_change",
+        "knockdown", "count_tick", "rise", "stoppage", "doctor_check",
+        "referee_warning", "referee_deduction", "referee_instruction",
+        "crowd_gain", "crowd_full", "special_activated", "ultimate_activated", "full_crowd_trait_activated",
+        "cpu_decision", "showmanship",
+        "judge_round_card", "judge_final_card"
+      ]
+    },
+    "actor": { "type": "string", "description": "Fighter id, referee id, judge id, or 'system'." },
+    "target": { "type": "string" },
+    "payload": { "type": "object" },
+    "explains": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "description": "seq values this event causally follows. Supports the ROADMAP requirement that replay/event logs explain major combat and judging events."
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "enum": ["judge_round_card", "judge_final_card"] } }, "required": ["type"] },
+      "then": { "properties": { "visibility": { "const": "sealed" } }, "$comment": "Rule 3: official cards are sealed by construction, not by convention." }
+    },
+    {
+      "if": { "properties": { "type": { "const": "cpu_decision" } }, "required": ["type"] },
+      "then": { "properties": { "visibility": { "const": "observable" } } }
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-02 19:34 UTC",
+    "end": "2026-08-02 19:34 UTC",
+    "procedure": "Director contribution-tagging procedure, adopted for Project Uppercut by Director override 2026-08-02 (see docs/decisions/0006)."
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/ability.schema.json",
+  "title": "Ability (Special / Ultimate / Full-Crowd Trait)",
+  "type": "object",
+  "required": [
+    "id",
+    "kind",
+    "name",
+    "counterplay",
+    "commitment"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "kind": {
+      "enum": [
+        "special",
+        "ultimate",
+        "full_crowd_trait"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string"
+    },
+    "motion_command": {
+      "description": "Rule 15: opponent-relative left-stick or D-pad motion followed by explicit Special-button confirmation. Recognition must be forgiving but consistent, trainable, remappable, equally applied.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sequence": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "toward",
+              "away",
+              "up",
+              "down",
+              "toward_up",
+              "toward_down",
+              "away_up",
+              "away_down"
+            ]
+          }
+        },
+        "confirm_button": {
+          "const": "special"
+        },
+        "remappable": {
+          "const": true
+        }
+      }
+    },
+    "commitment": {
+      "description": "Rule 22 / Decision 0005: counterplay exists from the first punch. Command entry cannot bypass stun, recovery, resource cost, range, tracking limits, startup, counterplay, or whiff punishment.",
+      "type": "object",
+      "required": [
+        "startup",
+        "active_contact",
+        "recovery",
+        "range",
+        "stamina_cost",
+        "guard_interaction",
+        "counter_vulnerability",
+        "positional_consequence"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "startup": {
+          "type": "string"
+        },
+        "active_contact": {
+          "type": "string"
+        },
+        "recovery": {
+          "type": "string"
+        },
+        "range": {
+          "type": "string"
+        },
+        "stamina_cost": {
+          "type": "string"
+        },
+        "guard_interaction": {
+          "type": "string"
+        },
+        "counter_vulnerability": {
+          "type": "string"
+        },
+        "positional_consequence": {
+          "type": "string"
+        }
+      }
+    },
+    "counterplay": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Rule 11: an Ultimate cannot be an automatic match end, unavoidable sequence, or substitute for boxing execution. Difficult inputs do not justify uncounterable results.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "can_end_match_automatically": {
+      "const": false
+    },
+    "crowd_cost": {
+      "enum": [
+        "none",
+        "full_crowd_bar"
+      ]
+    }
+  }
+}

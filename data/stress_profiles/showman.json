@@ -1,0 +1,9 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:34 UTC", "end": "2026-08-02 19:34 UTC" },
+  "id": "showman", "label": "Showman", "instrument_only": true,
+  "win_condition": "Crowd generation through expressive AND effective boxing, converting a full Crowd Bar into a decisive Ultimate or Full-Crowd Trait choice.",
+  "risk_condition": "Showmanship without effect; low-risk meter farming, which the Crowd system must refuse to reward (Rule 12).",
+  "counterplay": ["punishing the exposure that Showmanship creates", "denying clean sequences that generate Crowd", "forcing defensive obligation before the bar completes"],
+  "readable_signals": ["taunt and flourish timing", "Crowd Bar rate of gain", "risk appetite on entry", "expressive exits"],
+  "gate_test": "none"
+}

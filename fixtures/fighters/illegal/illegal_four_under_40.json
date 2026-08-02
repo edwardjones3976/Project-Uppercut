@@ -1,0 +1,68 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-02 19:34 UTC",
+    "end": "2026-08-02 19:34 UTC"
+  },
+  "schema_version": "0.1.0-draft",
+  "id": "illegal_four_under_40",
+  "display_name": "Illegal Four Under 40",
+  "fixture_kind": "generic_test_fixture",
+  "primary_stance": "orthodox",
+  "ambidextrous": false,
+  "stance_familiarity_penalties": {
+    "accuracy": -8,
+    "power_transfer": -10
+  },
+  "attributes": {
+    "power": 75,
+    "accuracy": 75,
+    "hand_speed": -45,
+    "durability": -45,
+    "defensive_technique": -45,
+    "footwork_technique": -45,
+    "composure": 0
+  },
+  "compensations": [
+    {
+      "negative": "hand_speed",
+      "positive": "power"
+    },
+    {
+      "negative": "durability",
+      "positive": "power"
+    },
+    {
+      "negative": "defensive_technique",
+      "positive": "accuracy"
+    },
+    {
+      "negative": "footwork_technique",
+      "positive": "accuracy"
+    }
+  ],
+  "severe_negative_consequences": [
+    {
+      "attribute": "hand_speed",
+      "visible_consequence": "slow"
+    },
+    {
+      "attribute": "durability",
+      "visible_consequence": "fragile"
+    },
+    {
+      "attribute": "defensive_technique",
+      "visible_consequence": "open"
+    },
+    {
+      "attribute": "footwork_technique",
+      "visible_consequence": "flat"
+    }
+  ],
+  "traits": [],
+  "specials": [],
+  "ultimate": null,
+  "full_crowd_trait": null,
+  "vulnerabilities": []
+}

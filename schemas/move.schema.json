@@ -1,0 +1,147 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-02 19:34 UTC",
+    "end": "2026-08-02 19:34 UTC",
+    "procedure": "Director contribution-tagging procedure, adopted for Project Uppercut by Director override 2026-08-02 (see docs/decisions/0006)."
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/move.schema.json",
+  "title": "Move",
+  "description": "Rule 22 / ROADMAP Phase 1A: every attack must define startup, active contact, recovery, range, stamina cost, guard interaction, hit reaction, counter vulnerability, and positional consequence BEFORE character-specific abilities are added.",
+  "type": "object",
+  "required": [
+    "id",
+    "category",
+    "startup_frames",
+    "active_frames",
+    "recovery_frames",
+    "range_band",
+    "stamina_cost",
+    "guard_interaction",
+    "hit_reaction",
+    "counter_vulnerability",
+    "positional_consequence",
+    "target_regions"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "category": {
+      "enum": [
+        "jab",
+        "cross",
+        "hook",
+        "uppercut",
+        "overhand",
+        "body_shot",
+        "guard",
+        "evasion",
+        "step",
+        "pivot",
+        "clinch",
+        "showmanship"
+      ]
+    },
+    "hand": {
+      "enum": [
+        "lead",
+        "rear",
+        "none"
+      ]
+    },
+    "startup_frames": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "active_frames": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "recovery_frames": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "range_band": {
+      "enum": [
+        "clinch",
+        "inside",
+        "mid",
+        "outside",
+        "out_of_range"
+      ]
+    },
+    "stamina_cost": {
+      "type": "number",
+      "minimum": 0
+    },
+    "guard_interaction": {
+      "enum": [
+        "blockable_high",
+        "blockable_low",
+        "blockable_either",
+        "unblockable_by_design_prohibited"
+      ]
+    },
+    "hit_reaction": {
+      "type": "string"
+    },
+    "counter_vulnerability": {
+      "type": "string",
+      "minLength": 1
+    },
+    "positional_consequence": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_regions": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "string"
+      },
+      "description": "Required non-empty for offensive categories. Movement, guard, evasion and clinch actions may legitimately strike nothing."
+    },
+    "tuning_status": {
+      "description": "Rule 18: prototype numbers are tuning hypotheses unless a validated specification or test promotes them.",
+      "enum": [
+        "hypothesis",
+        "validated"
+      ],
+      "default": "hypothesis"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "category": {
+            "enum": [
+              "jab",
+              "cross",
+              "hook",
+              "uppercut",
+              "overhand",
+              "body_shot"
+            ]
+          }
+        },
+        "required": [
+          "category"
+        ]
+      },
+      "then": {
+        "properties": {
+          "target_regions": {
+            "minItems": 1
+          }
+        }
+      },
+      "$comment": "An attack that hits nowhere is not an attack; a pivot that hits nowhere is a pivot."
+    }
+  ]
+}

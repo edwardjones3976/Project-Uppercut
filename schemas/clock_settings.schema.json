@@ -1,0 +1,42 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:34 UTC", "end": "2026-08-02 19:34 UTC" },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/clock_settings.schema.json",
+  "title": "Clock Settings",
+  "description": "Rule 9. Accelerated Clock ON displays 3:00 while 1:45 real time passes. OFF permits only 1, 2, or authentic 3 minutes. No free-form clock customization exists.",
+  "type": "object",
+  "required": ["accelerated_clock", "round_length", "break_seconds", "break_skip"],
+  "additionalProperties": false,
+  "properties": {
+    "accelerated_clock": { "type": "boolean" },
+    "round_length": {
+      "type": "object",
+      "required": ["display_seconds", "real_seconds"],
+      "additionalProperties": false,
+      "properties": {
+        "display_seconds": { "enum": [60, 120, 180] },
+        "real_seconds": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "break_seconds": { "const": 30, "description": "Rule 9: 30 real seconds; menu and statistics access do not pause the countdown." },
+    "break_skip": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["in_match_choice_only"],
+      "properties": {
+        "in_match_choice_only": { "const": true },
+        "human_vs_human_requires_both": { "const": true }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "accelerated_clock": { "const": true } }, "required": ["accelerated_clock"] },
+      "then": { "properties": { "round_length": { "properties": { "display_seconds": { "const": 180 }, "real_seconds": { "const": 105 } } } } }
+    },
+    {
+      "if": { "properties": { "accelerated_clock": { "const": false } }, "required": ["accelerated_clock"] },
+      "then": { "properties": { "round_length": { "properties": { "real_seconds": { "enum": [60, 120, 180] } } } } }
+    }
+  ]
+}

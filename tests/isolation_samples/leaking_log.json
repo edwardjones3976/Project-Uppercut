@@ -1,0 +1,55 @@
+[
+  {
+    "seq": 0,
+    "tick": 0,
+    "clock": {
+      "round": 1,
+      "display_ms": 0,
+      "real_ms": 0,
+      "segment": "round"
+    },
+    "type": "round_start",
+    "visibility": "observable",
+    "actor": "system"
+  },
+  {
+    "seq": 1,
+    "tick": 9000,
+    "clock": {
+      "round": 1,
+      "display_ms": 180000,
+      "real_ms": 105000,
+      "segment": "round"
+    },
+    "type": "judge_round_card",
+    "visibility": "observable",
+    "actor": "judge_1",
+    "payload": {
+      "round": 1
+    }
+  },
+  {
+    "seq": 2,
+    "tick": 9010,
+    "clock": {
+      "round": 2,
+      "display_ms": 0,
+      "real_ms": 0,
+      "segment": "round"
+    },
+    "type": "cpu_decision",
+    "visibility": "observable",
+    "actor": "red",
+    "payload": {
+      "chosen_action": "desperation_pressure",
+      "observed_evidence": [
+        1
+      ],
+      "estimate": {
+        "belief": "behind on the cards",
+        "confidence": 1.0
+      },
+      "alternatives_considered": []
+    }
+  }
+]

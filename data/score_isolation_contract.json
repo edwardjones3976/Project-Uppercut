@@ -1,0 +1,41 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:34 UTC", "end": "2026-08-02 19:34 UTC" },
+  "$comment": "Machine-readable form of PROJECT_RULES.md Rule 3, the Score Isolation Principle. This file is the input to tools/uppercut_validate/score_isolation.py and satisfies the Phase 0 quality-gate item 'Scorecard access boundaries documented and testable'.",
+  "schema_version": "0.1.0-draft",
+  "sealed_symbols": {
+    "description": "Names that constitute official-score access. Any reference from a forbidden consumer is a violation.",
+    "identifiers": [
+      "official_scorecard", "OfficialScorecard", "official_cards", "judge_card", "JudgeCard",
+      "round_card", "RoundCard", "final_card", "FinalCard", "scorecard_total", "ScorecardTotal",
+      "get_official_score", "GetOfficialScore", "read_scorecard", "ReadScorecard",
+      "judge_subsystem_private", "JudgeSubsystemPrivate", "leading_on_cards", "is_behind_on_cards"
+    ],
+    "event_types": ["judge_round_card", "judge_final_card"],
+    "event_visibility_value": "sealed"
+  },
+  "authorized_holders": [
+    { "id": "judge_subsystem", "paths": ["sim/judge/", "Source/Judge/"] },
+    { "id": "match_controller", "paths": ["sim/match_controller/", "Source/MatchController/"] }
+  ],
+  "forbidden_consumers": [
+    { "id": "human_facing_fighter_logic", "paths": ["sim/fighter/", "Source/Fighter/"] },
+    { "id": "cpu_fighter_logic",          "paths": ["sim/cpu/", "Source/CPU/"] },
+    { "id": "referees",                   "paths": ["sim/referee/", "Source/Referee/"] },
+    { "id": "trainers_and_corners",       "paths": ["sim/corner/", "Source/Corner/"] },
+    { "id": "commentary",                 "paths": ["sim/commentary/", "Source/Commentary/"] },
+    { "id": "crowd_systems",              "paths": ["sim/crowd/", "Source/Crowd/"] },
+    { "id": "difficulty_or_adaptive",     "paths": ["sim/difficulty/", "Source/Difficulty/"] },
+    { "id": "live_replay_presentation",   "paths": ["sim/replay_presentation/", "Source/ReplayPresentation/"] },
+    { "id": "advice_or_bonus_systems",    "paths": ["sim/advice/", "Source/Advice/"] }
+  ],
+  "permitted_substitute": {
+    "description": "Rule 3: forbidden consumers may form imperfect estimates from observable events with explicit confidence and uncertainty.",
+    "required_shape": "schemas/cpu_decision_reason.schema.json"
+  },
+  "additional_laws": [
+    "Early stoppages terminate scoring (Rule 3).",
+    "Partial cards remain sealed during the immediate result, quick-menu and statistics flow; optional later archival reveal (Rule 3).",
+    "No rubber-banding, referee intervention, commentary certainty, CPU decision, advice, Crowd reward, or difficulty adjustment may use official scores (Rule 3).",
+    "Crowd systems may not read or alter official scores and may not provide a hidden generic multiplier (Rule 12)."
+  ]
+}

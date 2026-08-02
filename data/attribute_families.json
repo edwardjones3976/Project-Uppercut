@@ -1,0 +1,66 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-02 19:34 UTC",
+    "end": "2026-08-02 19:34 UTC",
+    "procedure": "Director contribution-tagging procedure, adopted for Project Uppercut by Director override 2026-08-02 (see docs/decisions/0006)."
+  },
+  "$comment": "PROPOSED taxonomy pending Director approval. PROJECT_RULES.md Rule 10 requires that attribute families and compensating relationships be explicit data, never inferred from display names. Rule 10 names 'physical' and 'technical' families explicitly (no fighter may have every physical trait negative; likewise technical); 'mental' is a proposed third family. Attribute keys below are a proposed vocabulary, not canonical.",
+  "schema_version": "0.1.0-draft",
+  "status": "proposed_pending_director_approval",
+  "range": {
+    "min": -100,
+    "max": 100,
+    "center": 0
+  },
+  "families": {
+    "physical": {
+      "label": "Physical",
+      "rule10_all_negative_prohibited": true,
+      "attributes": [
+        "power",
+        "hand_speed",
+        "foot_speed",
+        "stamina_pool",
+        "durability",
+        "chin",
+        "recovery",
+        "reach",
+        "frame"
+      ]
+    },
+    "technical": {
+      "label": "Technical",
+      "rule10_all_negative_prohibited": true,
+      "attributes": [
+        "accuracy",
+        "defensive_technique",
+        "footwork_technique",
+        "combination_fluency",
+        "counter_timing",
+        "body_work",
+        "guard_structure",
+        "inside_work"
+      ]
+    },
+    "mental": {
+      "label": "Mental",
+      "rule10_all_negative_prohibited": false,
+      "attributes": [
+        "composure",
+        "ring_awareness",
+        "adaptability",
+        "discipline",
+        "coachability",
+        "ringcraft",
+        "showmanship"
+      ]
+    }
+  },
+  "notes": [
+    "chin, durability, recovery and composure are AUTHORED ATTRIBUTES here. PROJECT_RULES.md Rule 14 also lists Chin, Durability, Recovery and Composure inside the combat-condition list; see data/condition_regions.json for the runtime side of that split. The split is an interpretation flagged in docs/phase0/open_questions.md (OQ-4).",
+    "corner_chemistry is deliberately absent: Rule 6 treats it as a relationship between a fighter and a corner, not a fighter attribute.",
+    "Rule 10 forbids one simplistic overall rating standing in for the fighter profile; no aggregate field is defined."
+  ]
+}

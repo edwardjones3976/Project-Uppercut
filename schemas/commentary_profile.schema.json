@@ -1,0 +1,23 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:34 UTC", "end": "2026-08-02 19:34 UTC" },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/commentary_profile.schema.json",
+  "title": "Commentary Profile",
+  "description": "Rule 8. Crew size scales with fight length and importance. Commentary reads observable events only (Rule 3) and expresses uncertainty.",
+  "type": "object",
+  "required": ["id", "display_name", "reads_official_scores"],
+  "additionalProperties": false,
+  "properties": {
+    "contribution": { "type": "object" },
+    "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "display_name": { "type": "string" },
+    "role": { "enum": ["play_by_play", "analyst", "third_voice"] },
+    "reads_official_scores": { "const": false },
+    "chemistry": {
+      "type": "array",
+      "description": "Rule 8: chemistry affects presentation but creates no hard identity-based restrictions; any original commentator may work with any other.",
+      "items": { "type": "object", "required": ["with", "quality"], "additionalProperties": false, "properties": { "with": { "type": "string" }, "quality": { "enum": ["low", "neutral", "high"] } } }
+    },
+    "silence_priority_on_knockdown": { "const": true }
+  }
+}

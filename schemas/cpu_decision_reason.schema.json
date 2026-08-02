@@ -1,0 +1,36 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:34 UTC", "end": "2026-08-02 19:34 UTC" },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/cpu_decision_reason.schema.json",
+  "title": "CPU Decision Reason",
+  "description": "Rule 3 and Decision 0005: CPU policy may form imperfect estimates from OBSERVABLE evidence only, with explicit confidence and uncertainty. It may never read official cards or know it is 'behind on the cards'. Rule 4: no privileged inputs, no impossible reaction speed, no input reading.",
+  "type": "object",
+  "required": ["seq", "fighter", "chosen_action", "observed_evidence", "estimate", "alternatives_considered"],
+  "additionalProperties": false,
+  "properties": {
+    "seq": { "type": "integer", "minimum": 0 },
+    "fighter": { "type": "string" },
+    "chosen_action": { "type": "string" },
+    "observed_evidence": {
+      "type": "array",
+      "minItems": 1,
+      "description": "seq references into the OBSERVABLE event stream only. The validator rejects references to sealed events.",
+      "items": { "type": "integer" }
+    },
+    "estimate": {
+      "type": "object",
+      "required": ["belief", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "belief": { "type": "string", "description": "e.g. 'opponent guard weakening on the left'. Must be phrased from observable evidence." },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "uncertainty_note": { "type": "string" }
+      }
+    },
+    "alternatives_considered": { "type": "array", "items": { "type": "string" } },
+    "forbidden_inputs_assertion": {
+      "const": "no_official_score_no_opponent_input_no_privileged_state",
+      "description": "Explicit machine-checkable assertion carried on every decision record."
+    }
+  }
+}

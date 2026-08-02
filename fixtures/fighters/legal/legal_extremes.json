@@ -1,0 +1,54 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-02 19:34 UTC",
+    "end": "2026-08-02 19:34 UTC"
+  },
+  "schema_version": "0.1.0-draft",
+  "id": "legal_extremes",
+  "display_name": "Legal Extremes",
+  "fixture_kind": "generic_test_fixture",
+  "primary_stance": "orthodox",
+  "ambidextrous": false,
+  "stance_familiarity_penalties": {
+    "accuracy": -8,
+    "power_transfer": -10
+  },
+  "attributes": {
+    "power": 100,
+    "counter_timing": 80,
+    "foot_speed": -100,
+    "stamina_pool": -45,
+    "accuracy": 10,
+    "composure": 15,
+    "chin": 5
+  },
+  "compensations": [
+    {
+      "negative": "foot_speed",
+      "positive": "power",
+      "rationale": "Maximum authored power pays for the loss of mobility."
+    },
+    {
+      "negative": "stamina_pool",
+      "positive": "counter_timing",
+      "rationale": "Elite counter timing pays for a shallow tank."
+    }
+  ],
+  "severe_negative_consequences": [
+    {
+      "attribute": "foot_speed",
+      "visible_consequence": "Cannot cut the ring or escape corners; visibly planted between exchanges."
+    },
+    {
+      "attribute": "stamina_pool",
+      "visible_consequence": "Visible fatigue posture and slowed reset from round three onward."
+    }
+  ],
+  "traits": [],
+  "specials": [],
+  "ultimate": null,
+  "full_crowd_trait": null,
+  "vulnerabilities": []
+}

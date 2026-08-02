@@ -1,0 +1,36 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-02 19:34 UTC",
+    "end": "2026-08-02 19:34 UTC"
+  },
+  "schema_version": "0.1.0-draft",
+  "id": "illegal_uncompensated_severe",
+  "display_name": "Illegal Uncompensated Severe",
+  "fixture_kind": "generic_test_fixture",
+  "primary_stance": "orthodox",
+  "ambidextrous": false,
+  "stance_familiarity_penalties": {
+    "accuracy": -8,
+    "power_transfer": -10
+  },
+  "attributes": {
+    "power": 60,
+    "foot_speed": -55,
+    "accuracy": 20,
+    "composure": 0
+  },
+  "compensations": [],
+  "severe_negative_consequences": [
+    {
+      "attribute": "foot_speed",
+      "visible_consequence": "planted between exchanges"
+    }
+  ],
+  "traits": [],
+  "specials": [],
+  "ultimate": null,
+  "full_crowd_trait": null,
+  "vulnerabilities": []
+}

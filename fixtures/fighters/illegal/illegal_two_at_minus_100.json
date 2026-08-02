@@ -1,0 +1,50 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-02 19:34 UTC",
+    "end": "2026-08-02 19:34 UTC"
+  },
+  "schema_version": "0.1.0-draft",
+  "id": "illegal_two_at_minus_100",
+  "display_name": "Illegal Two At Minus 100",
+  "fixture_kind": "generic_test_fixture",
+  "primary_stance": "orthodox",
+  "ambidextrous": false,
+  "stance_familiarity_penalties": {
+    "accuracy": -8,
+    "power_transfer": -10
+  },
+  "attributes": {
+    "power": 80,
+    "accuracy": 75,
+    "foot_speed": -100,
+    "defensive_technique": -100,
+    "composure": 0
+  },
+  "compensations": [
+    {
+      "negative": "foot_speed",
+      "positive": "power"
+    },
+    {
+      "negative": "defensive_technique",
+      "positive": "accuracy"
+    }
+  ],
+  "severe_negative_consequences": [
+    {
+      "attribute": "foot_speed",
+      "visible_consequence": "planted"
+    },
+    {
+      "attribute": "defensive_technique",
+      "visible_consequence": "no head movement"
+    }
+  ],
+  "traits": [],
+  "specials": [],
+  "ultimate": null,
+  "full_crowd_trait": null,
+  "vulnerabilities": []
+}

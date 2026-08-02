@@ -1,0 +1,9 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:34 UTC", "end": "2026-08-02 19:34 UTC" },
+  "id": "technician", "label": "Technician", "instrument_only": true,
+  "win_condition": "Range structure, accuracy, guard discipline, varied placement, and accumulated advantage through clean contact quality.",
+  "risk_condition": "Predictable structure; insufficient force to deter pressure; stalling under sustained inside work.",
+  "counterplay": ["pattern recognition against repeated structure", "inside work under the range game", "pressure that denies reset distance"],
+  "readable_signals": ["consistent lead-hand rhythm", "planted pivots", "range discipline", "varied target selection"],
+  "gate_test": "none"
+}

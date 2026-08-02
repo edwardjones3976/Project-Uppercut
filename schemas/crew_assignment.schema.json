@@ -1,0 +1,16 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:34 UTC", "end": "2026-08-02 19:34 UTC" },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/crew_assignment.schema.json",
+  "title": "Commentary Crew Assignment",
+  "description": "Rule 8 crew-size law, expressed as data so the validator can enforce it.",
+  "type": "object",
+  "required": ["scheduled_rounds", "championship", "commentator_count"],
+  "additionalProperties": false,
+  "properties": {
+    "contribution": { "type": "object" },
+    "scheduled_rounds": { "enum": [4, 6, 8, 10, 12] },
+    "championship": { "type": "boolean" },
+    "commentator_count": { "type": "integer", "minimum": 1, "maximum": 3 }
+  }
+}

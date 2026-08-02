@@ -1,0 +1,42 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-02 19:52 UTC",
+    "end": "2026-08-02 19:52 UTC"
+  },
+  "id": "elliot_ames",
+  "display_name": "Elliot \u201cEventually\u201d Ames",
+  "competitive": false,
+  "ranked_eligible": false,
+  "disclosed_before_match": true,
+  "enforcement": {
+    "clinch_tolerance": "very_high",
+    "inside_work_tolerance": "very_high",
+    "warning_threshold": "very_late",
+    "deduction_threshold": "very_late",
+    "injury_monitoring": "standard",
+    "communication_style": "minimal",
+    "stoppage_disposition": "permissive"
+  },
+  "universal_minimums": {
+    "obeys_authoritative_knockdown_count": true,
+    "obeys_medical_and_incapacitation_minimums": true,
+    "obeys_serious_foul_standards": true,
+    "applies_one_profile_to_both_fighters": true,
+    "uses_observable_evidence_only": true,
+    "major_decisions_replay_explainable": true
+  },
+  "prohibitions_acknowledged": [
+    "punch_damage",
+    "stamina",
+    "collision_classification",
+    "crowd_gain",
+    "fighter_attributes",
+    "input_responsiveness",
+    "judging_criteria",
+    "official_scores"
+  ],
+  "$descriptor": "comic-relief official for non-Ranked modes",
+  "$note": "Non-Ranked only. His visual and behavioural implication is never canonically identified or directly stated (Rule 16) and must not be spelled out in data, code, or user-facing text. Lax ordinary enforcement does not relax the universal medical, incapacitation, serious-foul, or knockdown-count standards."
+}

@@ -1,0 +1,9 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:34 UTC", "end": "2026-08-02 19:34 UTC" },
+  "id": "drainer", "label": "Drainer", "instrument_only": true,
+  "win_condition": "Distance, composure, created misses, counters, bodywork, recovery, rhythm disruption, and ring control that punishes waste.",
+  "risk_condition": "Empty avoidance that creates no observable boxing advantage; refusal to interact; losing rounds while conserving.",
+  "counterplay": ["cutting the ring to deny distance", "feint-drawn commitment", "body investment against a conserving posture", "pace changes that deny rhythm reads"],
+  "readable_signals": ["long responsive navigation at safe distance", "low volume with high reset frequency", "stamina economy", "counter posture on entry"],
+  "gate_test": "long_drain"
+}

@@ -1,0 +1,24 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:52 UTC", "end": "2026-08-02 19:52 UTC" },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/crowd_event.schema.json",
+  "title": "Crowd Event",
+  "description": "Rule 12. Every Crowd gain must name the rewardable behaviour that earned it and cite the observable events that demonstrate it, so meter farming is visible in the log rather than hidden in a curve.",
+  "type": "object",
+  "required": ["seq", "fighter", "delta", "earned_by", "observed_evidence", "risk_taken"],
+  "additionalProperties": false,
+  "properties": {
+    "seq": { "type": "integer", "minimum": 0 },
+    "fighter": { "type": "string" },
+    "delta": { "type": "number" },
+    "earned_by": {
+      "enum": ["clean_offense", "defense", "evasions", "counters", "reversals", "combinations",
+               "variety", "ringcraft", "appropriate_showmanship", "high_risk_success",
+               "momentum_changing_sequences"],
+      "description": "Rule 12's rewardable list. raw_activity, repeated_safe_actions and low_risk_meter_farming are absent by design and cannot be encoded."
+    },
+    "observed_evidence": { "type": "array", "minItems": 1, "items": { "type": "integer" } },
+    "risk_taken": { "type": "boolean", "description": "false with a positive delta is the signature of low-risk farming and is rejected by the contract validator." },
+    "bar_full": { "type": "boolean" }
+  }
+}

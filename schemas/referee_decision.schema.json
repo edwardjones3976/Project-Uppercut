@@ -1,0 +1,20 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:52 UTC", "end": "2026-08-02 19:52 UTC" },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/referee_decision.schema.json",
+  "title": "Referee Decision",
+  "description": "Rule 16: every major referee decision must be explainable from observable evidence and reproducible in replay. Referees never read official scores (Rule 3).",
+  "type": "object",
+  "required": ["seq", "referee", "decision", "observed_evidence", "profile_clause"],
+  "additionalProperties": false,
+  "properties": {
+    "seq": { "type": "integer", "minimum": 0 },
+    "referee": { "type": "string" },
+    "decision": { "enum": ["warning", "deduction", "break_clinch", "instruction", "count_start", "count_continue", "stoppage", "doctor_check", "foul_ruling", "no_action"] },
+    "against": { "type": ["string", "null"] },
+    "observed_evidence": { "type": "array", "minItems": 1, "items": { "type": "integer" }, "description": "seq references into the observable event stream. Sealed events are rejected by the isolation checker." },
+    "profile_clause": { "type": "string", "minLength": 1, "description": "Which clause of this referee's authored enforcement philosophy produced the decision. Makes tendencies auditable rather than arbitrary." },
+    "applies_equally_to_both": { "const": true },
+    "forbidden_inputs_assertion": { "const": "no_official_score_no_privileged_state" }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:52 UTC", "end": "2026-08-02 19:52 UTC" },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/mode_configuration.schema.json",
+  "title": "Mode Configuration",
+  "description": "Rule 5: one combat system for every player and mode. A mode declares which permitted surfaces it configures. Any attempt to configure a prohibited surface is a schema failure, not a code review note.",
+  "type": "object",
+  "required": ["id", "phase", "configures"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "phase": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "configures": {
+      "type": "array",
+      "items": {
+        "enum": ["instruction", "presentation", "demonstration", "repetition", "drill_conditions",
+                 "opponent_cooperation", "feedback", "guidance_prompts", "record_keeping",
+                 "accessibility_presentation", "input_remapping", "matchmaking_search_priority"]
+      },
+      "uniqueItems": true
+    },
+    "notes": { "type": "string" }
+  }
+}

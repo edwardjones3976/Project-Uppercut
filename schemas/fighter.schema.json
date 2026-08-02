@@ -1,0 +1,189 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-02 19:34 UTC",
+    "end": "2026-08-02 19:34 UTC",
+    "procedure": "Director contribution-tagging procedure, adopted for Project Uppercut by Director override 2026-08-02 (see docs/decisions/0006)."
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/fighter.schema.json",
+  "title": "Fighter",
+  "description": "Authored fighter definition. Enforces PROJECT_RULES.md Rule 10 (attribute economy) structurally where JSON Schema can; the remaining Rule 10 laws are enforced by tools/uppercut_validate/attributes.py because they are cross-field.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "display_name",
+    "primary_stance",
+    "ambidextrous",
+    "attributes",
+    "compensations",
+    "traits",
+    "specials",
+    "ultimate",
+    "full_crowd_trait",
+    "vulnerabilities"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ring_name": {
+      "type": "string"
+    },
+    "fixture_kind": {
+      "description": "Generic sandbox fixtures are balance instruments, not roster characters (Decision 0005).",
+      "enum": [
+        "generic_test_fixture",
+        "roster_character"
+      ]
+    },
+    "primary_stance": {
+      "enum": [
+        "orthodox",
+        "southpaw"
+      ]
+    },
+    "ambidextrous": {
+      "type": "boolean",
+      "description": "Rule 15: a small, exclusive set. Ambidexterity removes stance-familiarity penalty only; it grants no universal superiority."
+    },
+    "stance_familiarity_penalties": {
+      "description": "Rule 15: authored per fighter, applied when operating outside the stated stance. Required unless ambidextrous. Values are tuning hypotheses (Rule 18).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accuracy": {
+          "type": "number"
+        },
+        "power_transfer": {
+          "type": "number"
+        },
+        "defensive_familiarity": {
+          "type": "number"
+        },
+        "combination_fluency": {
+          "type": "number"
+        },
+        "stamina_efficiency": {
+          "type": "number"
+        },
+        "recovery_quality": {
+          "type": "number"
+        }
+      }
+    },
+    "attributes": {
+      "type": "object",
+      "description": "Rule 10: internal attributes range -100..+100, zero is balance. Keys must exist in data/attribute_families.json.",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": -100,
+        "maximum": 100
+      }
+    },
+    "compensations": {
+      "type": "array",
+      "description": "Rule 10 requires compensating relationships to be EXPLICIT DATA. Each entry declares which positive attribute pays for which severe negative. See docs/phase0/open_questions.md OQ-1 for exclusive-vs-shared binding.",
+      "items": {
+        "type": "object",
+        "required": [
+          "negative",
+          "positive"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "negative": {
+            "type": "string"
+          },
+          "positive": {
+            "type": "string"
+          },
+          "rationale": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "severe_negative_consequences": {
+      "type": "array",
+      "description": "Rule 10: severe negatives must cause visible gameplay consequences. One entry required per attribute below -40.",
+      "items": {
+        "type": "object",
+        "required": [
+          "attribute",
+          "visible_consequence"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "attribute": {
+            "type": "string"
+          },
+          "visible_consequence": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "traits": {
+      "type": "array",
+      "description": "Rule 11: a complete fighter should have at least fifteen meaningful traits. Generic test fixtures are exempt (enforced in the validator by fixture_kind).",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "specials": {
+      "type": "array",
+      "description": "Rule 11: exactly two counterable Specials for a complete fighter.",
+      "items": {
+        "$ref": "https://project-uppercut.local/schemas/ability.schema.json"
+      }
+    },
+    "ultimate": {
+      "description": "Rule 11: exactly one powerful but counterable Ultimate. Never an automatic match end.",
+      "oneOf": [
+        {
+          "$ref": "https://project-uppercut.local/schemas/ability.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "full_crowd_trait": {
+      "description": "Rule 12: one distinctive Full-Crowd Trait. At a full Crowd Bar the fighter chooses Ultimate OR Full-Crowd Trait; one completed bar cannot activate both.",
+      "oneOf": [
+        {
+          "$ref": "https://project-uppercut.local/schemas/ability.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "vulnerabilities": {
+      "type": "array",
+      "description": "Rule 11: visible strengths and vulnerabilities preserving matchup counterplay.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "contribution": {
+      "type": "object",
+      "description": "Identifying contribution tag (Director procedure). Permitted on data files because JSON cannot carry comments."
+    }
+  }
+}

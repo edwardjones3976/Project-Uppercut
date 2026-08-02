@@ -1,0 +1,152 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-02 19:34 UTC",
+    "end": "2026-08-02 19:34 UTC"
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/referee_profile.schema.json",
+  "title": "Referee Profile",
+  "description": "Rule 16. MINIMUM Phase 0 contract sufficient for Phase 1A provisioning (T1.4 asks the Director whether full profiles land in Phase 0 or during Phase 1A). The referee SYSTEM is canonical and not pending.",
+  "type": "object",
+  "required": [
+    "id",
+    "display_name",
+    "competitive",
+    "disclosed_before_match",
+    "enforcement",
+    "prohibitions_acknowledged"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "contribution": {
+      "type": "object"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "competitive": {
+      "type": "boolean",
+      "description": "false marks the non-Ranked comic-relief official."
+    },
+    "ranked_eligible": {
+      "type": "boolean"
+    },
+    "disclosed_before_match": {
+      "const": true
+    },
+    "enforcement": {
+      "type": "object",
+      "description": "Enforcement philosophy only. Tendencies are authored; they may not become a third fighter.",
+      "additionalProperties": false,
+      "properties": {
+        "clinch_tolerance": {
+          "enum": [
+            "low",
+            "moderate",
+            "high",
+            "very_high"
+          ]
+        },
+        "inside_work_tolerance": {
+          "enum": [
+            "low",
+            "moderate",
+            "high",
+            "very_high"
+          ]
+        },
+        "warning_threshold": {
+          "enum": [
+            "early",
+            "standard",
+            "late",
+            "very_late"
+          ]
+        },
+        "deduction_threshold": {
+          "enum": [
+            "early",
+            "standard",
+            "late",
+            "very_late"
+          ]
+        },
+        "injury_monitoring": {
+          "enum": [
+            "standard",
+            "elevated",
+            "safety_specialist"
+          ]
+        },
+        "communication_style": {
+          "enum": [
+            "minimal",
+            "standard",
+            "instructional"
+          ]
+        },
+        "stoppage_disposition": {
+          "enum": [
+            "permissive",
+            "standard",
+            "protective"
+          ]
+        }
+      }
+    },
+    "universal_minimums": {
+      "type": "object",
+      "description": "Rule 16: binding on EVERY official including the comic-relief one.",
+      "additionalProperties": false,
+      "properties": {
+        "obeys_authoritative_knockdown_count": {
+          "const": true
+        },
+        "obeys_medical_and_incapacitation_minimums": {
+          "const": true
+        },
+        "obeys_serious_foul_standards": {
+          "const": true
+        },
+        "applies_one_profile_to_both_fighters": {
+          "const": true
+        },
+        "uses_observable_evidence_only": {
+          "const": true
+        },
+        "major_decisions_replay_explainable": {
+          "const": true
+        }
+      }
+    },
+    "prohibitions_acknowledged": {
+      "type": "array",
+      "description": "Rule 16: referees may not alter these.",
+      "items": {
+        "enum": [
+          "punch_damage",
+          "stamina",
+          "collision_classification",
+          "crowd_gain",
+          "fighter_attributes",
+          "input_responsiveness",
+          "judging_criteria",
+          "official_scores"
+        ]
+      },
+      "minItems": 8
+    },
+    "$descriptor": {
+      "type": "string"
+    },
+    "$note": {
+      "type": "string"
+    }
+  }
+}

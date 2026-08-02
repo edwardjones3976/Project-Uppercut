@@ -1,0 +1,41 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-02 19:52 UTC",
+    "end": "2026-08-02 19:52 UTC"
+  },
+  "id": "darius_cole",
+  "display_name": "Darius Cole",
+  "competitive": true,
+  "ranked_eligible": true,
+  "disclosed_before_match": true,
+  "enforcement": {
+    "clinch_tolerance": "high",
+    "inside_work_tolerance": "very_high",
+    "warning_threshold": "late",
+    "deduction_threshold": "standard",
+    "injury_monitoring": "standard",
+    "communication_style": "minimal",
+    "stoppage_disposition": "standard"
+  },
+  "universal_minimums": {
+    "obeys_authoritative_knockdown_count": true,
+    "obeys_medical_and_incapacitation_minimums": true,
+    "obeys_serious_foul_standards": true,
+    "applies_one_profile_to_both_fighters": true,
+    "uses_observable_evidence_only": true,
+    "major_decisions_replay_explainable": true
+  },
+  "prohibitions_acknowledged": [
+    "punch_damage",
+    "stamina",
+    "collision_classification",
+    "crowd_gain",
+    "fighter_attributes",
+    "input_responsiveness",
+    "judging_criteria",
+    "official_scores"
+  ],
+  "$descriptor": "inside-work tolerance"
+}

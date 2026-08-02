@@ -1,0 +1,21 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:34 UTC", "end": "2026-08-02 19:34 UTC" },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/style_stress_profile.schema.json",
+  "title": "Style Stress Profile",
+  "description": "Rule 21 / ROADMAP Phase 1A. Balance INSTRUMENTS, not roster classes and not permanent character archetypes (Decision 0005).",
+  "type": "object",
+  "required": ["id", "label", "win_condition", "risk_condition", "counterplay", "readable_signals"],
+  "additionalProperties": false,
+  "properties": {
+    "contribution": { "type": "object" },
+    "id": { "enum": ["rusher", "drainer", "technician", "counterpuncher", "showman", "power_threat"] },
+    "label": { "type": "string" },
+    "instrument_only": { "const": true },
+    "win_condition": { "type": "string", "minLength": 1 },
+    "risk_condition": { "type": "string", "minLength": 1 },
+    "counterplay": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "readable_signals": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "gate_test": { "enum": ["first_bell_firestorm", "long_drain", "none"] }
+  }
+}

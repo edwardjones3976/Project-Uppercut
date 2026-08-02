@@ -1,0 +1,17 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:52 UTC", "end": "2026-08-02 19:52 UTC" },
+  "$comment": "PROJECT_RULES.md Rule 6. Bonuses for successfully following valid advice must remain small, bounded, non-stackable and resistant to farming.",
+  "schema_version": "0.1.0-draft",
+  "reliability_order": ["corner", "commentary", "crowd"],
+  "max_direct_combat_benefit_per_round_pct": 3.0,
+  "recommended_benefit_band_pct": [2.0, 3.0],
+  "stackable": false,
+  "eligibility_influences": ["ring_awareness", "coachability", "corner_chemistry"],
+  "prohibitions": [
+    "uses_official_score_information",
+    "stacking_multiple_sources_in_one_round",
+    "farmable_by_repetition",
+    "unbounded_benefit"
+  ],
+  "$note": "The 2-3% figure is quoted from Rule 6 as an approximate ceiling. Any concrete per-round value remains a tuning hypothesis until validated (Rule 18)."
+}

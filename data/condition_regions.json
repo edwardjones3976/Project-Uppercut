@@ -1,0 +1,119 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-02 19:34 UTC",
+    "end": "2026-08-02 19:34 UTC",
+    "procedure": "Director contribution-tagging procedure, adopted for Project Uppercut by Director override 2026-08-02 (see docs/decisions/0006)."
+  },
+  "$comment": "Runtime per-bout condition state. PROJECT_RULES.md Rule 14 requires combat condition to distinguish at least these regions; a single generic health bar is prohibited.",
+  "schema_version": "0.1.0-draft",
+  "regions": [
+    {
+      "key": "head",
+      "rule14_required": true,
+      "localized": false
+    },
+    {
+      "key": "jaw_chin",
+      "rule14_required": true,
+      "localized": false
+    },
+    {
+      "key": "eye_left",
+      "rule14_required": true,
+      "localized": true,
+      "side": "left",
+      "effects": [
+        "accuracy",
+        "tracking",
+        "side_specific_recognition",
+        "counter_timing",
+        "distance_judgement",
+        "cpu_decision_quality",
+        "doctor_confidence"
+      ]
+    },
+    {
+      "key": "eye_right",
+      "rule14_required": true,
+      "localized": true,
+      "side": "right",
+      "effects": [
+        "accuracy",
+        "tracking",
+        "side_specific_recognition",
+        "counter_timing",
+        "distance_judgement",
+        "cpu_decision_quality",
+        "doctor_confidence"
+      ]
+    },
+    {
+      "key": "torso_upper",
+      "rule14_required": true,
+      "localized": false
+    },
+    {
+      "key": "torso_lower",
+      "rule14_required": true,
+      "localized": false
+    },
+    {
+      "key": "arm_left",
+      "rule14_required": true,
+      "localized": true,
+      "side": "left"
+    },
+    {
+      "key": "arm_right",
+      "rule14_required": true,
+      "localized": true,
+      "side": "right"
+    },
+    {
+      "key": "stamina",
+      "rule14_required": true,
+      "localized": false
+    },
+    {
+      "key": "balance",
+      "rule14_required": true,
+      "localized": false
+    },
+    {
+      "key": "guard_integrity",
+      "rule14_required": true,
+      "localized": false
+    },
+    {
+      "key": "composure_state",
+      "rule14_required": true,
+      "localized": false,
+      "governed_by_attribute": "composure"
+    },
+    {
+      "key": "chin_state",
+      "rule14_required": true,
+      "localized": false,
+      "governed_by_attribute": "chin"
+    },
+    {
+      "key": "durability_state",
+      "rule14_required": true,
+      "localized": false,
+      "governed_by_attribute": "durability"
+    },
+    {
+      "key": "recovery_state",
+      "rule14_required": true,
+      "localized": false,
+      "governed_by_attribute": "recovery"
+    }
+  ],
+  "prohibitions": [
+    "No single generic health bar may replace these regions (Rule 14).",
+    "Eye damage must not reverse controls, discard physically correct contact, or rely on extreme visual blur (Rule 14).",
+    "Chin at +100 is maximum authored resistance, never immunity; no flat random knockout chance may be applied to every punch (Rule 14)."
+  ]
+}

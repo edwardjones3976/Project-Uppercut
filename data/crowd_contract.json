@@ -1,0 +1,34 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:52 UTC", "end": "2026-08-02 19:52 UTC" },
+  "$comment": "PROJECT_RULES.md Rule 12 and PROJECT_NOTES.md 'Crowd system', expressed as checkable data. The Crowd Bar is presentation and an earned character resource - never a secret judge or rubber-band system.",
+  "schema_version": "0.1.0-draft",
+  "resource_name": "Crowd Bar",
+  "rewardable_behaviour": [
+    "clean_offense", "defense", "evasions", "counters", "reversals",
+    "combinations", "variety", "ringcraft", "appropriate_showmanship",
+    "high_risk_success", "momentum_changing_sequences"
+  ],
+  "insufficient_behaviour": {
+    "$comment": "Notes: raw activity, repeated safe actions and low-risk meter farming are NOT sufficient Crowd behaviour.",
+    "keys": ["raw_activity", "repeated_safe_actions", "low_risk_meter_farming"]
+  },
+  "full_bar": {
+    "choice": ["ultimate", "full_crowd_trait"],
+    "exclusive": true,
+    "$comment": "One completed bar cannot activate both (Rule 12)."
+  },
+  "prohibitions": [
+    "read_official_scores",
+    "alter_official_scores",
+    "change_judging_criteria",
+    "hidden_generic_damage_multiplier",
+    "hidden_generic_defense_multiplier",
+    "hidden_generic_speed_multiplier",
+    "hidden_generic_stamina_multiplier",
+    "hidden_generic_comeback_multiplier",
+    "reward_low_risk_meter_farming",
+    "override_contact_truth",
+    "override_injury_truth",
+    "override_stamina_truth"
+  ]
+}

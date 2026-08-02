@@ -1,0 +1,9 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:34 UTC", "end": "2026-08-02 19:34 UTC" },
+  "id": "rusher", "label": "Rusher", "instrument_only": true,
+  "win_condition": "Effective pressure: pace, volume discipline, ring cutting, bodywork, corner pressure, momentum, and forced mistakes.",
+  "risk_condition": "Inaccuracy, repetition, poor spacing, overcommitment, wasted stamina, and failure to reset.",
+  "counterplay": ["lateral movement and pivots off the cut angle", "counter windows on overcommitment", "body work to tax the pace", "clinch and reset against a spent burst"],
+  "readable_signals": ["closing stride compression", "volume cadence", "posture forward of the lead foot", "guard opening on entry"],
+  "gate_test": "first_bell_firestorm"
+}

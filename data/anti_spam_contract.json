@@ -1,0 +1,22 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:52 UTC", "end": "2026-08-02 19:52 UTC" },
+  "$comment": "PROJECT_RULES.md Rule 4. The governing principle: a predictable action becomes punishable because of observable pattern recognition, stamina, position, commitment, defense and counterplay - NOT because the game secretly decides that repetition is prohibited.",
+  "schema_version": "0.1.0-draft",
+  "legitimate_repetition": "Repetition remains valid when tactically earned and unanswered.",
+  "targeted_abuse": [
+    "one_move_loops", "safe_animation_abuse", "stun_loops", "clinch_abuse",
+    "excessive_running", "passive_blocking_abuse", "meter_farming"
+  ],
+  "required_consequences": {
+    "$comment": "Exploitative behaviour must become all four of these, through shared boxing logic.",
+    "keys": ["readable", "tiring", "positionally_costly", "counterable"]
+  },
+  "permitted_punishment_mechanisms": [
+    "observable_pattern_recognition", "stamina", "position",
+    "commitment", "defense", "counterplay"
+  ],
+  "prohibited_punishment_mechanisms": [
+    "hidden_punishment", "impossible_reaction_speed", "privileged_inputs", "official_score_knowledge"
+  ],
+  "symmetry": "The same recognition and consequence rules apply to human and CPU-controlled fighters."
+}

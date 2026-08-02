@@ -1,0 +1,32 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:34 UTC", "end": "2026-08-02 19:34 UTC" },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/match_result.schema.json",
+  "title": "Match Result",
+  "type": "object",
+  "required": ["bout_id", "seed", "outcome", "cards_sealed_until", "event_log_ref"],
+  "additionalProperties": false,
+  "properties": {
+    "bout_id": { "type": "string" },
+    "seed": { "type": "integer", "description": "T4.A: same seed plus same authoritative initial state must reproduce the same authoritative event log (deterministic resimulation)." },
+    "initial_state_hash": { "type": "string" },
+    "event_log_hash": { "type": "string", "description": "Determinism regression anchor." },
+    "outcome": {
+      "type": "object",
+      "required": ["method"],
+      "additionalProperties": false,
+      "properties": {
+        "method": { "enum": ["ko", "tko", "technical_decision", "unanimous_decision", "split_decision", "majority_decision", "draw", "technical_draw", "disqualification", "no_contest"] },
+        "winner": { "type": ["string", "null"] },
+        "round": { "type": "integer" },
+        "time_display_ms": { "type": "integer" }
+      }
+    },
+    "cards_sealed_until": {
+      "enum": ["archival_reveal", "not_applicable_early_stoppage"],
+      "description": "Rule 3: early stoppages terminate scoring; partial cards remain sealed during the immediate result, quick-menu and statistics flow, with an optional later archival reveal."
+    },
+    "event_log_ref": { "type": "string" },
+    "statistics": { "type": "object" }
+  }
+}

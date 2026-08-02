@@ -1,0 +1,132 @@
+[
+  {
+    "seq": 0,
+    "tick": 0,
+    "clock": {
+      "round": 1,
+      "display_ms": 0,
+      "real_ms": 0,
+      "segment": "round"
+    },
+    "type": "round_start",
+    "visibility": "observable",
+    "actor": "system"
+  },
+  {
+    "seq": 1,
+    "tick": 30,
+    "clock": {
+      "round": 1,
+      "display_ms": 500,
+      "real_ms": 292,
+      "segment": "round"
+    },
+    "type": "punch_thrown",
+    "visibility": "observable",
+    "actor": "red",
+    "target": "blue",
+    "payload": {
+      "move": "jab_lead"
+    }
+  },
+  {
+    "seq": 2,
+    "tick": 36,
+    "clock": {
+      "round": 1,
+      "display_ms": 600,
+      "real_ms": 350,
+      "segment": "round"
+    },
+    "type": "punch_outcome",
+    "visibility": "observable",
+    "actor": "red",
+    "target": "blue",
+    "payload": {
+      "contact": "blocked"
+    },
+    "explains": [
+      1
+    ]
+  },
+  {
+    "seq": 3,
+    "tick": 37,
+    "clock": {
+      "round": 1,
+      "display_ms": 610,
+      "real_ms": 356,
+      "segment": "round"
+    },
+    "type": "guard_impact",
+    "visibility": "observable",
+    "actor": "blue",
+    "payload": {
+      "region": "arm_left"
+    },
+    "explains": [
+      2
+    ]
+  },
+  {
+    "seq": 4,
+    "tick": 40,
+    "clock": {
+      "round": 1,
+      "display_ms": 700,
+      "real_ms": 408,
+      "segment": "round"
+    },
+    "type": "cpu_decision",
+    "visibility": "observable",
+    "actor": "red",
+    "payload": {
+      "chosen_action": "body_hook_lead",
+      "observed_evidence": [
+        2,
+        3
+      ],
+      "estimate": {
+        "belief": "lead-side guard weakening",
+        "confidence": 0.4,
+        "uncertainty_note": "visible reactions only"
+      },
+      "alternatives_considered": [
+        "reset_to_mid_range"
+      ],
+      "forbidden_inputs_assertion": "no_official_score_no_opponent_input_no_privileged_state"
+    },
+    "explains": [
+      3
+    ]
+  },
+  {
+    "seq": 5,
+    "tick": 9000,
+    "clock": {
+      "round": 1,
+      "display_ms": 180000,
+      "real_ms": 105000,
+      "segment": "round"
+    },
+    "type": "judge_round_card",
+    "visibility": "sealed",
+    "actor": "judge_1",
+    "payload": {
+      "round": 1
+    }
+  },
+  {
+    "seq": 6,
+    "tick": 9001,
+    "clock": {
+      "round": 1,
+      "display_ms": 180000,
+      "real_ms": 105000,
+      "segment": "round"
+    },
+    "type": "round_end",
+    "visibility": "observable",
+    "actor": "system"
+  }
+]

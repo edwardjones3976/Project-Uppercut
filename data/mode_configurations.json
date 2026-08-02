@@ -1,0 +1,35 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:52 UTC", "end": "2026-08-02 19:52 UTC" },
+  "$comment": "PROJECT_RULES.md Rule 5 and PROJECT_PLAN.md PO5. One combat system for every player and mode. A mode is a DECLARED CONFIGURATION over that one system, never a second engine. This file is the whitelist the validator enforces.",
+  "schema_version": "0.1.0-draft",
+  "permitted_configuration_surfaces": [
+    "instruction", "presentation", "demonstration", "repetition",
+    "drill_conditions", "opponent_cooperation", "feedback",
+    "guidance_prompts", "record_keeping", "accessibility_presentation",
+    "input_remapping", "matchmaking_search_priority"
+  ],
+  "prohibited_configuration_surfaces": [
+    "physics", "damage", "scoring", "move_availability", "combat_rules",
+    "stamina_rules", "collision_classification", "judging_criteria",
+    "hidden_beginner_damage_reduction", "rubber_banding",
+    "score_driven_comeback_assistance", "secret_stamina_assistance",
+    "restricted_advanced_mechanics", "selective_input_forgiveness_that_changes_outcomes",
+    "named_experience_tier_system", "separate_progression_ladder"
+  ],
+  "modes": [
+    { "id": "cpu_vs_cpu", "phase": 1, "configures": ["presentation"], "notes": "First development priority and a first-class way to experience the game." },
+    { "id": "human_vs_cpu", "phase": 2, "configures": ["presentation", "guidance_prompts", "accessibility_presentation", "input_remapping"] },
+    { "id": "training", "phase": 2, "configures": ["instruction", "presentation", "demonstration", "repetition", "drill_conditions", "opponent_cooperation", "feedback", "record_keeping"],
+      "notes": "Training changes instruction, presentation, repetition and practice conditions - not the underlying rules of boxing or combat (Rule 5)." },
+    { "id": "human_vs_human", "phase": 3, "configures": ["accessibility_presentation", "input_remapping"] },
+    { "id": "online_ranked", "phase": 4, "configures": ["matchmaking_search_priority", "accessibility_presentation", "input_remapping"] },
+    { "id": "online_casual", "phase": 4, "configures": ["matchmaking_search_priority", "accessibility_presentation", "input_remapping"] }
+  ],
+  "accessibility_test": "Universal remapping, readable feedback, consistent input buffering and accessibility options remain valid when equally available and competitively truthful (Rule 5).",
+  "training_module_requirements": [
+    "focus_one_mechanic_or_close_group", "explain_objective_concisely", "demonstrate_the_mechanic",
+    "provide_guided_practice", "measure_successful_execution", "offer_immediate_truthful_feedback",
+    "allow_repetition_without_record_penalties", "connect_skill_to_real_match_situations",
+    "support_optional_review_without_manufacturing_competitive_success"
+  ]
+}

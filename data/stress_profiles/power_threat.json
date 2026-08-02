@@ -1,0 +1,9 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:34 UTC", "end": "2026-08-02 19:34 UTC" },
+  "id": "power_threat", "label": "Power Threat", "instrument_only": true,
+  "win_condition": "Contact quality: force, placement and accumulated condition damage producing knockdowns and explainable stoppages.",
+  "risk_condition": "Commitment cost on blocked, dodged and whiffed power punches; stamina expense; predictability of the loading tell.",
+  "counterplay": ["movement off the power line", "counters into the loading window", "stamina taxation", "guard structure plus angle changes"],
+  "readable_signals": ["weight transfer and loading tell", "reduced volume with elevated commitment", "positional setup for the power hand"],
+  "gate_test": "none"
+}

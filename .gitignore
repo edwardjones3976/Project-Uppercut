@@ -1,0 +1,9 @@
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 20:23 UTC | START ]
+# Never commit: local parking folder, Python caches, OS noise.
+_to_delete/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+Thumbs.db
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 20:23 UTC | END ]

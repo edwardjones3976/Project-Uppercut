@@ -1,0 +1,9 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 19:34 UTC", "end": "2026-08-02 19:34 UTC" },
+  "id": "counterpuncher", "label": "Counterpuncher", "instrument_only": true,
+  "win_condition": "Punishing commitment: exploiting blocked, dodged and whiffed recovery windows with superior timing.",
+  "risk_condition": "Passivity when the opponent refuses to commit; losing exchanges initiated against them; waiting into a lost round.",
+  "counterplay": ["feints that spend their timing", "non-committal pressure that denies counter windows", "volume that saturates read timing"],
+  "readable_signals": ["reactive posture", "low initiation rate", "positioning at counter range", "guard held for return fire"],
+  "gate_test": "none"
+}

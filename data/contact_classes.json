@@ -1,0 +1,59 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-02 19:34 UTC",
+    "end": "2026-08-02 19:34 UTC",
+    "procedure": "Director contribution-tagging procedure, adopted for Project Uppercut by Director override 2026-08-02 (see docs/decisions/0006)."
+  },
+  "$comment": "PROJECT_RULES.md Rule 13. Ordering of commitment consequence is canonical: blocked < dodged < whiffed. Numerical values are TUNING HYPOTHESES ONLY and are deliberately absent (Rule 18).",
+  "schema_version": "0.1.0-draft",
+  "classes": [
+    {
+      "key": "clean",
+      "landed": true,
+      "commitment_tier": 0,
+      "note": "ordinary authored recovery and stamina cost"
+    },
+    {
+      "key": "solid",
+      "landed": true,
+      "commitment_tier": 0
+    },
+    {
+      "key": "grazed",
+      "landed": true,
+      "commitment_tier": 0,
+      "note": "reduced but potentially meaningful damage"
+    },
+    {
+      "key": "brushed",
+      "landed": true,
+      "commitment_tier": 0,
+      "note": "reduced but potentially meaningful damage"
+    },
+    {
+      "key": "blocked",
+      "landed": false,
+      "commitment_tier": 1,
+      "note": "prevents clean contact, does not erase consequence; damages arms and guard structure over time"
+    },
+    {
+      "key": "dodged",
+      "landed": false,
+      "commitment_tier": 2,
+      "note": "punishes commitment more than blocked"
+    },
+    {
+      "key": "whiffed",
+      "landed": false,
+      "commitment_tier": 3,
+      "note": "empty space; greatest stamina and counter vulnerability"
+    }
+  ],
+  "invariants": [
+    "commitment_tier must be strictly increasing across blocked -> dodged -> whiffed (Rule 13).",
+    "A visible miss may never be classified as a clean hit (Rule 13).",
+    "Movement into a punch may increase consequence; movement away may reduce it (Rule 14)."
+  ]
+}

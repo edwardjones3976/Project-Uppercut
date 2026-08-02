@@ -1,0 +1,23 @@
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | START ]
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  phase0-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install tooling dependencies
+        run: pip install jsonschema referencing pytest
+      - name: Canonical data, schema and Rule 10 test suite
+        run: python3 -m pytest -q
+      - name: Rule validators (fighters, score isolation, data laws, budget)
+        run: python3 -m tools.uppercut_validate.cli all
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | END ]
