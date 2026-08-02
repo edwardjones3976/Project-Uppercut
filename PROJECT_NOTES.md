@@ -24,9 +24,21 @@ The game is:
 - **competitive and skill-based**, without isolating advanced players in a separate combat system;
 - **character-driven**, without copying existing fighters, games, likenesses, animations, commentary, branding, or protected intellectual property.
 
-The intended feel is:
+The governing feel statement is:
 
-> **Arcade boxing with real boxing bones: responsive, visually energetic, funny, explainable, and deep enough to reward sustained mastery.**
+> **Project Uppercut is arcade boxing with real boxing bones: instantly responsive, visually fast, genuinely funny, competitively fair, and much deeper than it initially appears.**
+
+The production feel priority is fixed:
+
+1. impressively responsive;
+2. visually fast;
+3. fun and funny;
+4. accurate in boxing logic;
+5. enjoyable across repeated matches;
+6. steady-paced;
+7. secretly layered with boxing idioms and advanced Ringcraft.
+
+Responsiveness means inputs, movement, defense, attacks, commitment, and return of control remain consistent and understandable. Visual speed may come from animation, camera, effects, audio, crowd energy, and presentation, but it may not erase readable cause and effect. Fun means immediate excitement, personality, comedy, impact, and memorable moments. Enjoyable means the game remains worth playing across several matches without unfairness, exhaustion, or unexplained failure. Accuracy means boxing-logic accuracy: range, foot position, bodywork, predictability, counters, pressure, recovery, and ring position matter even when the presentation is exaggerated. Steady pacing means fights breathe through observation, engagement, exchange, reset, pressure, punishment, and momentum change rather than permanent chaos.
 
 ## First-class operating model
 
@@ -55,6 +67,21 @@ The fixed development order is:
 
 Career Mode, Story Mode, and every career-related system are deferred to the next version and remain its lowest priority. Version 1 must not depend on them.
 
+## Prototype separation
+
+The first technical sandbox and first character-complete vertical slice are separate milestones.
+
+The generic technical sandbox validates combat states, movement and facing, camera behavior, animation state, collision truth, basic punches, guard and evasion, stamina and condition, knockdowns and recovery, CPU decision-making, deterministic simulation logging, Crowd Bar architecture, and ability architecture.
+
+Counterplay exists from the first punch. Every attack defines startup, active contact, recovery, range, stamina cost, guard interaction, hit reaction, counter vulnerability, and positional consequence before character-specific abilities are added.
+
+After the generic sandbox passes its quality gate, the first character-complete vertical slice uses:
+
+- **Adewale “The Fine Print” Balogun**, testing timing, Ringcraft, range, structure, counters, and pattern recognition;
+- **Calvin “The Host” Givens**, testing speed, Combinations, Showmanship, evasive exits, and crowd generation.
+
+This separation allows the project to distinguish shared-system faults from character-specific faults.
+
 ## One system for everyone
 
 Project Uppercut uses one underlying combat system for:
@@ -72,9 +99,21 @@ There are no separate “First Bell,” “Club Fighter,” beginner, intermedia
 
 Training Mode breaks mechanics into concise, coherent chunks. It may adjust prompts, demonstration, repetition, drill conditions, opponent cooperation, and feedback, but it does not create different physics, damage, scoring, move availability, or competitive rules.
 
-Once a player enters head-to-head or online competition, the complete game is active. Competitive play has no hidden beginner damage reduction, rubber-banding, secret stamina help, score-based comeback assistance, or selective input forgiveness that changes outcomes.
+Version 1 develops players through Training Mode, CPU sparring, Human vs. CPU, demonstrations, drills, truthful feedback, replay, and fight analysis. Career Mode and Story Mode may deepen player development in the later version where they belong.
+
+Once a player enters head-to-head or online competition, the complete game is active. Competitive play has no hidden beginner damage reduction, rubber-banding, secret stamina help, score-based comeback assistance, restricted advanced mechanics, or selective input forgiveness that changes outcomes.
 
 Universal remapping, readable feedback, consistent input buffering, and accessibility options remain valid when equally available and competitively truthful.
+
+## Competitive challenge distribution
+
+Online matchmaking should provide a fair spread of challenges rather than permanently isolating players by skill.
+
+Beginners should not be abandoned to endless hopeless fights, and advanced players should not be quarantined into facing only advanced players. Over time, players should encounter easier, comparable, and harder opposition while the combat rules remain unchanged.
+
+Matchmaking and mode design may reduce repeated extreme mismatches and deliberate beginner farming. They may not grant hidden gameplay advantages, alter the unified combat system, or guarantee equal ratings in every match.
+
+Advanced players succeed through knowledge, timing, spacing, mechanical execution, adaptation, stamina management, matchup understanding, and Ringcraft. Beginners are expected to develop those same abilities through the game’s training and CPU systems.
 
 ## Roster and fighter structure
 
@@ -95,6 +134,29 @@ Fighters may share some traits, but duplication should be limited enough for eac
 
 The attribute system remains centered from -100 to +100, with zero representing balance. Advantages require meaningful costs or disadvantages. No single overall number replaces the fighter’s actual profile.
 
+## Style viability
+
+Project Uppercut must allow polar-opposite styles to win without allowing either extreme to become the only correct strategy.
+
+Two explicit stress cases are required:
+
+- an opening-bell aggressor capable of winning through effective pressure;
+- a low-action stamina controller capable of extending the fight and punishing waste.
+
+> **The game punishes reckless aggression, not aggression; empty avoidance, not patience.**
+
+Every major style requires a win condition, risk condition, counterplay, and readable signals. Equal viability does not require every matchup to become exactly 50/50; it requires every style to retain a legitimate route to victory when executed with skill, mechanics, adaptation, and boxing logic.
+
+Aggression may win through pace, volume discipline, ring cutting, bodywork, corner pressure, momentum, and forced mistakes. Its risks come from inaccuracy, repetition, poor spacing, overcommitment, wasted stamina, and failure to reset.
+
+Patient or low-action fighting may win through distance, composure, created misses, counters, bodywork, recovery, rhythm disruption, and ring control. Avoidance alone does not win; it must create observable boxing advantage.
+
+Balance should emerge from reusable universal systems—commitment, contact classification, stamina, guard fatigue, bodywork, ring position, counter windows, repetition recognition, judging evidence, and Crowd rewards—rather than hidden character-specific rescue rules.
+
+Generic CPU stress profiles should include a Rusher, Drainer, Technician, Counterpuncher, Showman, and Power Threat before named roster balance is treated as proven.
+
+> **No style wins because the game favors the style. A style wins because the player or CPU executes its boxing logic better than the opponent solves it.**
+
 ## Crowd system
 
 The Crowd Bar rewards expressive and effective boxing, including:
@@ -106,11 +168,14 @@ The Crowd Bar rewards expressive and effective boxing, including:
 - combinations and variety;
 - Ringcraft;
 - appropriate Showmanship;
+- high-risk success;
 - momentum-changing sequences.
 
 At a full Crowd Bar, the fighter chooses between the Ultimate and the Full-Crowd Trait. The same completed bar cannot stack both.
 
-The crowd cannot read or alter official scorecards and cannot provide a generic hidden damage, speed, defense, or comeback multiplier. Crowd behavior is presentation and an earned character resource—not a secret judge or rubber-band system.
+The crowd cannot read or alter official scorecards and cannot provide a generic hidden damage, speed, defense, stamina, judging, or comeback multiplier. Crowd behavior is presentation and an earned character resource—not a secret judge or rubber-band system.
+
+Raw activity, repeated safe actions, and low-risk meter farming are not sufficient Crowd behavior.
 
 ## Combat truth
 
@@ -229,9 +294,22 @@ Comedy must not require cultural disrespect, demographic stereotypes, protected-
 
 ## Technical and production position
 
-Unreal Engine, Blueprints, C++, Python tooling, GitHub, Blender, licensed general-purpose assets, and modular production remain proposed foundations until validated.
+Project Uppercut uses a modular, original, Unreal-first strategy.
 
-Reusable tools and licensed assets may accelerate development. Project Uppercut’s characters, mechanics, tuning, branding, writing, finished presentation, and project-specific code remain original.
+The accepted default production baseline is:
+
+- Unreal Engine;
+- Blueprints for early prototyping and rapid iteration;
+- Python for data generation, validation, simulation analysis, telemetry, balance reports, asset utilities, and automation;
+- C++ later for performance-critical, deterministic, networking, or architecture-heavy systems when justified;
+- GitHub for version control;
+- Blender and properly licensed assets for content production and modification.
+
+C# has no meaningful role unless the project changes to Unity.
+
+Reusable tools and licensed assets may accelerate development. Every asset requires a compatibility audit covering license, modification rights, skeleton, retargeting, root motion, performance, network suitability, visual consistency, engine support, and maintainability.
+
+Project Uppercut’s characters, mechanics, tuning, branding, writing, finished presentation, and project-specific code remain original.
 
 Current repository status is preproduction and requirements consolidation. Design documentation is not evidence of implemented code, finished assets, successful tests, or a playable build.
 
