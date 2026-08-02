@@ -9,19 +9,38 @@
 > nobody runs would be exactly the unevidenced claim Rule 18 prohibits.
 
 Per Decision 0002 and PROJECT_RULES.md Rule 22, the accepted production strategy is modular,
-original and Unreal-first. This document is the pinned-versions record the ROADMAP requires. **The
-version numbers are blank on purpose** — pinning a version the Director has not installed would be a
-claim without evidence (Rule 18).
+original and Unreal-first. This document is the pinned-versions record the ROADMAP requires. **Unfilled
+version fields stay blank on purpose** — pinning a version the Director has not installed would be a
+claim without evidence (Rule 18). The Unreal Engine and launcher fields were filled 2026-08-02 from the
+actual installed build; evidence below.
 
 | Layer | Accepted role | Version | Status |
 |---|---|---|---|
-| Unreal Engine | Default engine, subject to technical-sandbox validation | *pinned at first install* | procedure ruled (D-7) |
+| Unreal Engine | Default engine, subject to technical-sandbox validation | **5.8.1** (CL 56057345, `++UE5+Release-5.8`) | **pinned from installed build** 2026-08-02 |
+| Epic Games Launcher | Engine distribution and updates | **20.1.7-0+UE5** | installed 2026-08-02 |
 | Blueprints | Early prototyping and rapid iteration | (engine) | accepted |
-| Python | Design-data generation, validation, simulation analysis, telemetry, balance reports, asset utilities, automation | 3.11+ (tooling built and tested on 3.11) | in use |
+| Python | Design-data generation, validation, simulation analysis, telemetry, balance reports, asset utilities, automation | 3.11 (CI) / 3.14.5 (Windows host); suite green on both 2026-08-02 | in use |
 | C++ | Later, where performance, determinism, networking or architecture requires it | (engine toolchain) | accepted, not yet triggered |
 | C# | No meaningful role unless the engine changes to Unity | — | excluded |
 | GitHub | Version control | — | in use |
 | Blender | Content production and modification | *pinned at first install* | procedure ruled (D-7) |
+
+## D-7 evidence — first engine install (2026-08-02)
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 23:10 UTC | edit: D-7 engine stamp ] -->
+
+Read from the machine, not assumed (Rule 18):
+
+- `C:\Program Files\Epic Games\UE_5.8\Engine\Build\Build.version` → **5.8.1**, Changelist **56057345**,
+  branch `++UE5+Release-5.8`, promoted build.
+- `UnrealEditor.exe` version resource → `++UE5+Release-5.8-CL-56057345`.
+- Epic Games Launcher (Portal binary) → `20.1.7-0+UE5`.
+- Install size on disk ≈ 29.9 GB; 694 GB free.
+
+D-7's letter couples the stamp to the commit that creates the Unreal project; the engine is installed
+and verified but the `sandbox/` project is not yet created (runbook step 5 — a Director click). The
+stamp is recorded now against install evidence so this baseline never lags reality; the
+project-creation commit completes the D-7 procedure. Blender remains unpinned until its own install.
 
 ## Python tooling dependencies
 

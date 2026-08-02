@@ -8,9 +8,11 @@
 > [Decision 0008](../decisions/0008-team-governance.md). Rulings are recorded rather than applied
 > silently so each stays visible, attributable and reversible.
 >
-> **The gate itself is not yet closed.** Gate items 3, 5 and 6 are *satisfied pending repository
-> evidence*: the foundation still lives on one disk, and closing a gate against unpushed files would
-> violate Rule 18. See `_to_delete/PUSH_FOUNDATION.md`.
+> **The gate closed later the same day.** The foundation was pushed (`9e5b4c7`), items 3, 5 and 6
+> flipped to met on repository evidence, and `phase0_status.md` records the pass. This packet remains
+> as the review record. D-7's engine half resolved with the UE 5.8.1 install — see
+> `technical_baseline.md`.
+> <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 23:10 UTC | edit: close-out note ] -->
 
 Sprint B preparation per PROJECT_PLAN.md §5 and §8, and risk mitigation R2/R8: every outstanding
 decision arrives here with a written default, so one short Director sitting can close the whole gate.
@@ -77,6 +79,10 @@ range caps beyond Rule 10's global ones.
 ### D-7 — Unreal and Blender version pins *(cannot default — needs your installed versions)*
 `docs/phase0/technical_baseline.md` has blank version fields on purpose: pinning a version you don't
 run would be a Rule 18 violation. Reply with the UE and Blender versions to pin.
+
+**RESOLVED (UE half) 2026-08-02 23:10 UTC:** Unreal Engine **5.8.1** (CL 56057345) and launcher
+20.1.7-0+UE5 installed and pinned from the machine's own `Build.version` — see the D-7 evidence block
+in `technical_baseline.md`. Blender stays open until its own install.
 
 ### D-8 — Agent ownership and team governance *(cannot default — Decision 0005 rejected the imported
 split; Decision 0006 deliberately did not adopt one on inference)*

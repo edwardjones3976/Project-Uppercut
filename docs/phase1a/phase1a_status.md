@@ -27,7 +27,10 @@ Steps 2 and later increasingly require the Unreal sandbox project. Per Decision 
 tool versions are pinned from the actual installed build at first engine setup - a Director action.
 Definitions-level work (schemas, contracts, validators) may continue ahead of it where honest.
 The Director click-path for first engine setup is `docs/phase1a/engine_setup_runbook.md`; the
-2026-08-02 machine audit found no Epic Games Launcher or Unreal Engine installed.
+2026-08-02 machine audit found no Epic Games Launcher or Unreal Engine installed. Later that day the
+install completed: **UE 5.8.1** (CL 56057345) is on the machine and pinned in
+`docs/phase0/technical_baseline.md`. The remaining Director click is runbook step 5 — create the
+`UppercutSandbox` Blueprint project at `sandbox/`.
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 22:16 UTC | edit: step 2 defined, runbook added ] -->
 
 ## Quality gate
