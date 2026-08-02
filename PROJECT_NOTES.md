@@ -1,6 +1,6 @@
 # Project Uppercut — Canonical Project Notes
 
-**Status:** Authoritative preproduction operating brief  
+**Status:** Authoritative operating brief (preproduction closed 2026-08-02; Phase 1A in progress)  
 **Last synchronized:** 2026-08-02 (America/Los_Angeles)  
 **Project shape:** **Product — Game / interactive software**  
 **Closest genre shape:** **Competitive character-based arcade-boxing simulation**
@@ -311,7 +311,11 @@ Reusable tools and licensed assets may accelerate development. Every asset requi
 
 Project Uppercut’s characters, mechanics, tuning, branding, writing, finished presentation, and project-specific code remain original.
 
-Current repository status is preproduction and requirements consolidation. Design documentation is not evidence of implemented code, finished assets, successful tests, or a playable build.
+Current repository status: preproduction closed with the Phase 0 quality gate passed on repository
+evidence; the validation toolchain (142 tests in CI) and Phase 1A combat-foundation definitions are in
+place, and a verified Unreal Engine 5.8.1 sandbox exists. Design documentation is still not evidence
+of implemented gameplay, finished assets, or a playable build — no playable boxing match is claimed.
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 23:40 UTC | edit: status sync only, no identity change ] -->
 
 ## Document authority and maintenance
 

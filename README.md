@@ -11,9 +11,16 @@ Project Uppercut is the working title for an original modern arcade-boxing game 
 
 ## Current status
 
-**Preproduction / requirements baseline**
+**Preproduction complete; Unreal sandbox established; Phase 1A combat foundations in progress**
 
-The repository currently documents the project’s canonical operating notes, binding rules, accepted decisions, roadmap, and recovered design history. No playable build or completed gameplay implementation is claimed yet.
+Preproduction closed 2026-08-02 with the Phase 0 quality gate passed on repository evidence
+([phase0_status](docs/phase0/phase0_status.md)). The repository carries the canonical operating notes,
+binding rules and decisions, the validation toolchain (schemas, contracts, validators, fixtures, 142
+tests in CI), Phase 1A definitions for combat states and movement/facing, and a verified Unreal Engine
+5.8.1 Blueprint sandbox (`sandbox/UppercutSandbox.uproject`, headless editor check: zero errors, zero
+warnings). **No playable boxing match or completed gameplay implementation is claimed yet** (Rule 18).
+The next in-engine task is deterministic fixed-tick resimulation validation (Decision 0002).
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 23:40 UTC | edit: status sync ] -->
 
 ## Core direction
 

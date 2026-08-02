@@ -8,10 +8,13 @@ system. Python 3.14.5 and git 2.55 present. The validation suite runs clean loca
 > **COMPLETED 2026-08-02.** Steps 1-4 by the Director (launcher + UE 5.8.1 installed, signed in,
 > EULA accepted). Steps 5-6 executed by agent under Decision 0009: `UppercutSandbox` created from
 > TP_Blank and verified headlessly (ResavePackages, result 0, zero errors/warnings). One first-boot
-> quirk worth remembering: Turnkey's `Build.bat -Mode=ValidatePlatforms` wedged on a stale
-> single-instance lock left by install-time tooling and ping-looped forever; killing that child
-> process unblocked the editor, which then completed normally. Harmless to project work — but if a
-> first boot ever hangs silently after `TurnkeySupport` loads, that is the place to look. This
+> quirk worth remembering: Turnkey's `Build.bat -Mode=ValidatePlatforms` ping-loops forever on every
+> editor boot from this harness. Diagnosis (2026-08-02): its inner setup fails before UnrealBuildTool
+> ever launches — no UBT log is ever created, while the bundled dotnet (10.0.203) runs fine standalone
+> — and Build.bat's retry design loops on the failure indefinitely. Remedy: kill the wedged `cmd.exe`
+> child; the editor proceeds and completes normally (verified twice, both runs exit 0, zero
+> errors/warnings). Harmless to all project work; revisit only if platform SDK validation ever
+> actually matters. If a boot hangs silently after `TurnkeySupport` loads, this is the place to look. This
 > runbook remains the reference for engine-version changes and the future Blender install.
 > <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 23:23 UTC | edit: completed ] -->
 
@@ -47,6 +50,10 @@ never guessed (Rule 18). Everything around those two moments is already prepared
 - Accept marketplace/content bundles during install; asset intake goes through the Rule 22
   compatibility audit, not the installer.
 - Enable engine auto-update once pinned. Version changes are decisions, not surprises.
+- Commit editor-generated credentials. First project load appends an AndroidFileServer section with a
+  generated `SecurityToken` to `DefaultEngine.ini`; that plugin is now disabled in the .uproject and
+  the committed token was removed (2026-08-02). Diff `sandbox/Config` after any editor session before
+  committing.
 
 ## Blender (also D-7)
 
