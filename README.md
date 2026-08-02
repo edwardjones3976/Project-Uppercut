@@ -7,6 +7,8 @@
 
 Project Uppercut is the working title for an original modern arcade-boxing game inspired by the energy and accessibility of classic arcade boxing. It is a **spiritual successor, not a literal clone**: fighters, commentators, arenas, music, artwork, animations, dialogue, interface, and code will be original.
 
+> **Project Uppercut is arcade boxing with real boxing bones: instantly responsive, visually fast, genuinely funny, competitively fair, and much deeper than it initially appears.**
+
 ## Current status
 
 **Preproduction / requirements baseline**
@@ -15,13 +17,16 @@ The repository currently documents the project’s canonical operating notes, bi
 
 ## Core direction
 
+- The production feel order is: impressively responsive, visually fast, fun and funny, boxing-logic accurate, enjoyable, steady-paced, and secretly layered with boxing idioms.
 - Comedy is the highest presentation priority, supported by mechanically truthful boxing.
 - The first functional and playable priority is a complete **CPU vs. CPU simulation foundation** using the same combat rules as every other mode.
 - Human vs. CPU is the second development priority.
 - Project Uppercut uses one unified combat system for children, beginners, experienced players, CPU fighters, and competitive play.
 - A modular Training Mode teaches concise mechanics in focused chunks without dividing players into artificial experience tiers.
-- Competitive play provides preparation without hidden beginner protection or weakened advanced mechanics.
+- Beginners receive preparation through training and CPU play, not hidden protection inside competition.
+- Head-to-head and online play use the complete combat system. Online matchmaking should provide a fair spread of easier, comparable, and harder challenges rather than permanently isolating skill groups.
 - Combat must be responsive, readable, strategic, explainable, and resistant to spam or hidden CPU advantages.
+- Effective aggression, patient stamina control, counterpunching, Ringcraft, power, speed, technique, and Showmanship must all retain fair routes to victory when executed skillfully.
 - The roster is coed, has no weight divisions, and is balanced through visible attributes, traits, abilities, strengths, and vulnerabilities.
 - Official judges’ scores remain isolated from fighters, CPU behavior, corners, referees, commentary, crowd behavior, difficulty logic, and live replay presentation.
 - Fighter strengths and weaknesses use a centered give-and-take attribute economy.
@@ -48,8 +53,12 @@ Every phase must pass a defined quality gate before the next phase begins.
 - [13-response planning review](docs/development-log/2026-07-21-fun-python-coding-ideas-boxing-review.md)
 - [Seven-response combat and production consolidation](docs/development-log/2026-07-26-seven-response-design-consolidation.md)
 - [Injury, footwork, controls, stances, and referee consolidation](docs/development-log/2026-07-27-injury-footwork-controls-referees.md)
-- [Simulation-first and unified-training decision](docs/decisions/0001-simulation-first-unified-training.md)
+- [Modular production, game feel, and style-balance consolidation](docs/development-log/2026-08-02-modular-production-game-feel-and-style-balance-consolidation.md)
+- [Decision 0001 — Simulation first and unified training](docs/decisions/0001-simulation-first-unified-training.md)
+- [Decision 0002 — Modular Unreal-first production](docs/decisions/0002-modular-unreal-first-production.md)
+- [Decision 0003 — Game feel, development, and matchmaking](docs/decisions/0003-game-feel-training-and-competitive-matchmaking.md)
+- [Decision 0004 — Style viability and polarity stress testing](docs/decisions/0004-style-viability-and-polar-opposite-stress-testing.md)
 
-## Proposed technical foundation
+## Technical foundation
 
-The planning baseline proposes Unreal Engine, Blueprint/C++, Python tooling, GitHub, and Blender. These remain proposed choices until the initial development environment and vertical-slice requirements are validated.
+The accepted default production baseline is Unreal Engine with Blueprints for early prototyping, Python for tools and analysis, C++ for later performance-critical or architecture-heavy systems, GitHub for version control, and Blender plus properly licensed assets for content production. Each choice remains subject to validation in the technical sandbox, and no implementation is claimed until repository evidence exists.

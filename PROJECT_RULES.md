@@ -294,3 +294,57 @@ Design documents are not implementation evidence. Do not claim that a feature, t
 Prototype numbers are tuning hypotheses unless a validated specification or test promotes them. Historical development logs may preserve earlier or superseded ideas only when their status is explicit.
 
 When canonical files conflict, the latest explicit user correction controls and the repository must be synchronized promptly.
+
+## 19. Game-feel hierarchy
+
+The production feel order is binding:
+
+1. impressively responsive;
+2. visually fast;
+3. fun and funny;
+4. accurate in boxing logic;
+5. enjoyable across repeated matches;
+6. steady-paced;
+7. secretly layered with boxing idioms and advanced Ringcraft.
+
+> **Project Uppercut is arcade boxing with real boxing bones: instantly responsive, visually fast, genuinely funny, competitively fair, and much deeper than it initially appears.**
+
+Visual speed may not destroy readable cause and effect. CPU vs. CPU spectators must be able to understand why important exchanges occurred. Humor may not interrupt competitive clarity. Boxing accuracy concerns range, position, footwork, bodywork, repetition, counters, pressure, recovery, ring control, and composure rather than strict simulation appearance.
+
+## 20. Competitive challenge distribution
+
+Online matchmaking should provide a fair spread of easier, comparable, and harder opposition over time rather than permanently isolating players by skill.
+
+- Beginners must not receive hidden competitive protection or endless hopeless matches.
+- Advanced players must not be quarantined into fighting only advanced players.
+- Matchmaking may reduce repeated extreme mismatches and deliberate beginner farming without changing combat rules.
+- Ranked, casual, event, open-challenge, and future tournament modes may use different search priorities, but the underlying combat system remains identical.
+- Matchmaking must not manufacture outcomes, guarantee equal ratings in every fight, or grant hidden advantages.
+
+## 21. Style viability and polar-opposite testing
+
+Project Uppercut must allow effective opening aggression and patient low-action stamina control to win without allowing either extreme to become the only correct strategy.
+
+> **The game punishes reckless aggression, not aggression; empty avoidance, not patience.**
+
+Every major style must define a win condition, risk condition, counterplay, and readable signals. Equal viability means a legitimate route to victory through skill, mechanics, adaptation, and boxing logic—not an artificial 50/50 result in every matchup.
+
+Balance should emerge from shared systems such as commitment, range, contact classification, stamina, guard fatigue, bodywork, ring position, counter windows, repetition recognition, judging evidence, and Crowd rewards. Hidden fighter-specific rescue logic should be avoided.
+
+The generic technical sandbox must include reusable stress profiles for at least a Rusher, Drainer, Technician, Counterpuncher, Showman, and Power Threat. Dominant extremes and nonviable styles are Phase 1 quality-gate failures.
+
+> **No style wins because the game favors the style. A style wins because the player or CPU executes its boxing logic better than the opponent solves it.**
+
+## 22. Modular Unreal-first production
+
+Project Uppercut uses a modular, original, Unreal-first production strategy.
+
+- Unreal Engine is the accepted default engine, subject to technical validation.
+- Blueprints serve early prototyping and rapid iteration.
+- Python serves design-data generation, validation, simulation analysis, telemetry, balance reports, asset utilities, and automation.
+- C++ enters later where performance, determinism, networking, or architecture requires it.
+- C# has no meaningful role unless the engine changes to Unity.
+
+Legally licensed general-purpose assets and templates are permitted after a compatibility audit covering commercial license, modification rights, skeleton, retargeting, root motion, performance, network suitability, visual consistency, engine support, and maintainability.
+
+The technical combat sandbox uses generic test fighters before the first character-complete Adewale-versus-Calvin vertical slice. Counterplay must exist from the first punch through defined startup, active contact, recovery, range, stamina cost, guard interaction, hit reaction, counter vulnerability, and positional consequence.
