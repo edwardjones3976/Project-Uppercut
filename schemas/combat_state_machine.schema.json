@@ -1,0 +1,137 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Fable 5 (claude-fable-5)",
+    "start": "2026-08-02 21:56 UTC",
+    "end": "2026-08-02 21:56 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/combat_state_machine.schema.json",
+  "title": "Combat State Machine",
+  "description": "ROADMAP Phase 1A step 1: engine-neutral combat-state definitions the Unreal sandbox must implement (Rule 22 / Decision 0002). This schema validates the canonical machine document; it claims no engine implementation (Rule 18).",
+  "type": "object",
+  "required": ["schema_version", "tuning_status", "allowed_input_domains", "forbidden_input_domains", "machines", "invariants"],
+  "additionalProperties": false,
+  "properties": {
+    "contribution": { "type": "object" },
+    "$comment": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "tuning_status": { "enum": ["hypothesis", "validated"] },
+    "allowed_input_domains": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "forbidden_input_domains": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "machines": {
+      "type": "object",
+      "required": ["match_flow", "fighter_action", "posture_continuum"],
+      "additionalProperties": false,
+      "properties": {
+        "match_flow": { "$ref": "#/$defs/machine" },
+        "fighter_action": { "$ref": "#/$defs/machine" },
+        "posture_continuum": { "$ref": "#/$defs/continuum" }
+      }
+    },
+    "invariants": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/invariant" } }
+  },
+  "$defs": {
+    "machine": {
+      "type": "object",
+      "required": ["initial", "states", "transitions"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "initial": { "type": "string" },
+        "states": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/state" } },
+        "transitions": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/transition" } }
+      }
+    },
+    "state": {
+      "type": "object",
+      "required": ["id", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "description": { "type": "string", "minLength": 1 },
+        "clock_segment": { "enum": ["entrance", "round", "break", "count", "doctor_check", "post_fight"] },
+        "terminal": { "type": "boolean", "default": false },
+        "provisioned": { "type": "boolean", "default": false, "description": "Architecture slot for a later ROADMAP step (11-12). Provisioned states claim no implementation (Rule 18)." },
+        "counter_open": { "type": "boolean" },
+        "duration_source": { "enum": ["move_data", "authored_frames", "condition_scaled", "authoritative_clock", "sustained", "instant"] },
+        "availability": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "can_punch": { "type": "boolean" },
+            "can_guard": { "type": "boolean" },
+            "can_evade": { "type": "boolean" },
+            "can_move": { "type": "boolean" }
+          }
+        },
+        "condition_refs": { "type": "array", "items": { "type": "string" }, "description": "Keys into data/condition_regions.json that scale or gate this state (Rule 14)." },
+        "consequence_scaling": { "type": "string" },
+        "move_categories": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "string" }
+      }
+    },
+    "transition": {
+      "type": "object",
+      "required": ["id", "from", "to", "trigger_kind"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "from": { "type": "string", "description": "State id, or '*' for any non-terminal state minus wildcard_excludes." },
+        "to": { "type": "string" },
+        "trigger_kind": { "enum": ["input_intent", "move_phase_end", "incoming_contact", "condition_threshold", "authoritative_clock", "count_clock", "referee", "provisioned"], "description": "Deterministic, tick-anchored trigger classes only. Wall-clock triggers do not exist (sandbox criterion E.19)." },
+        "trigger_detail": { "type": "string" },
+        "wildcard_excludes": { "type": "array", "items": { "type": "string" } },
+        "guard_inputs": { "type": "array", "items": { "type": "string" }, "description": "Input domains the transition guard may read. Must be a subset of allowed_input_domains and disjoint from forbidden_input_domains (Rule 3, structurally)." },
+        "emits": { "type": "array", "items": { "type": "string" }, "description": "fight_event types this transition may emit. Cross-checked against fight_event.schema.json by the validator." },
+        "provisioned": { "type": "boolean", "default": false },
+        "notes": { "type": "string" }
+      }
+    },
+    "continuum": {
+      "type": "object",
+      "required": ["modes", "stance"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "modes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "description", "transition_delay_frames"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+              "description": { "type": "string" },
+              "transition_delay_frames": { "type": "integer", "const": 0, "description": "Rule 13: no artificial movement-mode transition delays. Constant zero by construction." },
+              "notes": { "type": "string" }
+            }
+          }
+        },
+        "stance": {
+          "type": "object",
+          "required": ["values", "switch_mechanism"],
+          "additionalProperties": false,
+          "properties": {
+            "values": { "type": "array", "minItems": 2, "items": { "enum": ["orthodox", "southpaw"] } },
+            "switch_mechanism": { "type": "string" },
+            "notes": { "type": "string" }
+          }
+        }
+      }
+    },
+    "invariant": {
+      "type": "object",
+      "required": ["id", "rule", "statement"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "rule": { "type": "string" },
+        "statement": { "type": "string", "minLength": 1 },
+        "enforced_by": { "type": "string" }
+      }
+    }
+  }
+}

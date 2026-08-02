@@ -1,11 +1,11 @@
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | START ]
-"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget]"""
+"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget|states]"""
 from __future__ import annotations
 import json
 import sys
 from pathlib import Path
 
-from . import attributes, budget, contracts, schema_check, score_isolation
+from . import attributes, budget, combat_states, contracts, schema_check, score_isolation
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -137,6 +137,25 @@ def cmd_docs() -> int:
     return failures
 
 
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 21:56 UTC | START edit: Phase 1A step 1 ]
+def cmd_states() -> int:
+    """ROADMAP Phase 1A step 1: combat-state definition laws."""
+    doc = combat_states.load()
+    failures = 0
+    for name, fn in combat_states.ALL_CHECKS:
+        errs = fn(doc)
+        print(f"{'PASS' if not errs else 'FAIL'}  {name}")
+        for e in errs:
+            print(f"        {e}")
+        failures += len(errs)
+    fa = doc["machines"]["fighter_action"]
+    prov = sum(1 for s in fa["states"] if s.get("provisioned"))
+    print(f"INFO  fighter_action: {len(fa['states'])} states ({prov} provisioned), "
+          f"{len(fa['transitions'])} transitions; definitions only, no engine implementation claimed (Rule 18)")
+    return failures
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 21:56 UTC | END edit ]
+
+
 def main(argv: list) -> int:
     cmd = argv[1] if len(argv) > 1 else "all"
     total = 0
@@ -150,6 +169,8 @@ def main(argv: list) -> int:
         print("== Rules 8/13/14 data laws ==");   total += cmd_docs(); print()
     if cmd in ("all", "budget"):
         print("== Attribute budget candidates =="); total += cmd_budget(); print()
+    if cmd in ("all", "states"):
+        print("== Phase 1A combat-state definitions =="); total += cmd_states(); print()
     print(f"RESULT: {'OK' if total == 0 else str(total) + ' FAILURE(S)'}")
     return 1 if total else 0
 

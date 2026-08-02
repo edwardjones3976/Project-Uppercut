@@ -1,0 +1,139 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Fable 5 (claude-fable-5)",
+    "start": "2026-08-02 21:56 UTC",
+    "end": "2026-08-02 21:56 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$comment": "ROADMAP Phase 1A step 1 - the canonical combat-state definitions. Engine-neutral: the Unreal sandbox implements exactly this machine (Rule 22 / Decision 0002). One machine set for every player, mode and CPU fighter (Rule 5). Definitions only - no simulation code or engine implementation is claimed (Rule 18). Semantics: docs/phase1a/combat_state_definitions.md.",
+  "schema_version": "0.1.0-draft",
+  "tuning_status": "hypothesis",
+  "allowed_input_domains": [
+    "own_condition",
+    "opponent_observables",
+    "observable_event_log",
+    "authoritative_clock_observable",
+    "count_observable",
+    "referee_instructions_observable",
+    "crowd_observable",
+    "range_and_position_observable",
+    "move_data_authored"
+  ],
+  "forbidden_input_domains": [
+    "official_scorecards",
+    "sealed_events",
+    "opponent_raw_inputs",
+    "privileged_rng",
+    "hidden_difficulty_state"
+  ],
+  "machines": {
+    "match_flow": {
+      "$comment": "Owned by the authoritative Match Controller. Segments mirror fight_event clock.segment. Decision assembly reads sealed judge cards inside the controller only; partial cards stay sealed through the immediate result flow (Rule 3).",
+      "initial": "pre_bout",
+      "states": [
+        { "id": "pre_bout", "description": "Entrances, referee disclosure (Rule 16), fighter presentation. No combat resolution.", "clock_segment": "entrance" },
+        { "id": "round_active", "description": "A round is live. The authoritative fight clock runs; all systems read it (Rule 9).", "clock_segment": "round" },
+        { "id": "between_rounds", "description": "30 real-second break. Menu and statistics access do not pause the countdown (Rule 9).", "clock_segment": "break", "duration_source": "authoritative_clock" },
+        { "id": "knockdown_count", "description": "A fighter is down. The universal knockdown-count clock runs, referee-synchronized (Rule 16).", "clock_segment": "count", "duration_source": "authoritative_clock" },
+        { "id": "doctor_check_hold", "description": "Referee-initiated medical inspection under universal medical minimums (Rule 16). Eye and cut condition feed doctor confidence (Rule 14).", "clock_segment": "doctor_check" },
+        { "id": "post_fight", "description": "Result, quick menu, statistics. Official cards remain sealed during this immediate flow; optional archival reveal comes later (Rule 3).", "clock_segment": "post_fight" },
+        { "id": "bout_complete", "description": "Terminal. The authoritative event log is closed and becomes replay evidence (sandbox criteria E.19-E.21).", "terminal": true }
+      ],
+      "transitions": [
+        { "id": "open_bout", "from": "pre_bout", "to": "round_active", "trigger_kind": "authoritative_clock", "trigger_detail": "entrance sequence complete; first bell", "emits": ["bout_start", "round_start"] },
+        { "id": "round_expires", "from": "round_active", "to": "between_rounds", "trigger_kind": "authoritative_clock", "trigger_detail": "round clock reaches zero and the scheduled bout continues", "emits": ["round_end", "break_start"] },
+        { "id": "break_expires", "from": "between_rounds", "to": "round_active", "trigger_kind": "authoritative_clock", "trigger_detail": "30 real seconds elapse, or an in-match dual-consent skip (Rule 9)", "emits": ["break_end", "round_start"] },
+        { "id": "knockdown_interrupt", "from": "round_active", "to": "knockdown_count", "trigger_kind": "incoming_contact", "trigger_detail": "a fighter_action machine enters knocked_down", "emits": ["count_tick"] },
+        { "id": "count_resolved_continue", "from": "knockdown_count", "to": "round_active", "trigger_kind": "count_clock", "trigger_detail": "rise accepted before ten plus mandatory referee look (universal minimums, Rule 16)", "emits": [] },
+        { "id": "count_resolved_stop", "from": "knockdown_count", "to": "post_fight", "trigger_kind": "count_clock", "trigger_detail": "count reaches ten, or referee waves off during the count", "emits": ["stoppage", "bout_end"] },
+        { "id": "doctor_hold", "from": "round_active", "to": "doctor_check_hold", "trigger_kind": "referee", "trigger_detail": "referee pauses action for medical inspection", "emits": ["doctor_check"] },
+        { "id": "doctor_continue", "from": "doctor_check_hold", "to": "round_active", "trigger_kind": "referee", "trigger_detail": "doctor confidence sufficient to continue", "emits": [] },
+        { "id": "doctor_stop", "from": "doctor_check_hold", "to": "post_fight", "trigger_kind": "referee", "trigger_detail": "doctor stoppage", "emits": ["stoppage", "bout_end"] },
+        { "id": "final_round_end", "from": "round_active", "to": "post_fight", "trigger_kind": "authoritative_clock", "trigger_detail": "last scheduled round expires; decision assembled from sealed cards by the Match Controller only (Rule 3)", "emits": ["round_end", "bout_end"] },
+        { "id": "stoppage_end", "from": "round_active", "to": "post_fight", "trigger_kind": "referee", "trigger_detail": "in-round stoppage: waved off, failure to intelligently defend, disqualification, or corner retirement at the bell", "emits": ["stoppage", "bout_end"] },
+        { "id": "close_bout", "from": "post_fight", "to": "bout_complete", "trigger_kind": "authoritative_clock", "trigger_detail": "post-fight flow complete; log sealed as replay evidence", "emits": [] }
+      ]
+    },
+    "fighter_action": {
+      "$comment": "One per fighter, identical for human and CPU control (Rule 5). Action phases bind to move data: startup_frames, active_frames, recovery_frames from data/moves (Rule 22). CPU policies read only allowed_input_domains (Rule 3).",
+      "initial": "idle",
+      "states": [
+        { "id": "idle", "description": "Uncommitted. Full action availability; the posture continuum governs locomotion in parallel.", "duration_source": "sustained", "availability": { "can_punch": true, "can_guard": true, "can_evade": true, "can_move": true } },
+        { "id": "move_startup", "description": "Committed to a move; startup_frames from move data. Commitment is real: no cancel to idle after commit (Rule 13 explicit commitment). Interruptible by incoming contact.", "duration_source": "move_data", "counter_open": true, "move_categories": ["jab", "cross", "hook", "uppercut", "overhand", "body_shot", "guard", "evasion", "step", "pivot", "clinch", "showmanship"], "availability": { "can_punch": false, "can_guard": false, "can_evade": false, "can_move": false }, "notes": "Startup interception is the first counter window (Rule 22: counterplay from the first punch)." },
+        { "id": "move_active", "description": "Active window; active_frames from move data. Offensive categories resolve contact into the seven classes of data/contact_classes.json; evasion categories classify incoming punches as dodged; guard categories transition to guard_hold.", "duration_source": "move_data", "availability": { "can_punch": false, "can_guard": false, "can_evade": false, "can_move": false } },
+        { "id": "move_recovery", "description": "Post-action vulnerability; recovery_frames from move data, scaled by the commitment tier of the outcome. The deepest counter window.", "duration_source": "move_data", "counter_open": true, "consequence_scaling": "contact_class_commitment_tier", "condition_refs": ["stamina"], "availability": { "can_punch": false, "can_guard": false, "can_evade": false, "can_move": false }, "notes": "Rule 13: blocked < dodged < whiffed strictly increasing recovery and stamina consequence. Numerical ratios are tuning hypotheses." },
+        { "id": "guard_hold", "description": "Sustained guard after a guard move completes. Reduces clean damage without erasing consequence; absorbs into arms and guard structure over time (Rule 14).", "duration_source": "sustained", "condition_refs": ["guard_integrity", "arm_left", "arm_right", "stamina"], "availability": { "can_punch": false, "can_guard": true, "can_evade": false, "can_move": true }, "notes": "Passive blocking abuse becomes readable and counterable through guard fatigue, not hidden punishment (Rule 4)." },
+        { "id": "clinch", "description": "Mutual tie-up entered through a successful clinch move. Referee tendencies govern permitted duration and inside work (Rule 16).", "duration_source": "sustained", "condition_refs": ["stamina"], "availability": { "can_punch": false, "can_guard": false, "can_evade": false, "can_move": false } },
+        { "id": "hit_stun", "description": "Reaction to landed contact. Magnitude scales with contact class, target region, and the struck fighter's chin_state, durability_state and composure_state (Rule 14). Tick-anchored duration.", "duration_source": "condition_scaled", "condition_refs": ["head", "jaw_chin", "chin_state", "durability_state", "composure_state"], "availability": { "can_punch": false, "can_guard": false, "can_evade": false, "can_move": false } },
+        { "id": "staggered", "description": "Balance-compromised. Entered when balance crosses an authored threshold; visibly readable so spectators understand decisive exchanges (Rule 19).", "duration_source": "condition_scaled", "condition_refs": ["balance", "composure_state"], "counter_open": true, "availability": { "can_punch": false, "can_guard": true, "can_evade": false, "can_move": true } },
+        { "id": "knocked_down", "description": "On the canvas. The match_flow machine enters knockdown_count; the universal count clock is the only exit timer (Rule 16).", "duration_source": "authoritative_clock", "condition_refs": ["recovery_state", "chin_state"], "availability": { "can_punch": false, "can_guard": false, "can_evade": false, "can_move": false } },
+        { "id": "rising", "description": "Attempting to beat the count. Success requires the count clock and the mandatory referee look.", "duration_source": "authoritative_clock", "condition_refs": ["recovery_state", "balance"], "availability": { "can_punch": false, "can_guard": false, "can_evade": false, "can_move": false } },
+        { "id": "between_rounds_corner", "description": "In the corner during the break. Corner advice operates under Rule 6 bounds and never uses official scores.", "clock_segment": "break", "duration_source": "authoritative_clock", "availability": { "can_punch": false, "can_guard": false, "can_evade": false, "can_move": false } },
+        { "id": "stopped", "description": "Terminal for this fighter: ko, tko_referee_waveoff, tko_failure_to_intelligently_defend, tko_doctor, corner_retirement, or disqualification. Chin +100 resists longest but is never immune (Rule 14).", "terminal": true },
+        { "id": "special_execution", "description": "PROVISIONED (ROADMAP step 12). Motion-command Special (Rule 15): command entry cannot bypass stun, recovery, resource cost, range, tracking limits, startup, counterplay, or whiff punishment.", "provisioned": true, "duration_source": "move_data", "counter_open": true },
+        { "id": "ultimate_execution", "description": "PROVISIONED (ROADMAP step 12). Full Crowd Bar choice, Ultimate branch. Powerful but counterable; never an automatic match end (Rule 11).", "provisioned": true, "duration_source": "move_data", "counter_open": true },
+        { "id": "full_crowd_trait_active", "description": "PROVISIONED (ROADMAP step 12). Full Crowd Bar choice, Trait branch. Exclusive with ultimate_execution per bar (Rule 12).", "provisioned": true, "duration_source": "authored_frames" }
+      ],
+      "transitions": [
+        { "id": "commit_move", "from": "idle", "to": "move_startup", "trigger_kind": "input_intent", "trigger_detail": "human input or CPU decision selects a move from data/moves; CPU decisions emit cpu_decision records with cited observable evidence", "guard_inputs": ["own_condition", "opponent_observables", "range_and_position_observable", "move_data_authored", "authoritative_clock_observable"], "emits": ["cpu_decision"] },
+        { "id": "startup_to_active", "from": "move_startup", "to": "move_active", "trigger_kind": "move_phase_end", "trigger_detail": "startup_frames elapse", "emits": ["punch_thrown"], "notes": "punch_thrown for punch categories only; movement and defensive categories emit their outcome at resolution." },
+        { "id": "active_resolution", "from": "move_active", "to": "move_recovery", "trigger_kind": "move_phase_end", "trigger_detail": "active_frames elapse; contact resolves into exactly one of the seven contact classes for offensive categories", "emits": ["punch_outcome", "evasion", "step", "pivot", "stance_change", "showmanship"], "notes": "Category-dependent: exactly one primary outcome event per action. A visible miss is never classified as a clean hit (Rule 13)." },
+        { "id": "recovery_complete", "from": "move_recovery", "to": "idle", "trigger_kind": "move_phase_end", "trigger_detail": "recovery_frames elapse, scaled by contact_class_commitment_tier", "emits": [] },
+        { "id": "guard_settle", "from": "move_active", "to": "guard_hold", "trigger_kind": "move_phase_end", "trigger_detail": "guard-category moves settle into a held guard instead of recovery", "emits": [] },
+        { "id": "guard_release", "from": "guard_hold", "to": "idle", "trigger_kind": "input_intent", "trigger_detail": "guard dropped voluntarily", "guard_inputs": ["own_condition"], "emits": [] },
+        { "id": "guard_broken", "from": "guard_hold", "to": "hit_stun", "trigger_kind": "condition_threshold", "trigger_detail": "guard_integrity or arm condition fails under intelligent varied pressure; predictable single-action spam does not earn this (Rule 14)", "guard_inputs": ["own_condition"], "emits": ["guard_impact", "condition_change"] },
+        { "id": "clinch_lock", "from": "move_active", "to": "clinch", "trigger_kind": "move_phase_end", "trigger_detail": "clinch-category move succeeds at clinch range", "emits": ["clinch_start"] },
+        { "id": "clinch_break", "from": "clinch", "to": "idle", "trigger_kind": "referee", "trigger_detail": "referee separation per profile tendencies, or mutual release", "emits": ["clinch_end"] },
+        { "id": "struck", "from": "*", "to": "hit_stun", "wildcard_excludes": ["knocked_down", "rising", "between_rounds_corner", "hit_stun", "full_crowd_trait_active"], "trigger_kind": "incoming_contact", "trigger_detail": "a landed contact class (clean, solid, grazed, brushed) against this fighter; guard_impact instead when the guard absorbs it", "guard_inputs": ["own_condition"], "emits": ["condition_change"], "notes": "Movement into the punch may increase consequence; away may reduce it (Rule 14)." },
+        { "id": "stun_deepens", "from": "hit_stun", "to": "hit_stun", "trigger_kind": "incoming_contact", "trigger_detail": "follow-up contact during stun re-anchors and scales the stun window; no infinite-stun loop may result (Rule 4, sandbox F.25)", "guard_inputs": ["own_condition"], "emits": ["condition_change"] },
+        { "id": "stun_expire", "from": "hit_stun", "to": "idle", "trigger_kind": "condition_threshold", "trigger_detail": "tick-anchored stun window ends", "emits": [] },
+        { "id": "stagger_onset", "from": "hit_stun", "to": "staggered", "trigger_kind": "condition_threshold", "trigger_detail": "balance falls below authored threshold", "guard_inputs": ["own_condition"], "emits": ["balance_change"] },
+        { "id": "stagger_recover", "from": "staggered", "to": "idle", "trigger_kind": "condition_threshold", "trigger_detail": "balance recovers above threshold", "emits": ["balance_change"] },
+        { "id": "stagger_collapse", "from": "staggered", "to": "knocked_down", "trigger_kind": "incoming_contact", "trigger_detail": "further contact or failed weight transfer while staggered", "emits": ["knockdown"] },
+        { "id": "dropped", "from": "hit_stun", "to": "knocked_down", "trigger_kind": "condition_threshold", "trigger_detail": "observable evidence chain: force, placement, contact quality, movement, balance, awareness, accumulated condition, failed defense (explains links). Never a flat per-punch roll (Rule 14).", "guard_inputs": ["own_condition"], "emits": ["knockdown"] },
+        { "id": "attempt_rise", "from": "knocked_down", "to": "rising", "trigger_kind": "input_intent", "trigger_detail": "fighter attempts to rise; CPU intent uses count_observable and own_condition only", "guard_inputs": ["own_condition", "count_observable"], "emits": [] },
+        { "id": "rise_complete", "from": "rising", "to": "idle", "trigger_kind": "count_clock", "trigger_detail": "upright before ten with mandatory referee look passed (Rule 16 universal minimums)", "emits": ["rise"] },
+        { "id": "rise_failed", "from": "rising", "to": "stopped", "trigger_kind": "count_clock", "trigger_detail": "not upright by ten, or referee judges the rise insufficient", "emits": ["stoppage"] },
+        { "id": "counted_out", "from": "knocked_down", "to": "stopped", "trigger_kind": "count_clock", "trigger_detail": "count reaches ten with no accepted rise: ko", "emits": ["stoppage"] },
+        { "id": "referee_stoppage", "from": "*", "to": "stopped", "wildcard_excludes": ["between_rounds_corner"], "trigger_kind": "referee", "trigger_detail": "waved off, failure to intelligently defend, or disqualification, under universal medical and incapacitation minimums (Rule 16)", "emits": ["stoppage"] },
+        { "id": "doctor_stoppage", "from": "*", "to": "stopped", "wildcard_excludes": [], "trigger_kind": "referee", "trigger_detail": "doctor stoppage driven by observable condition including side-specific eye damage (Rule 14 doctor confidence)", "emits": ["stoppage"] },
+        { "id": "round_ends", "from": "*", "to": "between_rounds_corner", "wildcard_excludes": ["knocked_down", "rising", "stopped"], "trigger_kind": "authoritative_clock", "trigger_detail": "round clock reaches zero; the bell interrupts any standing action", "emits": [] },
+        { "id": "corner_out", "from": "between_rounds_corner", "to": "idle", "trigger_kind": "authoritative_clock", "trigger_detail": "break ends (Rule 9: 30 real seconds, menus do not pause it)", "emits": [] },
+        { "id": "corner_retirement", "from": "between_rounds_corner", "to": "stopped", "trigger_kind": "referee", "trigger_detail": "corner retires the fighter between rounds", "emits": ["stoppage"] },
+        { "id": "special_commit", "from": "idle", "to": "special_execution", "trigger_kind": "provisioned", "provisioned": true, "trigger_detail": "PROVISIONED step 12: opponent-relative motion command plus confirmation (Rule 15)", "guard_inputs": ["own_condition", "opponent_observables", "range_and_position_observable", "crowd_observable"], "emits": ["special_activated"] },
+        { "id": "special_resolve", "from": "special_execution", "to": "move_recovery", "trigger_kind": "provisioned", "provisioned": true, "trigger_detail": "PROVISIONED step 12: Specials resolve through the same commitment phases as every move", "emits": ["punch_outcome"] },
+        { "id": "ultimate_commit", "from": "idle", "to": "ultimate_execution", "trigger_kind": "provisioned", "provisioned": true, "trigger_detail": "PROVISIONED step 12: full Crowd Bar spent on the Ultimate branch; the same bar can never also activate the trait (Rule 12)", "guard_inputs": ["own_condition", "crowd_observable"], "emits": ["crowd_full", "ultimate_activated"] },
+        { "id": "ultimate_resolve", "from": "ultimate_execution", "to": "move_recovery", "trigger_kind": "provisioned", "provisioned": true, "trigger_detail": "PROVISIONED step 12: counterable resolution; never an automatic match end (Rule 11)", "emits": ["punch_outcome"] },
+        { "id": "trait_activate", "from": "idle", "to": "full_crowd_trait_active", "trigger_kind": "provisioned", "provisioned": true, "trigger_detail": "PROVISIONED step 12: full Crowd Bar spent on the Full-Crowd Trait branch, exclusive with the Ultimate (Rule 12)", "guard_inputs": ["own_condition", "crowd_observable"], "emits": ["crowd_full", "full_crowd_trait_activated"] },
+        { "id": "trait_expire", "from": "full_crowd_trait_active", "to": "idle", "trigger_kind": "provisioned", "provisioned": true, "trigger_detail": "PROVISIONED step 12: trait window ends", "emits": [] }
+      ]
+    },
+    "posture_continuum": {
+      "$comment": "Rule 13: one continuous threat-responsive footwork model. These are modes of a continuum, not gating states - transition_delay_frames is zero by construction and the schema enforces it. Locomotion runs in parallel with fighter_action availability.can_move.",
+      "modes": [
+        { "id": "free_navigation", "description": "Longer responsive strides at safe distance.", "transition_delay_frames": 0 },
+        { "id": "boxing_steps", "description": "Compressed believable steps inside threatening range (threat-responsive stride compression).", "transition_delay_frames": 0, "notes": "Compression follows observable threat, not a mode toggle." },
+        { "id": "planted", "description": "Planted feet: full power transfer available; visible weight transfer (Rule 13).", "transition_delay_frames": 0 },
+        { "id": "pivot", "description": "Planted pivots and angle changes; the believable mechanism for stance switching (Rule 15).", "transition_delay_frames": 0 }
+      ],
+      "stance": {
+        "values": ["orthodox", "southpaw"],
+        "switch_mechanism": "Stance changes emerge through steps, pivots, pullbacks and angle changes - never a slow artificial transition (Rule 15). Emits stance_change. Non-ambidextrous fighters operate under authored familiarity penalties outside their stated stance; ambidextrous fighters have none, but keep ordinary balance, commitment and positioning consequences.",
+        "notes": "Stance is a dimension of the fighter, not a blocking state. Penalties are data-driven from fighter attributes (Rule 10 families)."
+      }
+    }
+  },
+  "invariants": [
+    { "id": "score_isolation_structural", "rule": "Rule 3", "statement": "No state guard or transition may read official_scorecards or sealed_events. Fighter, CPU, referee, corner, commentary, crowd, difficulty, live-replay and advice systems form estimates only from observable events with explicit confidence.", "enforced_by": "tools/uppercut_validate/combat_states.py::check_input_domains" },
+    { "id": "commitment_ordering", "rule": "Rule 13", "statement": "Recovery and stamina consequence strictly increase across blocked, dodged, whiffed outcomes; move_recovery scales by contact_class_commitment_tier.", "enforced_by": "tools/uppercut_validate/combat_states.py::check_commitment_scaling" },
+    { "id": "counterplay_from_first_punch", "rule": "Rule 22", "statement": "Every offensive commitment exposes counter vulnerability: startup interception, active trade, and a counter-open recovery.", "enforced_by": "tools/uppercut_validate/combat_states.py::check_counterplay" },
+    { "id": "no_flat_knockout_roll", "rule": "Rule 14", "statement": "Transitions into knocked_down require condition_threshold or incoming_contact evidence chains with explains links; a flat per-punch knockout roll does not exist.", "enforced_by": "tools/uppercut_validate/combat_states.py::check_knockdown_flow" },
+    { "id": "posture_zero_delay", "rule": "Rule 13", "statement": "Posture modes are a continuum: transition_delay_frames is constant zero; no ice skating, magnetic range correction, invisible lunges, or artificial movement-mode transition delays.", "enforced_by": "schemas/combat_state_machine.schema.json (const 0) and check_posture" },
+    { "id": "tick_determinism", "rule": "Sandbox criterion E.19", "statement": "Every duration and trigger is tick-anchored; wall-clock trigger kinds do not exist; the same seed and authoritative initial state reproduce a byte-identical event log.", "enforced_by": "trigger_kind enum and tools/uppercut_validate/combat_states.py::check_invariants" },
+    { "id": "chin_no_immunity", "rule": "Rule 14", "statement": "chin_state scales resistance in hit_stun and knockdown thresholds; Chin +100 is maximum authored resistance, never immunity, and rare early stoppages remain possible on observable evidence.", "enforced_by": "data statement; promoted to a simulation test at ROADMAP step 8" },
+    { "id": "crowd_exclusive_choice", "rule": "Rule 12", "statement": "One full Crowd Bar activates ultimate_execution or full_crowd_trait_active, never both. Provisioned until ROADMAP steps 11-12.", "enforced_by": "tools/uppercut_validate/combat_states.py::check_provisioned" },
+    { "id": "referee_bounded", "rule": "Rule 16", "statement": "Referee-triggered transitions may hold, separate, instruct or stop; they never alter damage, stamina, collision classification, Crowd gain, attributes, input responsiveness or judging criteria.", "enforced_by": "tools/uppercut_validate/combat_states.py::check_referee_bounds" },
+    { "id": "one_unified_machine", "rule": "Rule 5", "statement": "Exactly one machine set exists for every player, mode, difficulty and CPU fighter. Beginner, child or tiered variants are prohibited.", "enforced_by": "tools/uppercut_validate/combat_states.py::check_machine_set" }
+  ]
+}
