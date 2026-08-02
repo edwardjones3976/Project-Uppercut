@@ -5,24 +5,26 @@
 Traceability from ROADMAP Phase 0 to committed artifacts. Per Rule 18, "complete" means the artifact
 exists; "ruled" means a decision record exists; **neither means the gate is closed.**
 
-**Canon verified against repository head `ef9299e` (2026-08-02).**
-**Local git:** branch `main`, foundation committed, **not yet pushed** — see `_to_delete/PUSH_FOUNDATION.md`.
+**Canon merged into `main` at `9e5b4c7` (2026-08-02); canon side previously verified at `ef9299e`.**
+**Git:** local `main` and `origin/main` both at **`9e5b4c7`** — pushed and verified 2026-08-02.
 
-## Gate status: SATISFIED PENDING REPOSITORY EVIDENCE
+## Gate status: PASSED — 2026-08-02, on repository evidence
 
-All seven gate items are now answered. The gate is **not declared passed**, for one reason: the
-foundation exists on a single disk and is not yet in the repository. Rule 18 forbids claiming a
-system exists without verifiable repository evidence, and a gate closed against unpushed files would be
-exactly that. The moment the push lands and CI runs green, this becomes a clean pass.
+All seven gate items are answered and the Rule 18 evidence requirement is now met. The foundation was
+merged with the canonical history (`8c5861d` + `ef9299e` → merge `9e5b4c7`, zero conflicts, disjoint
+paths) and pushed; `git ls-remote` confirms `origin/main` at
+`9e5b4c791330ca730fcd6cfd30c2a2e697229769`, identical to local HEAD. GitHub Actions run
+**validate #1** on `9e5b4c7` completed successfully (13s) — the 100-test suite and rule validators ran
+green in CI. That first green run is also the "validators running in Actions" evidence toward T0.4.
 
 | Gate item | Evidence | Status |
 |---|---|---|
 | Originality rules documented | Rule 1; `CONTRIBUTING.md` rejection list; audit items 11–13 | met |
 | Scorecard access boundaries documented and testable | `data/score_isolation_contract.json`, `score_isolation.py`, `tests/test_score_isolation.py` | met — checker proven non-vacuous |
-| One canonical attribute-budget formula chosen | `data/attribute_budget.json`; Decision 0007 D-1 | ruled — pending repo evidence |
+| One canonical attribute-budget formula chosen | `data/attribute_budget.json`; Decision 0007 D-1 | ruled — in repository at `9e5b4c7` |
 | Legal and illegal fighter-build fixtures specified | `fixtures/fighters/` (4 legal, 14 illegal) | met |
-| Technical sandbox acceptance criteria approved | `docs/phase0/sandbox_acceptance_criteria.md`; Decision 0007 D-2 | ruled — pending repo evidence |
-| Character vertical-slice criteria approved separately | `docs/phase0/vertical_slice_acceptance_criteria.md`; Decision 0007 D-3 | ruled — pending repo evidence |
+| Technical sandbox acceptance criteria approved | `docs/phase0/sandbox_acceptance_criteria.md`; Decision 0007 D-2 | ruled — in repository at `9e5b4c7` |
+| Character vertical-slice criteria approved separately | `docs/phase0/vertical_slice_acceptance_criteria.md`; Decision 0007 D-3 | ruled — in repository at `9e5b4c7` |
 | Game-feel and style-viability laws accepted | Rules 19 and 21; `data/stress_profiles/` (all six) | met |
 
 ## Deliverables
