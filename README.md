@@ -50,6 +50,7 @@ Every phase must pass a defined quality gate before the next phase begins.
 - [Canonical project notes](PROJECT_NOTES.md)
 - [Binding project rules](PROJECT_RULES.md)
 - [Roadmap](ROADMAP.md)
+- [90-day execution plan](PROJECT_PLAN.md)
 - [13-response planning review](docs/development-log/2026-07-21-fun-python-coding-ideas-boxing-review.md)
 - [Seven-response combat and production consolidation](docs/development-log/2026-07-26-seven-response-design-consolidation.md)
 - [Injury, footwork, controls, stances, and referee consolidation](docs/development-log/2026-07-27-injury-footwork-controls-referees.md)
