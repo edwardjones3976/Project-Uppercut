@@ -1,6 +1,12 @@
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | START ] -->
 
-# Phase 0 Deliverable — Technical Baseline (awaiting Director confirmation of versions)
+# Phase 0 Deliverable — Technical Baseline
+
+> **Version-pinning procedure ruled in [Decision 0007](../decisions/0007-phase0-gate-rulings.md)
+> (D-7), 2026-08-02.** The version fields below stay open deliberately. They are filled from the
+> **actual installed build** at first engine setup and recorded in the same commit that creates the
+> Unreal project. Until then, no tooling, CI job or document may assume a version. Naming a version
+> nobody runs would be exactly the unevidenced claim Rule 18 prohibits.
 
 Per Decision 0002 and PROJECT_RULES.md Rule 22, the accepted production strategy is modular,
 original and Unreal-first. This document is the pinned-versions record the ROADMAP requires. **The
@@ -9,13 +15,13 @@ claim without evidence (Rule 18).
 
 | Layer | Accepted role | Version | Status |
 |---|---|---|---|
-| Unreal Engine | Default engine, subject to technical-sandbox validation | *to be pinned* | awaiting confirmation |
+| Unreal Engine | Default engine, subject to technical-sandbox validation | *pinned at first install* | procedure ruled (D-7) |
 | Blueprints | Early prototyping and rapid iteration | (engine) | accepted |
 | Python | Design-data generation, validation, simulation analysis, telemetry, balance reports, asset utilities, automation | 3.11+ (tooling built and tested on 3.11) | in use |
 | C++ | Later, where performance, determinism, networking or architecture requires it | (engine toolchain) | accepted, not yet triggered |
 | C# | No meaningful role unless the engine changes to Unity | — | excluded |
 | GitHub | Version control | — | in use |
-| Blender | Content production and modification | *to be pinned* | awaiting confirmation |
+| Blender | Content production and modification | *pinned at first install* | procedure ruled (D-7) |
 
 ## Python tooling dependencies
 

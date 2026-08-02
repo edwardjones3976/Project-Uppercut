@@ -23,6 +23,7 @@ RULE_FOR_FIXTURE = {
     "illegal_missing_severe_consequence": "R10.severe_consequence",
     "illegal_unknown_attribute": "R10.families",
     "illegal_overall_rating": "R10.no_overall",
+    "illegal_over_budget_cap": "R10.budget_cap",
 }
 
 
@@ -46,6 +47,38 @@ def test_illegal_fixture_rejected_for_the_right_reason(path):
 
 def test_every_illegal_fixture_is_mapped():
     assert {p.stem for p in ILLEGAL} == set(RULE_FOR_FIXTURE), "unmapped illegal fixture"
+
+
+def test_budget_cap_applies_only_to_complete_declarations():
+    """A partial sandbox fixture is an instrument, not a fighter; cost scales with how many
+    attributes are declared, so one absolute cap cannot span both cases (Decision 0007)."""
+    from tools.uppercut_validate import budget
+    complete = json.loads((REPO / "fixtures/fighters/legal/reference_complete_shape.json").read_text())
+    ev = budget.evaluate(complete["attributes"])
+    assert ev["complete_declaration"] and ev["cap_enforced"] and not ev["over_cap"]
+    partial = json.loads((REPO / "fixtures/fighters/legal/legal_extremes.json").read_text())
+    ev2 = budget.evaluate(partial["attributes"])
+    assert not ev2["complete_declaration"] and not ev2["cap_enforced"]
+
+
+def test_refund_rate_makes_polarised_builds_cost_more_than_moderate_ones():
+    """The measurement that drove Decision 0007: at full refund the ordering inverted, which is
+    the unrestricted upward stacking Rule 10 forbids."""
+    from tools.uppercut_validate import budget
+    load_a = lambda n: json.loads((REPO / f"fixtures/fighters/legal/{n}.json").read_text())["attributes"]
+    broad, moderate, polarised = (load_a("legal_baseline"), load_a("legal_boundaries"),
+                                  load_a("legal_extremes"))
+    net = lambda a, r: budget.profile(a, refund_rate=r)["C_tiered_marginal"]["net"]
+    assert net(polarised, 1.0) < net(moderate, 1.0), "the loophole this ruling closes"
+    assert net(broad, 0.5) < net(moderate, 0.5) < net(polarised, 0.5), "ordering restored at 0.5"
+
+
+def test_canonical_budget_config_is_internally_consistent():
+    from tools.uppercut_validate import budget
+    cfg = budget.load_config()
+    assert cfg["curve"] in budget.CURVES
+    assert 0.0 < cfg["refund_rate"] <= 1.0
+    assert cfg["tuning_status"] == "hypothesis", "Rule 18: the cap rests on one modelled build"
 
 
 def test_boundaries_are_inclusive_exclusive_as_written():

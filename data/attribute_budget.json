@@ -1,0 +1,15 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-02 20:40 UTC", "end": "2026-08-02 20:40 UTC" },
+  "$comment": "CANONICAL attribute-budget formula. Ruled in Decision 0007 under Director delegation, 2026-08-02, satisfying the ROADMAP Phase 0 gate item 'One canonical attribute-budget formula chosen'. Candidates and the measurement that drove the ruling are in docs/phase0/attribute_budget_candidates.md.",
+  "schema_version": "0.1.0-draft",
+  "curve": "C_tiered_marginal",
+  "curve_definition": "1x on magnitude 0-40, 2x on 41-70, 3x on 71-100. Tier boundaries deliberately match Rule 10's own caps and compensation thresholds so authors reason about one set of numbers.",
+  "refund_rate": 0.5,
+  "refund_rationale": "At full refund the most polarised legal build cost LESS than a moderate one under every candidate curve - negatives refunded more than elite positives cost, which is the unrestricted upward stacking Rule 10 forbids. Halving the refund inverts that ordering: measured net for the sandbox fixtures becomes 100 (broad-modest), 180 (two elite plus mild negatives), 230 (polarised).",
+  "cap": 1000,
+  "cap_scope": "complete_declaration",
+  "cap_scope_definition": "The cap applies only to builds declaring EVERY attribute in data/attribute_families.json. Partial sandbox fixtures are balance instruments, not fighters; their cost is reported but not capped, because cost scales with how many attributes are declared and a single absolute cap cannot span both cases.",
+  "cap_calibration": "Derived from a reference complete build sitting near several Rule 10 caps at once (one +100, a second attribute above +70, two severe negatives, two related negatives below -30). That build nets 869; the cap is set at 1000, roughly 15% headroom.",
+  "tuning_status": "hypothesis",
+  "recalibration_trigger": "Recalibrate when the first complete roster characters are authored. The cap is currently justified by ONE modelled build (fixtures/fighters/legal/reference_complete_shape.json), which is evidence but not much of it (Rule 18)."
+}

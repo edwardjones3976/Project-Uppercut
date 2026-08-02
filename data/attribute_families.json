@@ -6,9 +6,9 @@
     "end": "2026-08-02 19:34 UTC",
     "procedure": "Director contribution-tagging procedure, adopted for Project Uppercut by Director override 2026-08-02 (see docs/decisions/0006)."
   },
-  "$comment": "PROPOSED taxonomy pending Director approval. PROJECT_RULES.md Rule 10 requires that attribute families and compensating relationships be explicit data, never inferred from display names. Rule 10 names 'physical' and 'technical' families explicitly (no fighter may have every physical trait negative; likewise technical); 'mental' is a proposed third family. Attribute keys below are a proposed vocabulary, not canonical.",
+  "$comment": "CANONICAL taxonomy, adopted in Decision 0007 (2026-08-02) under Director delegation. 24 keys: 9 physical, 8 technical, 7 mental. PROJECT_RULES.md Rule 10 requires that attribute families and compensating relationships be explicit data, never inferred from display names. Rule 10 names 'physical' and 'technical' families explicitly (no fighter may have every physical trait negative; likewise technical); 'mental' is a proposed third family. Attribute keys below are a proposed vocabulary, not canonical.",
   "schema_version": "0.1.0-draft",
-  "status": "proposed_pending_director_approval",
+  "status": "adopted_decision_0007",
   "range": {
     "min": -100,
     "max": 100,

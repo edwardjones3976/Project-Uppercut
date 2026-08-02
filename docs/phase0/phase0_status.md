@@ -1,68 +1,76 @@
-<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:57 UTC | START ] -->
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 20:47 UTC | START ] -->
 
 # Phase 0 — Deliverable and Gate Status
 
-Traceability from ROADMAP Phase 0 to committed artifacts. Per Rule 18, "complete" here means the
-artifact exists; it never means a Director has approved it.
+Traceability from ROADMAP Phase 0 to committed artifacts. Per Rule 18, "complete" means the artifact
+exists; "ruled" means a decision record exists; **neither means the gate is closed.**
 
-**Canon verified against repository head `ef9299e` on 2026-08-02.**
+**Canon verified against repository head `ef9299e` (2026-08-02).**
+**Local git:** branch `main`, foundation committed, **not yet pushed** — see `_to_delete/PUSH_FOUNDATION.md`.
+
+## Gate status: SATISFIED PENDING REPOSITORY EVIDENCE
+
+All seven gate items are now answered. The gate is **not declared passed**, for one reason: the
+foundation exists on a single disk and is not yet in the repository. Rule 18 forbids claiming a
+system exists without verifiable repository evidence, and a gate closed against unpushed files would be
+exactly that. The moment the push lands and CI runs green, this becomes a clean pass.
+
+| Gate item | Evidence | Status |
+|---|---|---|
+| Originality rules documented | Rule 1; `CONTRIBUTING.md` rejection list; audit items 11–13 | met |
+| Scorecard access boundaries documented and testable | `data/score_isolation_contract.json`, `score_isolation.py`, `tests/test_score_isolation.py` | met — checker proven non-vacuous |
+| One canonical attribute-budget formula chosen | `data/attribute_budget.json`; Decision 0007 D-1 | ruled — pending repo evidence |
+| Legal and illegal fighter-build fixtures specified | `fixtures/fighters/` (4 legal, 14 illegal) | met |
+| Technical sandbox acceptance criteria approved | `docs/phase0/sandbox_acceptance_criteria.md`; Decision 0007 D-2 | ruled — pending repo evidence |
+| Character vertical-slice criteria approved separately | `docs/phase0/vertical_slice_acceptance_criteria.md`; Decision 0007 D-3 | ruled — pending repo evidence |
+| Game-feel and style-viability laws accepted | Rules 19 and 21; `data/stress_profiles/` (all six) | met |
 
 ## Deliverables
 
 | ROADMAP Phase 0 deliverable | Artifact | Status |
 |---|---|---|
-| Confirm Unreal and tool versions | `docs/phase0/technical_baseline.md` | drafted; **version numbers await Director confirmation** |
+| Confirm Unreal and tool versions | `docs/phase0/technical_baseline.md` | procedure ruled (D-7); build numbers filled at first engine install |
 | Repository conventions and contribution guidance | `CONTRIBUTING.md`, `CONTRIBUTION_TAGGING.md` | complete |
-| Canonical data schemas | `schemas/` (15), `data/` (8 taxonomies and contracts, plus 6 stress profiles, 7 referees, 1 move table) | drafted; attribute vocabulary awaits approval (OQ-5) |
-| Define the generic technical sandbox | `docs/phase0/sandbox_acceptance_criteria.md`, `data/moves/generic_sandbox_moves.json` | criteria drafted for approval; 17-move starting table authored |
-| Define the Balogun/Givens vertical slice | `docs/phase0/vertical_slice_acceptance_criteria.md` | drafted for approval, separately |
-| Automated validators before roster balancing | `tools/uppercut_validate/` (6 modules) | complete — **95 tests passing** |
+| Canonical data schemas | `schemas/` (15), `data/` (9 top-level contracts + 6 stress profiles + 7 referees + 1 move table) | complete; taxonomy canonical per D-4 |
+| Define the generic technical sandbox | acceptance criteria + `data/moves/generic_sandbox_moves.json` (17 moves) | complete |
+| Define the Balogun/Givens vertical slice | `docs/phase0/vertical_slice_acceptance_criteria.md` | complete (bar only; identity stays Director-owned) |
+| Automated validators before roster balancing | `tools/uppercut_validate/` (6 modules) | complete — **100 tests passing** |
 | Templates | `docs/templates/` (7) | complete |
 | Asset compatibility audit | `docs/phase0/asset_compatibility_audit.md` | complete |
 
-## Quality gate
+## Decisions of record
 
-| Gate item | Evidence | Status |
-|---|---|---|
-| Originality rules documented | Rule 1; `CONTRIBUTING.md` rejection list; audit items 11–13 | met |
-| Scorecard access boundaries documented **and testable** | `data/score_isolation_contract.json`, `score_isolation.py`, `tests/test_score_isolation.py` | met — checker proven non-vacuous against a deliberate violation sample |
-| One canonical attribute-budget formula chosen | `docs/phase0/attribute_budget_candidates.md` | **DIRECTOR DECISION OUTSTANDING** |
-| Legal and illegal fighter-build fixtures specified | `fixtures/fighters/` (3 legal, 13 illegal) | met — every Rule 10 clause fails for its own specific reason |
-| Technical sandbox acceptance criteria approved | `docs/phase0/sandbox_acceptance_criteria.md` | **DIRECTOR APPROVAL OUTSTANDING** |
-| Character vertical-slice criteria approved separately | `docs/phase0/vertical_slice_acceptance_criteria.md` | **DIRECTOR APPROVAL OUTSTANDING** |
-| Game-feel hierarchy and style-viability laws accepted | Rules 19 and 21; `data/stress_profiles/` (all six) | met |
-
-## Rules now enforced by a failing test rather than by code review
-
-| Rule | Enforcement |
+| Decision | Covers |
 |---|---|
-| 3 — Score Isolation | sealed-symbol source scan across all nine forbidden consumer categories; event-log leak detection; judge cards sealed by schema |
-| 4 — Fair anti-spam | seven-item targeted-abuse list; punishment must come from one of six observable mechanisms; hidden punishment, impossible reaction speed, privileged inputs and score knowledge all rejected; human/CPU symmetry asserted |
-| 5 — One unified system | a mode declares which of twelve permitted surfaces it configures; the sixteen prohibited surfaces — physics, damage, scoring, move availability, rubber-banding, hidden tier rules — fail both the validator and the schema |
-| 6 — Advice rewards | 3% per-round ceiling, non-stackable, Corner > Commentary > Crowd, never score-driven |
-| 8 — Commentary crews | crew-size law parameterised over all ten round/championship combinations |
-| 9 — Fight clock | Accelerated Clock ON forces 3:00 display over 1:45 real; OFF permits only 1, 2 or 3 minutes |
-| 10 — Attribute economy | every cap, safeguard and compensation rung, with boundary cases proving −30 is not "below −30" |
-| 11 — Abilities | an Ultimate declaring an automatic match end fails validation; an ability without counterplay fails validation |
-| 12 — Crowd | rewardable-behaviour whitelist; positive gain without risk flagged as farming; one bar cannot activate both Ultimate and Full-Crowd Trait |
-| 13 — Contact truth | commitment cost strictly increasing blocked → dodged → whiffed |
-| 14 — Condition | all fifteen required regions present; no key named `health` |
-| 16 — Referees | seven officials, six mutually distinct enforcement fingerprints, universal minimums binding on every one including the non-Ranked comic-relief official |
-| 18 — Evidence honesty | every authored frame and cost value carries `tuning_status: hypothesis` |
-| 21 — Style viability | all six stress profiles present with win condition, risk condition, counterplay and readable signals; First Bell Firestorm and Long Drain both bound |
-| 22 — Counterplay from the first punch | every move in the generic table defines all nine commitment columns |
+| 0006 | Contribution tagging, schedule and objectives adopted; supersedes two sections of 0005 |
+| 0007 | Phase 0 gate rulings D-1 to D-7, D-9, D-10 — budget formula, both acceptance-criteria sets, taxonomy, all eight open questions, version-pin procedure, referee depth |
+| 0008 | Team governance — Director final authority, explicit per-task assignment, no default file ownership |
+
+Decisions 0007 and 0008 were made under explicit Director delegation. Each ruling is one configuration
+line or one data file from being reversed.
+
+## Rules enforced by a failing test rather than by code review
+
+3 (score isolation, all nine consumer categories), 4 (anti-spam mechanisms and symmetry), 5 (mode
+configuration whitelist — sixteen prohibited surfaces), 6 (advice ceiling, non-stackable, reliability
+order), 8 (crew size across all ten combinations), 9 (clock semantics), 10 (every cap, safeguard,
+compensation rung, **and now the budget cap**), 11 (no auto-win Ultimate, no ability without
+counterplay), 12 (Crowd whitelist, farming detection, exclusive full-bar choice), 13 (commitment
+ordering), 14 (fifteen condition regions, no single health bar), 16 (seven officials, six distinct
+philosophies, universal minimums), 18 (every authored number carries `tuning_status: hypothesis`),
+21 (six stress profiles with win/risk/counterplay/signals), 22 (nine commitment columns per move).
 
 ## What does not exist yet
 
 No Unreal project, no simulation code, no playable build, no in-engine test. The source-side score
-isolation scan has no real tree to police; it is provisioned and proven against samples. The move
-table is a *starting* table — no value in it has been validated by play or batch simulation.
+isolation scan has no real tree to police — provisioned and proven against samples. The move table and
+the budget cap are starting values, not validated ones.
 
 ## Reproduce
 
 ```
-python3 -m pytest -q                        # 95 tests
+python3 -m pytest -q                        # 100 tests
 python3 -m tools.uppercut_validate.cli all  # fixtures, isolation, contracts, data laws, budget
 ```
 
-<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:57 UTC | END ] -->
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 20:47 UTC | END ] -->

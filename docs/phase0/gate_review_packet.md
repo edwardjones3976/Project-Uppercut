@@ -2,6 +2,16 @@
 
 # Phase 0 Gate Review Packet
 
+> **CLOSED OUT 2026-08-02.** The Director delegated the whole queue ("You have permission to do all of
+> it"). Every item was ruled: D-1 through D-7, D-9 and D-10 in
+> [Decision 0007](../decisions/0007-phase0-gate-rulings.md); D-8 in
+> [Decision 0008](../decisions/0008-team-governance.md). Rulings are recorded rather than applied
+> silently so each stays visible, attributable and reversible.
+>
+> **The gate itself is not yet closed.** Gate items 3, 5 and 6 are *satisfied pending repository
+> evidence*: the foundation still lives on one disk, and closing a gate against unpushed files would
+> violate Rule 18. See `_to_delete/PUSH_FOUNDATION.md`.
+
 Sprint B preparation per PROJECT_PLAN.md §5 and §8, and risk mitigation R2/R8: every outstanding
 decision arrives here with a written default, so one short Director sitting can close the whole gate.
 The Sprint B target is Aug 23; gates govern, so closing early is permitted and closing late is
@@ -17,10 +27,10 @@ default — silence keeps the default, and the default becomes canonical at gate
 |---|---|---|
 | 1 | Originality rules documented | met |
 | 2 | Scorecard access boundaries documented and testable | met (checker proven non-vacuous) |
-| 3 | One canonical attribute-budget formula chosen | **awaits D-1** |
-| 4 | Legal/illegal fighter-build fixtures specified | met (3 legal / 13 illegal, clause-mapped) |
-| 5 | Sandbox acceptance criteria approved | **awaits D-2** |
-| 6 | Vertical-slice acceptance criteria approved separately | **awaits D-3** |
+| 3 | One canonical attribute-budget formula chosen | ruled (D-1) — pending repo evidence |
+| 4 | Legal/illegal fighter-build fixtures specified | met (4 legal / 14 illegal, clause-mapped) |
+| 5 | Sandbox acceptance criteria approved | ruled (D-2) — pending repo evidence |
+| 6 | Vertical-slice acceptance criteria approved separately | ruled (D-3) — pending repo evidence |
 | 7 | Game-feel and style-viability laws accepted | met |
 
 ## Decision queue
@@ -46,7 +56,7 @@ separately from D-2, per prototype separation. Character identity content stays 
 document sets the acceptance bar only.
 
 ### D-4 — Attribute vocabulary and families *(default-adopting; OQ-5, OQ-6)*
-**Default:** the proposed 25-key, three-family taxonomy in `data/attribute_families.json`, with
+**Default:** the proposed 24-key, three-family taxonomy (9 physical, 8 technical, 7 mental) in `data/attribute_families.json`, with
 *mental* exempt from the all-negative prohibition (Rule 10 names only physical and technical).
 **Silence:** taxonomy becomes canonical at gate close; extending it later is additive, renaming later
 is a migration.
@@ -91,7 +101,7 @@ re-run the two commands below, record the rulings in `docs/decisions/` via the d
 and mark gate items 3/5/6 met in `phase0_status.md`. Phase 1A work is unblocked the same day.
 
 ```
-python3 -m pytest -q                        # 95 tests
+python3 -m pytest -q                        # 100 tests
 python3 -m tools.uppercut_validate.cli all
 ```
 

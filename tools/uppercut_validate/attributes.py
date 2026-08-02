@@ -175,6 +175,17 @@ def validate_fighter(fighter: dict, families: dict | None = None,
             add(Finding("R10.severe_consequence", "violation",
                         f"'{k}' = {attrs[k]} is a severe negative with no declared visible gameplay consequence"))
 
+    # --- budget cap (Decision 0007) ---
+    try:
+        from . import budget as _budget
+        ev = _budget.evaluate(attrs)
+        if ev["over_cap"]:
+            add(Finding("R10.budget_cap", "violation",
+                        f"complete build nets {ev['net']} against the canonical cap of {ev['cap']} "
+                        f"({ev['curve']}, refund {ev['refund_rate']})"))
+    except FileNotFoundError:
+        pass
+
     # --- no simplistic overall rating ---
     for banned in ("overall", "overall_rating", "ovr", "rating"):
         if banned in fighter or banned in attrs:

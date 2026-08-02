@@ -2,6 +2,16 @@
 
 # Phase 0 — Open Questions
 
+> **RESOLVED — all eight ruled in [Decision 0007](../decisions/0007-phase0-gate-rulings.md),
+> 2026-08-02, under Director delegation.** OQ-1 exclusive binding (D-5). OQ-2 a +100 counts toward the
+> two-above-+70 allowance (D-6). OQ-3 declared-attribute evaluation, complete declaration expected of
+> roster characters (D-6). OQ-4 the attribute/condition split is intended (D-6). OQ-5 the 24-key
+> taxonomy is canonical (D-4). OQ-6 *mental* stays exempt from the all-negative prohibition (D-4).
+> OQ-7 no per-attribute range caps beyond Rule 10's global ones (D-6). OQ-8 refund rate 0.5 (D-1).
+>
+> The text below is preserved as the reasoning behind each ruling, not as an open queue. Every default
+> remains configurable, so a Director reversal changes one line.
+
 Places where PROJECT_RULES.md admits more than one honest reading. Each is implemented with a
 default so work continues, and each default is **configurable in code** rather than baked in, so a
 Director ruling changes one line instead of a rewrite. None of these is a proposal to change canon;
@@ -51,7 +61,7 @@ Confirm the split is intended.
 
 Canon names some attributes directly (Power, Chin, Durability, Recovery, Composure, Ring Awareness,
 Coachability, Ringcraft, Showmanship, stamina, balance, speed, technique, reach) but never publishes a
-closed list. `data/attribute_families.json` proposes a 25-key vocabulary in three families. Rule 10
+closed list. `data/attribute_families.json` proposes a 24-key vocabulary in three families (9 physical, 8 technical, 7 mental). Rule 10
 requires families to be explicit data, so *something* must be chosen before roster authoring.
 This file is marked `status: proposed_pending_director_approval`.
 

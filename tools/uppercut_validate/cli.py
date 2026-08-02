@@ -101,8 +101,17 @@ def cmd_budget() -> int:
         data = json.loads(f.read_text())
         prof = budget.profile(data.get("attributes", {}))
         print(f"{f.name:34} " + "  ".join(f"{prof[c]['net']:>18.2f}" for c in budget.CURVES))
-    print("\nNo cap is enforced. The canonical curve and cap are a Director decision "
-          "(docs/phase0/attribute_budget_candidates.md).")
+    cfg = budget.load_config()
+    print(f"\nCanonical (Decision 0007): curve {cfg['curve']}, refund {cfg['refund_rate']}, "
+          f"cap {cfg['cap']} on {cfg['cap_scope']} only. tuning_status={cfg['tuning_status']}.")
+    over = 0
+    for kind, f in _iter_fixtures():
+        data = json.loads(f.read_text())
+        ev = budget.evaluate(data.get("attributes", {}))
+        if ev["cap_enforced"]:
+            print(f"  {'OVER CAP' if ev['over_cap'] else 'within cap'}: {f.name} net={ev['net']}")
+            over += 1 if ev["over_cap"] else 0
+    print(f"  ({over} complete build(s) over cap)")
     return 0
 
 

@@ -1,11 +1,17 @@
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | START ] -->
 
-# Phase 0 Gate Item — Attribute Budget Formula (Director choice)
+# Phase 0 Gate Item — Attribute Budget Formula (RULED)
+
+> **Ruled in [Decision 0007](../decisions/0007-phase0-gate-rulings.md) (D-1), 2026-08-02, under
+> Director delegation:** curve **C, tiered marginal**; **refund rate 0.5**; **cap 1000** applying only
+> to complete declarations. Canonical form: `data/attribute_budget.json`, enforced by the Rule 10
+> validator. The cap carries `tuning_status: hypothesis` and rests on one modelled build — recalibrate
+> when real roster characters exist.
 
 The ROADMAP Phase 0 quality gate requires that **one canonical attribute-budget formula** be chosen.
-This document exists so the choice is made against real numbers. All three candidates are implemented
-in `tools/uppercut_validate/budget.py`; **no cap is enforced anywhere until one is selected**, so
-today the validator polices Rule 10's *laws* but not its *economy*.
+This document exists so the choice was made against real numbers rather than intuition. All three
+candidates remain implemented in `tools/uppercut_validate/budget.py`; the selected one is now enforced,
+so the validator polices Rule 10's *economy* as well as its *laws*.
 
 ## What Rule 10 demands of any candidate
 
@@ -51,6 +57,7 @@ So the ruling has two parts:
 
 A third parameter — the **cap** itself — only becomes meaningful once curve and refund rate are fixed.
 Recommend setting it after the first pass so it is calibrated to real builds rather than guessed.
+*(Set to 1000 in the ruling, calibrated against a modelled complete build at net 869.)*
 
 ## Reproducing these numbers
 
@@ -58,6 +65,18 @@ Recommend setting it after the first pass so it is calibrated to real builds rat
 python3 -m tools.uppercut_validate.cli budget
 ```
 
-Nothing in this document is binding. It is decision material.
+This document is retained as the reasoning and measurement behind the ruling.
+
+## What the ruling changed in code
+
+`data/attribute_budget.json` holds the canonical curve, refund rate and cap.
+`budget.evaluate()` scores a build against them; the Rule 10 validator raises `R10.budget_cap` when a
+**complete** build exceeds the cap. Partial sandbox fixtures report cost but are not capped, because
+cost scales with declaration count: a 7-attribute fixture nets 230 where a complete 24-attribute build
+nets 869, and no single absolute cap spans both.
+
+Two fixtures pin the behaviour: `legal/reference_complete_shape.json` (24 attributes, near several
+Rule 10 caps at once, net 869 — legal) and `illegal/illegal_over_budget_cap.json` (net 1446.5 —
+rejected for `R10.budget_cap` and nothing else).
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | END ] -->

@@ -13,6 +13,10 @@ Rule 10 constraints every candidate must honour:
   - the model must not permit unrestricted upward stacking
 """
 from __future__ import annotations
+import json
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[2]
 
 CURVES = {}
 
@@ -64,3 +68,34 @@ def profile(attrs: dict, refund_rate: float = 1.0) -> dict:
                      "net": round(spend - refund, 2)}
     return out
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | END ]
+
+
+def load_config(path: Path | None = None) -> dict:
+    """The canonical formula ruled in Decision 0007."""
+    path = path or REPO / "data" / "attribute_budget.json"
+    return json.loads(path.read_text())
+
+
+def taxonomy_keys(path: Path | None = None) -> set:
+    path = path or REPO / "data" / "attribute_families.json"
+    fam = json.loads(path.read_text())["families"]
+    return {a for spec in fam.values() for a in spec["attributes"]}
+
+
+def evaluate(attrs: dict, config: dict | None = None) -> dict:
+    """Score a build against the canonical curve, refund rate and cap.
+
+    The cap applies only to complete declarations; a partial sandbox fixture is an
+    instrument, and its cost is reported rather than enforced.
+    """
+    config = config or load_config()
+    fn = CURVES[config["curve"]]
+    spend = sum(fn(v) for v in attrs.values() if v > 0)
+    refund = sum(fn(v) for v in attrs.values() if v < 0) * config["refund_rate"]
+    net = spend - refund
+    complete = set(attrs) == taxonomy_keys()
+    capped = complete and config.get("cap_scope") == "complete_declaration"
+    return {"curve": config["curve"], "refund_rate": config["refund_rate"],
+            "spend": round(spend, 2), "refund": round(refund, 2), "net": round(net, 2),
+            "complete_declaration": complete, "cap": config["cap"],
+            "cap_enforced": capped, "over_cap": bool(capped and net > config["cap"])}

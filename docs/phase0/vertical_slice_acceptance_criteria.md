@@ -1,6 +1,9 @@
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | START ] -->
 
-# Phase 0 Gate Item — Character Vertical-Slice Acceptance Criteria (draft for Director approval)
+# Phase 0 Gate Item — Character Vertical-Slice Acceptance Criteria (ADOPTED)
+
+> **Status: adopted** in [Decision 0007](../decisions/0007-phase0-gate-rulings.md) (D-3), 2026-08-02, under Director delegation. Individual criteria may be struck or added without disturbing the rest.
+
 
 Approved **separately** from the sandbox criteria, and applied only **after** the sandbox gate passes.
 The pairing is Adewale "The Fine Print" Balogun and Calvin "The Host" Givens. Character identity,
