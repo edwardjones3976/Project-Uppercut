@@ -54,10 +54,12 @@ Every phase must pass a defined quality gate before the next phase begins.
 - [Seven-response combat and production consolidation](docs/development-log/2026-07-26-seven-response-design-consolidation.md)
 - [Injury, footwork, controls, stances, and referee consolidation](docs/development-log/2026-07-27-injury-footwork-controls-referees.md)
 - [Modular production, game feel, and style-balance consolidation](docs/development-log/2026-08-02-modular-production-game-feel-and-style-balance-consolidation.md)
+- [Career Growth Journey IV filtered intake](docs/development-log/2026-08-02-career-growth-journey-iv-filtered-intake.md)
 - [Decision 0001 — Simulation first and unified training](docs/decisions/0001-simulation-first-unified-training.md)
 - [Decision 0002 — Modular Unreal-first production](docs/decisions/0002-modular-unreal-first-production.md)
 - [Decision 0003 — Game feel, development, and matchmaking](docs/decisions/0003-game-feel-training-and-competitive-matchmaking.md)
 - [Decision 0004 — Style viability and polarity stress testing](docs/decisions/0004-style-viability-and-polar-opposite-stress-testing.md)
+- [Decision 0005 — Execution-plan authority and filtered intake](docs/decisions/0005-execution-plan-authority-and-filtered-intake.md)
 
 ## Technical foundation
 
