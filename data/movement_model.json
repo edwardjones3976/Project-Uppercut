@@ -1,0 +1,84 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Fable 5 (claude-fable-5)",
+    "start": "2026-08-02 22:16 UTC",
+    "end": "2026-08-02 22:16 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$comment": "ROADMAP Phase 1A step 2 - movement and facing definitions. Engine-neutral canon (Rule 22 / Decision 0002); the Unreal sandbox implements this geometry. Definitions only - no engine implementation is claimed (Rule 18). Every number is a tuning hypothesis. Semantics: docs/phase1a/movement_and_facing.md.",
+  "schema_version": "0.1.0-draft",
+  "tuning_status": "hypothesis",
+  "spatial_units": {
+    "range_unit": "reach_units",
+    "definition": "Pairwise range in reach units: center distance divided by the mean of the two fighters' authored reach spans. Range is reach-relative so the coed, no-division roster (Rule 11) balances differing reach through geometry and counterplay, never hidden modifiers.",
+    "ring_unit": "meters"
+  },
+  "range_bands": {
+    "$comment": "The five bands of move.schema.json range_band, made geometric. Contiguous, reach-relative, hysteresis-guarded.",
+    "hysteresis_ru": 0.05,
+    "hysteresis_note": "A band change registers only after crossing the boundary plus hysteresis in the travel direction. This kills range flicker and is the structural anti-magnetic-correction statement: the simulation never adjusts distance to make a move fit - a wrong-range move whiffs with full commitment consequence (Rule 13).",
+    "bands": [
+      { "key": "clinch", "min_ru": 0.0, "max_ru": 0.35 },
+      { "key": "inside", "min_ru": 0.35, "max_ru": 0.75 },
+      { "key": "mid", "min_ru": 0.75, "max_ru": 1.1 },
+      { "key": "outside", "min_ru": 1.1, "max_ru": 1.6 },
+      { "key": "out_of_range", "min_ru": 1.6, "max_ru": null }
+    ],
+    "band_change_emits": ["range_change"]
+  },
+  "locomotion": {
+    "$comment": "Movement qualities per posture mode. Mode ids are locked to machines.posture_continuum in data/combat_states.json - the validator enforces the cross-file lock. Mode transitions stay zero-delay there; these parameters shape motion, they never gate it.",
+    "modes": [
+      { "posture_mode": "free_navigation", "stride_length_ru": 0.55, "acceleration_frames": 4, "deceleration_frames": 5, "turn_rate_deg_per_frame": 12, "stamina_cost_per_ru": 0.4, "weight_transfer_visible": true },
+      { "posture_mode": "boxing_steps", "stride_length_ru": 0.22, "acceleration_frames": 2, "deceleration_frames": 2, "turn_rate_deg_per_frame": 9, "stamina_cost_per_ru": 0.6, "weight_transfer_visible": true },
+      { "posture_mode": "planted", "stride_length_ru": 0.0, "acceleration_frames": 0, "deceleration_frames": 0, "turn_rate_deg_per_frame": 5, "stamina_cost_per_ru": 0.0, "weight_transfer_visible": true, "notes": "Full power transfer happens planted; stepping punches trade power for position (hypothesis, promoted or struck at step 6)." },
+      { "posture_mode": "pivot", "stride_length_ru": 0.12, "acceleration_frames": 2, "deceleration_frames": 3, "turn_rate_deg_per_frame": 20, "stamina_cost_per_ru": 0.5, "weight_transfer_visible": true, "notes": "The believable mechanism for angle changes and stance switching (Rule 15)." }
+    ],
+    "threat_compression": {
+      "$comment": "Rule 13 threat-responsive stride compression, driven by observable inputs only.",
+      "threat_bands": ["inside", "mid"],
+      "compressed_mode": "boxing_steps",
+      "release_bands": ["outside", "out_of_range"],
+      "observable_inputs": ["range_and_position_observable", "opponent_observables"]
+    },
+    "max_frame_displacement_ru": 0.14,
+    "displacement_note": "Hard per-tick displacement cap below every stride: no invisible lunges, no teleport resolution, including hit reactions and separation pushback (Rule 13)."
+  },
+  "separation": {
+    "min_center_distance_ru": 0.28,
+    "resolution": "mutual_pushback_bounded",
+    "note": "Bodies never overlap (Rule 13). Overlap resolves by bounded mutual pushback inside the displacement cap - never repositioning teleports. Must stay below the clinch band ceiling or the clinch becomes unreachable."
+  },
+  "facing": {
+    "$comment": "Facing is authored geometry, mirrored exactly across stance (Rule 15). Zero degrees points at the opponent; negative is the lead side for an orthodox fighter.",
+    "arcs": [
+      { "key": "front", "center_deg": 0, "half_width_deg": 60, "punches_permitted": true },
+      { "key": "lead_side", "center_deg": -90, "half_width_deg": 30, "punches_permitted": false },
+      { "key": "rear_side", "center_deg": 90, "half_width_deg": 30, "punches_permitted": false },
+      { "key": "back", "center_deg": 180, "half_width_deg": 60, "punches_permitted": false }
+    ],
+    "arc_note": "Arc widths tile the full circle: 120 + 60 + 60 + 120 = 360 degrees, no gaps, no overlap.",
+    "back_exposed_threshold_deg": 120,
+    "back_exposed_note": "Facing away beyond the threshold raises the observable back_exposed flag - referee attention and judging-evidence hooks attach at later steps.",
+    "stance_mirroring": "southpaw_is_exact_mirror",
+    "mirroring_note": "Southpaw geometry is the exact reflection of orthodox: lead_side and rear_side swap signs. No stance carries hidden geometric advantage; stance familiarity penalties are attribute data, never geometry (Rules 10/11/15)."
+  },
+  "ring": {
+    "side_m": 6.4,
+    "rope_proximity_m": 0.9,
+    "corner_proximity_m": 1.2,
+    "note": "Ring position feeds Ringcraft observables (ropes, corners, center control) for Crowd rewards and judging evidence at later steps. Sizes are hypotheses."
+  },
+  "emits": ["step", "pivot", "range_change", "stance_change"],
+  "invariants": [
+    { "id": "feet_establish_position", "rule": "Rule 13", "statement": "Feet establish position; position establishes range; range establishes contact; contact establishes consequence. Range derives from authoritative foot position only.", "enforced_by": "structure of this document; simulation tests at step 5" },
+    { "id": "no_magnetic_correction", "rule": "Rule 13", "statement": "The simulation never adjusts distance to make a move land. Wrong-range attempts resolve as whiffed with full commitment consequence.", "enforced_by": "tools/uppercut_validate/movement.py::check_anti_cheat" },
+    { "id": "no_overlap", "rule": "Rule 13", "statement": "min_center_distance_ru is authoritative; overlap resolves by bounded mutual pushback within the displacement cap.", "enforced_by": "tools/uppercut_validate/movement.py::check_displacement" },
+    { "id": "no_invisible_lunges", "rule": "Rule 13", "statement": "Per-tick displacement is hard-capped below every stride length; no motion may exceed it, including hit reactions and separation.", "enforced_by": "tools/uppercut_validate/movement.py::check_displacement" },
+    { "id": "threat_responsive_compression", "rule": "Rule 13", "statement": "Stride compresses inside threatening range and releases outside it, driven only by observable inputs.", "enforced_by": "tools/uppercut_validate/movement.py::check_threat_compression" },
+    { "id": "explicit_accel_decel", "rule": "Rule 13", "statement": "Every mobile mode declares acceleration and deceleration frames; velocity never steps instantaneously (no ice skating).", "enforced_by": "tools/uppercut_validate/movement.py::check_compression_law" },
+    { "id": "reach_relative_range", "rule": "Rule 11", "statement": "Range bands are reach-relative so differing reach across the coed roster is balanced through geometry and counterplay, never hidden modifiers.", "enforced_by": "spatial_units.range_unit const" },
+    { "id": "stance_mirror_exact", "rule": "Rule 15", "statement": "Southpaw facing geometry is the exact mirror of orthodox; ambidexterity removes familiarity penalties only, never geometry.", "enforced_by": "schema const and tools/uppercut_validate/movement.py::check_facing" }
+  ]
+}

@@ -1,0 +1,164 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Fable 5 (claude-fable-5)",
+    "start": "2026-08-02 22:16 UTC",
+    "end": "2026-08-02 22:16 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/movement_model.schema.json",
+  "title": "Movement and Facing Model",
+  "description": "ROADMAP Phase 1A step 2: engine-neutral movement, facing and range-band geometry the Unreal sandbox must implement (Rule 22 / Decision 0002). Definitions only; no engine implementation is claimed (Rule 18).",
+  "type": "object",
+  "required": ["schema_version", "tuning_status", "spatial_units", "range_bands", "locomotion", "separation", "facing", "ring", "emits", "invariants"],
+  "additionalProperties": false,
+  "properties": {
+    "contribution": { "type": "object" },
+    "$comment": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "tuning_status": { "enum": ["hypothesis", "validated"] },
+    "spatial_units": {
+      "type": "object",
+      "required": ["range_unit", "definition", "ring_unit"],
+      "additionalProperties": false,
+      "properties": {
+        "range_unit": { "const": "reach_units" },
+        "definition": { "type": "string" },
+        "ring_unit": { "const": "meters" }
+      }
+    },
+    "range_bands": {
+      "type": "object",
+      "required": ["hysteresis_ru", "bands", "band_change_emits"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "hysteresis_ru": { "type": "number", "exclusiveMinimum": 0 },
+        "hysteresis_note": { "type": "string" },
+        "bands": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "required": ["key", "min_ru", "max_ru"],
+            "additionalProperties": false,
+            "properties": {
+              "key": { "enum": ["clinch", "inside", "mid", "outside", "out_of_range"] },
+              "min_ru": { "type": "number", "minimum": 0 },
+              "max_ru": { "type": ["number", "null"] }
+            }
+          }
+        },
+        "band_change_emits": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "locomotion": {
+      "type": "object",
+      "required": ["modes", "threat_compression", "max_frame_displacement_ru"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "modes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["posture_mode", "stride_length_ru", "acceleration_frames", "deceleration_frames", "turn_rate_deg_per_frame", "stamina_cost_per_ru", "weight_transfer_visible"],
+            "additionalProperties": false,
+            "properties": {
+              "posture_mode": { "type": "string" },
+              "stride_length_ru": { "type": "number", "minimum": 0 },
+              "acceleration_frames": { "type": "integer", "minimum": 0 },
+              "deceleration_frames": { "type": "integer", "minimum": 0 },
+              "turn_rate_deg_per_frame": { "type": "number", "exclusiveMinimum": 0 },
+              "stamina_cost_per_ru": { "type": "number", "minimum": 0 },
+              "weight_transfer_visible": { "const": true, "description": "Rule 13: visible weight transfer is not optional." },
+              "notes": { "type": "string" }
+            }
+          }
+        },
+        "threat_compression": {
+          "type": "object",
+          "required": ["threat_bands", "compressed_mode", "release_bands", "observable_inputs"],
+          "additionalProperties": false,
+          "properties": {
+            "$comment": { "type": "string" },
+            "threat_bands": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+            "compressed_mode": { "type": "string" },
+            "release_bands": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+            "observable_inputs": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+          }
+        },
+        "max_frame_displacement_ru": { "type": "number", "exclusiveMinimum": 0 },
+        "displacement_note": { "type": "string" }
+      }
+    },
+    "separation": {
+      "type": "object",
+      "required": ["min_center_distance_ru", "resolution"],
+      "additionalProperties": false,
+      "properties": {
+        "min_center_distance_ru": { "type": "number", "exclusiveMinimum": 0 },
+        "resolution": { "const": "mutual_pushback_bounded", "description": "Rule 13: overlap resolves by bounded mutual pushback, never teleports." },
+        "note": { "type": "string" }
+      }
+    },
+    "facing": {
+      "type": "object",
+      "required": ["arcs", "back_exposed_threshold_deg", "stance_mirroring"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "arcs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["key", "center_deg", "half_width_deg", "punches_permitted"],
+            "additionalProperties": false,
+            "properties": {
+              "key": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+              "center_deg": { "type": "number", "minimum": -180, "maximum": 180 },
+              "half_width_deg": { "type": "number", "exclusiveMinimum": 0 },
+              "punches_permitted": { "type": "boolean" }
+            }
+          }
+        },
+        "arc_note": { "type": "string" },
+        "back_exposed_threshold_deg": { "type": "number", "exclusiveMinimum": 0, "maximum": 180 },
+        "back_exposed_note": { "type": "string" },
+        "stance_mirroring": { "const": "southpaw_is_exact_mirror", "description": "Rule 15: southpaw geometry is the exact reflection of orthodox; no hidden stance advantage." },
+        "mirroring_note": { "type": "string" }
+      }
+    },
+    "ring": {
+      "type": "object",
+      "required": ["side_m", "rope_proximity_m", "corner_proximity_m"],
+      "additionalProperties": false,
+      "properties": {
+        "side_m": { "type": "number", "exclusiveMinimum": 0 },
+        "rope_proximity_m": { "type": "number", "exclusiveMinimum": 0 },
+        "corner_proximity_m": { "type": "number", "exclusiveMinimum": 0 },
+        "note": { "type": "string" }
+      }
+    },
+    "emits": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "rule", "statement"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "rule": { "type": "string" },
+          "statement": { "type": "string", "minLength": 1 },
+          "enforced_by": { "type": "string" }
+        }
+      }
+    }
+  }
+}

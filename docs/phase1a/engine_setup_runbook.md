@@ -1,0 +1,45 @@
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 22:16 UTC | START ] -->
+
+# Engine Setup Runbook - First Unreal Install (Decision 0007, item D-7)
+
+**Machine audit, 2026-08-02 (blackbox):** no Epic Games Launcher, no Unreal Engine anywhere on the
+system. Python 3.14.5 and git 2.55 present. The validation suite runs clean locally.
+
+**Why this is a Director action.** Two reasons, both structural. Epic account sign-in and EULA
+acceptance are credential and legal acts the agents do not perform under the session safety contract.
+And D-7 rules that engine and tool versions are pinned from the actual installed build - recorded,
+never guessed (Rule 18). Everything around those two moments is already prepared.
+
+## The click-path (about 15 minutes of your attention, then a long download)
+
+1. **Disk first.** Confirm at least 120 GB free on the install drive. The engine alone runs 60-90 GB
+   installed; the launcher, caches and first project want headroom.
+2. **Download the Epic Games Launcher** from the official source only:
+   `https://store.epicgames.com/download`. Sign in or create your Epic account. (Yours.)
+3. **Accept the launcher EULA and install.** (Yours.)
+4. In the launcher: **Unreal Engine tab -> Library -> "+" slot -> install the latest 5.x release**
+   it offers. Skip optional target platforms for now; they add tens of GB and Phase 1A needs none.
+   **Write down the exact version string** (5.x.y) - that string is the D-7 pin.
+5. **First project:** Games -> Blank -> **Blueprint** (Decision 0002: Blueprints for early
+   prototyping) -> starter content OFF -> name `UppercutSandbox` -> location
+   `C:\Users\edwar\project-uppercut\sandbox\`. The repository .gitignore already fences the
+   generated directories (Binaries, DerivedDataCache, Intermediate, Saved), so the engine cannot
+   flood canon; only source, config and content will ever be committed.
+6. **Tell the agents it is installed.** Next actions on our side, in order: stamp the D-7 version
+   fields into `docs/phase0/technical_baseline.md`; commit the sandbox skeleton (source, config,
+   content only); then run **determinism validation as the first in-engine task** - fixed-tick
+   simulation, seeded runs, byte-identical event logs (Decision 0002's condition on Unreal
+   acceptance) - before any of steps 3-5 build on the engine.
+
+## Do not
+
+- Install inside a OneDrive-synced or backup-managed path (sync fights the engine's file churn).
+- Accept marketplace/content bundles during install; asset intake goes through the Rule 22
+  compatibility audit, not the installer.
+- Enable engine auto-update once pinned. Version changes are decisions, not surprises.
+
+## Blender (also D-7)
+
+Not needed yet. Install when asset work begins and record its version the same way, at install time.
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 22:16 UTC | END ] -->

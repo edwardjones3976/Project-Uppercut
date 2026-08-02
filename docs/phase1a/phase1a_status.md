@@ -9,7 +9,7 @@ data plus validator plus tests exist in the repository; it never means engine im
 | # | ROADMAP step | Status | Evidence |
 |---|---|---|---|
 | 1 | Combat-state definitions | **defined** | `data/combat_states.json`, `schemas/combat_state_machine.schema.json`, `tools/uppercut_validate/combat_states.py`, `tests/test_combat_states.py` |
-| 2 | Movement and facing | not started | - |
+| 2 | Movement and facing | **defined** | `data/movement_model.json`, `schemas/movement_model.schema.json`, `tools/uppercut_validate/movement.py`, `tests/test_movement.py` |
 | 3 | Camera behavior | not started | - |
 | 4 | Animation states | not started | - |
 | 5 | Hitboxes, hurtboxes, guard regions, collision truth | not started | - |
@@ -26,10 +26,13 @@ data plus validator plus tests exist in the repository; it never means engine im
 Steps 2 and later increasingly require the Unreal sandbox project. Per Decision 0007 (D-7), engine and
 tool versions are pinned from the actual installed build at first engine setup - a Director action.
 Definitions-level work (schemas, contracts, validators) may continue ahead of it where honest.
+The Director click-path for first engine setup is `docs/phase1a/engine_setup_runbook.md`; the
+2026-08-02 machine audit found no Epic Games Launcher or Unreal Engine installed.
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 22:16 UTC | edit: step 2 defined, runbook added ] -->
 
 ## Quality gate
 
 The Phase 1A quality gate is defined in `ROADMAP.md`. Nothing in it is claimed. Current honest
-position: step 1 defined and validated; steps 2-10 not started; steps 11-12 provisioned only.
+position: steps 1-2 defined and validated; steps 3-10 not started; steps 11-12 provisioned only.
 
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 21:56 UTC | END ] -->

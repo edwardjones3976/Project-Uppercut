@@ -7,3 +7,13 @@ __pycache__/
 .DS_Store
 Thumbs.db
 # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 20:23 UTC | END ]
+
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 22:16 UTC | edit: Unreal sandbox fences ]
+# Unreal Engine sandbox project (docs/phase1a/engine_setup_runbook.md).
+# Generated and cache directories never enter canon; only source, config and content land.
+sandbox/Binaries/
+sandbox/DerivedDataCache/
+sandbox/Intermediate/
+sandbox/Saved/
+sandbox/.vs/
+sandbox/*.sln

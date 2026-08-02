@@ -1,0 +1,8 @@
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 22:16 UTC | START ]
+# Validation-suite tooling. Single source of truth for CI and local runs:
+# .github/workflows/validate.yml installs from this file.
+# Windows host verified 2026-08-02: Python 3.14.5, jsonschema 4.26.0.
+jsonschema>=4.26
+referencing>=0.37
+pytest>=8
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 22:16 UTC | END ]
