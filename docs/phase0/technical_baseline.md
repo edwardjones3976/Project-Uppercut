@@ -37,10 +37,12 @@ Read from the machine, not assumed (Rule 18):
 - Epic Games Launcher (Portal binary) → `20.1.7-0+UE5`.
 - Install size on disk ≈ 29.9 GB; 694 GB free.
 
-D-7's letter couples the stamp to the commit that creates the Unreal project; the engine is installed
-and verified but the `sandbox/` project is not yet created (runbook step 5 — a Director click). The
-stamp is recorded now against install evidence so this baseline never lags reality; the
-project-creation commit completes the D-7 procedure. Blender remains unpinned until its own install.
+D-7's letter couples the stamp to the commit that creates the Unreal project.
+`sandbox/UppercutSandbox.uproject` — Blueprint-first, built from the engine's own TP_Blank template
+per its TemplateDefs.ini rules — ships in the same commit as this paragraph, created under the
+Decision 0009 standing authorization and verified by a headless editor run: ResavePackages
+commandlet, result 0, `Success - 0 error(s), 0 warning(s)` (2026-08-02 23:23 UTC). **The D-7
+procedure is complete for the engine.** Blender remains unpinned until its own install.
 
 ## Python tooling dependencies
 

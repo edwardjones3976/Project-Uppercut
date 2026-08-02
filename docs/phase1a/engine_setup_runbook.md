@@ -5,6 +5,16 @@
 **Machine audit, 2026-08-02 (blackbox):** no Epic Games Launcher, no Unreal Engine anywhere on the
 system. Python 3.14.5 and git 2.55 present. The validation suite runs clean locally.
 
+> **COMPLETED 2026-08-02.** Steps 1-4 by the Director (launcher + UE 5.8.1 installed, signed in,
+> EULA accepted). Steps 5-6 executed by agent under Decision 0009: `UppercutSandbox` created from
+> TP_Blank and verified headlessly (ResavePackages, result 0, zero errors/warnings). One first-boot
+> quirk worth remembering: Turnkey's `Build.bat -Mode=ValidatePlatforms` wedged on a stale
+> single-instance lock left by install-time tooling and ping-looped forever; killing that child
+> process unblocked the editor, which then completed normally. Harmless to project work — but if a
+> first boot ever hangs silently after `TurnkeySupport` loads, that is the place to look. This
+> runbook remains the reference for engine-version changes and the future Blender install.
+> <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 23:23 UTC | edit: completed ] -->
+
 **Why this is a Director action.** Two reasons, both structural. Epic account sign-in and EULA
 acceptance are credential and legal acts the agents do not perform under the session safety contract.
 And D-7 rules that engine and tool versions are pinned from the actual installed build - recorded,
