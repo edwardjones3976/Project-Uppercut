@@ -111,10 +111,10 @@
     "pressure_threshold_note": "The line the combined inputs above must cross for a knockdown. It lives here rather than inside a simulator because it decides how often fights end early, which is a design statement, not an implementation detail. Set 2026-08-03 by sweeping it across a 60-bout all-pairs run of the six stress profiles at three rounds of three minutes: 1.30 stopped 78% of bouts, 1.45 stopped 55%, 1.50 stopped 45%, 1.60 stopped 15% and 1.90 stopped none. 1.50 was chosen because both result paths stay busy - a stoppage is a live threat in every bout and the cards still decide the majority. The value is a hypothesis; the requirement that neither path go dead is not.",
     "pressure_modifiers": {
       "$comment": "Two of the inputs listed above - balance and guard_state - were declared and then never used, which left delivered force, accumulated condition and stamina as the only terms. All three are bounded and all three move slowly, so pressure had a hard ceiling just above 1.0 and no tail: a threshold of 0.95 stopped two bouts in three and a threshold of 1.05 stopped none at all. A design number with a cliff that sharp is not tunable. These modifiers are the missing terms, and they are state, not dice - Rule 14's ban is on a flat random roll attached to a punch, not on the fight mattering.",
-      "caught_committed_multiplier": 1.55,
+      "caught_committed_multiplier": 1.25,
       "balanced_multiplier": 1.0,
       "unguarded_lane_bonus": 0.35,
-      "notes": "caught_committed is the counter: a fighter dropped while inside his own recovery was caught doing something, which is how most real knockdowns happen and why commitment is the currency this whole model is priced in. unguarded_lane reads the coverage extent the collision pipeline already computed for the target lane, so a shot through an open lane lands heavier than the same shot into a covering arm - the guard keeps mattering after interception fails."
+      "notes": "caught_committed is the counter: a fighter dropped while inside his own recovery was caught doing something, which is how most real knockdowns happen and why commitment is the currency this whole model is priced in. unguarded_lane reads the coverage extent the collision pipeline already computed for the target lane, so a shot through an open lane lands heavier than the same shot into a covering arm - the guard keeps mattering after interception fails. Retuned 1.55 to 1.25 on 2026-08-03 when guard_evasion committed_defense went live: openness while committed is now priced at contact (reduced evasion and guard produce more clean classes), so the old multiplier double-counted the same fact at the knockdown layer and turned the sweep into 90 percent stoppages."
     },
     "decision_path_must_survive": true,
     "count_ticks_per_number": 60,
@@ -234,5 +234,24 @@
       "statement": "The between-rounds break is 1800 ticks - thirty real seconds at the authoritative 60-tick clock.",
       "enforced_by": "tools/uppercut_validate/condition.py::check_recovery"
     }
-  ]
+  ],
+  "impairment": {
+    "$comment": "damage_regions has declared per-region impairs since step 8 - torso impairs stamina, arms impair guard_integrity - and nothing implemented any of them, which made every region below the neck cosmetic: body work accumulated numbers that changed no outcome, and the two styles whose canon win conditions name bodywork (drainer, rusher) were fighting with a mechanism that did not exist. Rule 14 promises per-region damage; a region with no consequence is a flat pool wearing eight names. These are the coefficients for the impairs the reference model can express today; eye and composure impairs are named as unexpressed rather than silently skipped.",
+    "stamina_regen_multiplier_at_full_torso": 0.35,
+    "between_rounds_recovery_multiplier_at_full_torso": 0.5,
+    "guard_extent_multiplier_at_full_arms": 0.55,
+    "arm_damage_fraction_of_blocked_force": 0.5,
+    "expressed": [
+      "stamina",
+      "guard_integrity"
+    ],
+    "not_yet_expressed": [
+      "accuracy",
+      "tracking",
+      "composure_state",
+      "balance",
+      "chin_state"
+    ],
+    "notes": "All multipliers interpolate linearly from 1.0 at zero condition to the stated value at full capacity, reading the mean of the relevant regions. Blocking is not free: a blocked punch delivers a fraction of its force into the guarding arms, which is how sustained pressure opens a guard that never drops - the passive blocker's answer arrives through boxing rather than a rule (Rule 4). balance and chin_state remain expressed only through the knockdown pressure terms; they are listed here so nobody mistakes partial for done."
+  }
 }

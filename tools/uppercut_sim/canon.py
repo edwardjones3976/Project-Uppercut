@@ -56,6 +56,10 @@ def movement() -> dict:
     return _load("movement_model.json")
 
 
+def ability() -> dict:
+    return _load("ability_model.json")
+
+
 def stress_profile(name: str) -> dict:
     return json.loads((DATA / "stress_profiles" / f"{name}.json").read_text(encoding="utf-8"))
 

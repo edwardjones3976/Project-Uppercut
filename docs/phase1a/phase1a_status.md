@@ -91,6 +91,21 @@ balance is the named open finding** - viability passes, every style can win, but
 run well ahead of parity (power_threat 72-80%, drainer 12-22%) and the showman's result swings
 enough between seed bases to be close to noise. Recorded as evidence rather than as a red test.
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 10:12 UTC | START/END ] -->
+
+**The balance finding was run to ground the same day, and it was not a tuning problem.** Every
+lopsided rate traced to a mechanism some losing style's canon win condition names that existed as
+declaration and executed as nothing: crowd paid to the wrong fighter with a bar that could neither
+drain nor spend (the showman's entire win condition, inert); counter windows that were numbers
+rather than windows (the counterpuncher's); a telegraph that existed as prose (power's declared
+risk); and every region below the neck cosmetic (bodywork, named in two win conditions). All four
+are now canon with coefficients - `crowd` recipients as written plus
+`ability_model.reference_instruments`, `guard_evasion_model.committed_defense` and `.telegraph`,
+`condition_model.impairment` - each with a validator that refuses the declared-but-inert state,
+and mutation-proven tests. After: every style sits inside 30-70% on both independent seed bases
+(floor up from 5%, ceiling down from 80%), 44% stoppage / 48% decision / 8% draws, top landed
+move at 41% against the 60% gate, determinism byte-identical throughout. Full account:
+`docs/phase1a/exploit_hunt.md`, "The balance pass".
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 10:56 UTC | START/END ] -->
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 09:52 UTC | edit: steps 11-12, evidence rig ] -->
 
 **What "definitions complete" does and does not mean.** Every layer a CPU-vs-CPU match needs is now

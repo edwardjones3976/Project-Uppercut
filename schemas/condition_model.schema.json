@@ -22,7 +22,8 @@
     "recovery",
     "stoppage_conditions",
     "prohibitions",
-    "invariants"
+    "invariants",
+    "impairment"
   ],
   "additionalProperties": false,
   "properties": {
@@ -380,6 +381,60 @@
           "enforced_by": {
             "type": "string"
           }
+        }
+      }
+    },
+    "impairment": {
+      "type": "object",
+      "required": [
+        "stamina_regen_multiplier_at_full_torso",
+        "between_rounds_recovery_multiplier_at_full_torso",
+        "guard_extent_multiplier_at_full_arms",
+        "arm_damage_fraction_of_blocked_force",
+        "expressed"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "stamina_regen_multiplier_at_full_torso": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1,
+          "description": "Strictly inside (0,1): at 1 body work does nothing, at 0 a worked body stops recovering entirely, which is a lockout."
+        },
+        "between_rounds_recovery_multiplier_at_full_torso": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "guard_extent_multiplier_at_full_arms": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "arm_damage_fraction_of_blocked_force": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "expressed": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "not_yet_expressed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
         }
       }
     }

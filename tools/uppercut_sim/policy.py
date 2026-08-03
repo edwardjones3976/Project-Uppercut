@@ -26,6 +26,37 @@ BIAS = {
     "power_threat":   (0.50, "cross_arm",    0.40, 0.70),
 }
 
+# How hard each profile hunts the counter window - the chance of throwing when
+# the opponent is visibly inside their own commitment. Read straight off each
+# profile's canon: the counterpuncher's entire win_condition is "exploiting
+# blocked, dodged and whiffed recovery windows"; the drainer lists "counters";
+# power_threat's counterplay row is "counters into the loading window"; the
+# rusher's canon warns of overcommitment, so its own counter drive is modest.
+COUNTER_DRIVE = {
+    "counterpuncher": 0.90,
+    "drainer":        0.65,
+    "power_threat":   0.55,
+    "technician":     0.45,
+    "showman":        0.45,
+    "rusher":         0.25,
+}
+
+# Round pacing (early multiplier -> late multiplier on aggression), linear over
+# the bout. Only profiles whose canon states a pacing identity carry one: the
+# drainer's win_condition is recovery, rhythm and "ring control that punishes
+# waste" - conserve early, cash late against a body-worked, arm-heavy opponent.
+PACING = {
+    "drainer": (0.65, 1.55),
+}
+
+# Share of offence aimed downstairs. Bodywork is named in the drainer's and the
+# rusher's canon win conditions; everyone else keeps the default mix.
+BODY_SHARE = {
+    "drainer": 0.50,
+    "rusher":  0.40,
+}
+DEFAULT_BODY_SHARE = 0.25
+
 POWER = ("cross_rear", "hook_rear", "uppercut_rear", "overhand_rear")
 QUICK = ("jab_lead", "hook_lead", "uppercut_lead")
 BODY = ("body_hook_lead", "body_straight_rear")
@@ -78,7 +109,40 @@ def decide(profile: str, obs: dict, rng) -> str | None:
     stamina = obs["own_stamina_fraction"]
     if stamina < 0.08:
         return None
-    throw_chance = aggression * (0.35 + 0.65 * stamina)
+
+    # The full-bar conversion. Every fighter has the mechanism (Rule 12); the
+    # showman is simply built around how fast it refills the bar.
+    if obs.get("own_crowd_fraction", 0.0) >= 1.0 \
+            and any(punches[m]["range_band"] == band for m in punches):
+        return "ultimate"
+
+    # Round pacing, for the profiles whose canon declares one. Reads only the
+    # fight card (round number and scheduled length), which the building knows.
+    pace = 1.0
+    if profile in PACING:
+        early, late = PACING[profile]
+        total = max(2, obs.get("total_rounds", 3))
+        t = (max(1, obs.get("round", 1)) - 1) / (total - 1)
+        pace = early + (late - early) * t
+
+    # The counter window: the opponent is visibly inside their own commitment
+    # - mid-punch, mid-step or mid-count, all observable events. Profiles hunt
+    # it exactly as hard as their canon says they do. The counter pool is every
+    # in-band punch that arrives fast enough to beat the window - not just the
+    # jab, or every counter in the building is the same punch and the style
+    # sweep grows a dominant loop (which is exactly what its first version did:
+    # jab_lead at 63% of all landed offence).
+    if obs.get("opponent_committed_ticks", 0) > 0 \
+            and rng.random() < COUNTER_DRIVE.get(profile, 0.3):
+        in_band = [m for m in punches.values() if m["range_band"] == band]
+        if in_band:
+            fastest = min(m["startup_frames"] for m in in_band)
+            window_pool = [m["id"] for m in in_band
+                           if m["startup_frames"] <= fastest + 4]
+            if window_pool:
+                return window_pool[rng.randrange(len(window_pool))]
+
+    throw_chance = aggression * pace * (0.35 + 0.65 * stamina)
     if rng.random() > throw_chance:
         return None
 
@@ -88,13 +152,14 @@ def decide(profile: str, obs: dict, rng) -> str | None:
     if obs["my_last_move"] and rng.random() < variety:
         pool = [m for m in pool if m != obs["my_last_move"]] or pool
 
+    body_share = BODY_SHARE.get(profile, DEFAULT_BODY_SHARE)
     roll = rng.random()
-    if roll < risk * 0.45:
-        pref = [m for m in pool if m in POWER]
-    elif roll < 0.75:
-        pref = [m for m in pool if m in QUICK]
-    else:
+    if roll < body_share:
         pref = [m for m in pool if m in BODY]
+    elif roll < body_share + risk * 0.45:
+        pref = [m for m in pool if m in POWER]
+    else:
+        pref = [m for m in pool if m in QUICK]
     pool = pref or pool
     # Only throw what this band actually permits (Rule 12).
     in_band = [m for m in pool if punches[m]["range_band"] == band]

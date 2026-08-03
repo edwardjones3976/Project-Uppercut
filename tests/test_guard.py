@@ -173,4 +173,45 @@ def test_required_prohibitions_and_invariants_are_declared():
     d = _mut()
     d["invariants"] = [i for i in d["invariants"] if i["id"] != "every_guard_is_a_trade"]
     assert gd.check_invariants(d)
-# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 07:36 UTC | END ]
+
+
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 10:52 UTC | START ]
+# Appended below the original author's END tag, which is theirs and untouched.
+def test_telegraph_must_anchor_on_the_fastest_punch():
+    d = _mut()
+    d["telegraph"]["reference_startup_frames"] = 7
+    assert any("fastest startup" in e for e in gd.check_telegraph(d))
+
+
+def test_telegraph_must_not_be_inert():
+    d = _mut()
+    d["telegraph"]["evasion_gain_per_startup_frame"] = 0.001
+    assert any("inert" in e for e in gd.check_telegraph(d))
+
+
+def test_telegraph_may_not_make_a_punch_impossible():
+    d = _mut()
+    d["telegraph"]["max_multiplier"] = 5.0
+    assert any("never impossible" in e for e in gd.check_telegraph(d))
+
+
+def test_committed_defense_must_exist():
+    d = _mut()
+    del d["committed_defense"]
+    assert any("inert at contact" in e for e in gd.check_committed_defense(d))
+
+
+def test_commitment_may_not_zero_the_defence():
+    """Zero would make being caught committed a guaranteed hit - a stun-lock by
+    geometry, which Rule 11 forbids from either side of the exchange."""
+    d = _mut()
+    d["committed_defense"]["evasion_multiplier_while_committed"] = 0.0
+    assert any("strictly inside" in e for e in gd.check_committed_defense(d))
+
+
+def test_slipping_degrades_at_least_as_hard_as_covering():
+    d = _mut()
+    d["committed_defense"]["evasion_multiplier_while_committed"] = 0.9
+    d["committed_defense"]["guard_extent_multiplier_while_committed"] = 0.5
+    assert any("backwards" in e for e in gd.check_committed_defense(d))
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 10:52 UTC | END ]

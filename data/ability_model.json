@@ -44,9 +44,15 @@
   "counterplay_requirements": {
     "$comment": "Rule 11 and Rule 13. Every ability answers the same nine questions every ordinary attack answers, because an ability that skips them has left the combat system rather than extended it.",
     "must_define": [
-      "startup_frames", "active_frames", "recovery_frames", "range_band",
-      "resource_cost", "guard_interaction", "hit_reaction",
-      "counter_vulnerability", "positional_consequence"
+      "startup_frames",
+      "active_frames",
+      "recovery_frames",
+      "range_band",
+      "resource_cost",
+      "guard_interaction",
+      "hit_reaction",
+      "counter_vulnerability",
+      "positional_consequence"
     ],
     "min_startup_frames": 6,
     "min_recovery_frames": 12,
@@ -66,7 +72,10 @@
     "bypasses_whiff_punishment": false
   },
   "exclusivity": {
-    "full_bar_choice": ["ultimate", "full_crowd_trait"],
+    "full_bar_choice": [
+      "ultimate",
+      "full_crowd_trait"
+    ],
     "both_from_one_bar": false,
     "notes": "Rule 12, restated here because this is the file that would be tempted to break it."
   },
@@ -79,12 +88,60 @@
     "Define an ability without the same nine counterplay properties every ordinary attack defines (Rule 22)."
   ],
   "invariants": [
-    { "id": "every_ability_is_counterable", "rule": "Rule 11", "statement": "No ability class grants invulnerability, bypasses commitment, or is unblockable by design.", "enforced_by": "tools/uppercut_validate/ability.py::check_classes" },
-    { "id": "abilities_answer_the_same_questions", "rule": "Rule 22", "statement": "Every ability must define the same nine properties an ordinary attack defines - startup, active, recovery, range, cost, guard interaction, hit reaction, counter vulnerability and positional consequence.", "enforced_by": "tools/uppercut_validate/ability.py::check_counterplay" },
-    { "id": "ultimates_stay_readable", "rule": "Rule 13", "statement": "Minimum startup and recovery floors hold for abilities, and a whiffed ability is punishable.", "enforced_by": "tools/uppercut_validate/ability.py::check_counterplay" },
-    { "id": "input_bypasses_nothing", "rule": "Rule 15", "statement": "Command entry bypasses no stun, recovery, range, cost, startup or whiff punishment, and activation requires explicit confirmation.", "enforced_by": "tools/uppercut_validate/ability.py::check_activation" },
-    { "id": "two_specials_only", "rule": "Rule 12", "statement": "Each fighter has exactly two Specials, one Ultimate and one Full-Crowd Trait.", "enforced_by": "tools/uppercut_validate/ability.py::check_classes" },
-    { "id": "full_bar_exclusivity_holds_here_too", "rule": "Rule 12", "statement": "The full-bar choice matches the crowd model and never yields both.", "enforced_by": "tools/uppercut_validate/ability.py::check_exclusivity" },
-    { "id": "full_bar_costs_the_whole_bar", "rule": "Rule 12", "statement": "Both full-bar abilities cost the entire bar; a Special costs strictly less.", "enforced_by": "tools/uppercut_validate/ability.py::check_classes" }
-  ]
+    {
+      "id": "every_ability_is_counterable",
+      "rule": "Rule 11",
+      "statement": "No ability class grants invulnerability, bypasses commitment, or is unblockable by design.",
+      "enforced_by": "tools/uppercut_validate/ability.py::check_classes"
+    },
+    {
+      "id": "abilities_answer_the_same_questions",
+      "rule": "Rule 22",
+      "statement": "Every ability must define the same nine properties an ordinary attack defines - startup, active, recovery, range, cost, guard interaction, hit reaction, counter vulnerability and positional consequence.",
+      "enforced_by": "tools/uppercut_validate/ability.py::check_counterplay"
+    },
+    {
+      "id": "ultimates_stay_readable",
+      "rule": "Rule 13",
+      "statement": "Minimum startup and recovery floors hold for abilities, and a whiffed ability is punishable.",
+      "enforced_by": "tools/uppercut_validate/ability.py::check_counterplay"
+    },
+    {
+      "id": "input_bypasses_nothing",
+      "rule": "Rule 15",
+      "statement": "Command entry bypasses no stun, recovery, range, cost, startup or whiff punishment, and activation requires explicit confirmation.",
+      "enforced_by": "tools/uppercut_validate/ability.py::check_activation"
+    },
+    {
+      "id": "two_specials_only",
+      "rule": "Rule 12",
+      "statement": "Each fighter has exactly two Specials, one Ultimate and one Full-Crowd Trait.",
+      "enforced_by": "tools/uppercut_validate/ability.py::check_classes"
+    },
+    {
+      "id": "full_bar_exclusivity_holds_here_too",
+      "rule": "Rule 12",
+      "statement": "The full-bar choice matches the crowd model and never yields both.",
+      "enforced_by": "tools/uppercut_validate/ability.py::check_exclusivity"
+    },
+    {
+      "id": "full_bar_costs_the_whole_bar",
+      "rule": "Rule 12",
+      "statement": "Both full-bar abilities cost the entire bar; a Special costs strictly less.",
+      "enforced_by": "tools/uppercut_validate/ability.py::check_classes"
+    }
+  ],
+  "reference_instruments": {
+    "$comment": "What a full Crowd Bar does in the reference simulator. Until 2026-08-03 the answer was nothing: the bar filled, pinned at maximum, and decided no outcome, so the showman - whose entire canon win condition is 'converting a full Crowd Bar into a decisive Ultimate or Full-Crowd Trait choice' - was a style whose victory mechanism did not exist. It won 5 of 40 bouts. This block authors the minimal Ultimate the instruments share, and it obeys every law this file already states: it RIDES an ordinary punch through the ordinary four-stage pipeline, so it is blockable, dodgeable, whiffable and counterable, with real startup, real recovery and full stamina cost (Rules 11, 13, 15). It is an amplified punch, not a different physics.",
+    "instrument_ultimate": {
+      "rides": "heaviest_in_band_punch",
+      "impact_multiplier": 1.6,
+      "recovery_multiplier": 1.5,
+      "stamina_cost_multiplier": 1.0,
+      "spends": "crowd_bar_full",
+      "emits": "ultimate_activated",
+      "notes": "recovery_multiplier is at least 1 by validator law: an Ultimate may never be SAFER than the punch it rides, or the bar would buy risk reduction, which is what every prohibition in this file exists to prevent. The bar empties on the swing, hit or miss - crowd_model.bar.resets_on_full_spend - because the crowd paid for the attempt, not the outcome."
+    },
+    "full_crowd_trait_note": "Instruments use the Ultimate only. The Trait half of the Rule 12 XOR is fighter-defining and belongs to authored fighters, not stress instruments; it stays unimplemented here and is named so nobody reads absence as decision."
+  }
 }

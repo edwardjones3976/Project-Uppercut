@@ -136,12 +136,45 @@ def check_invariants(doc: dict) -> list:
     return [f"missing required invariant '{r}'" for r in REQUIRED_INVARIANTS if r not in present]
 
 
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 10:36 UTC | START ]
+def check_reference_instruments(doc: dict) -> list:
+    """The instrument Ultimate, held to this file's own laws.
+
+    The bar may buy force, never safety: recovery and stamina multipliers at or
+    above 1, impact bounded, and the whole thing rides an ordinary punch so the
+    nine counterplay properties come from the move table instead of being
+    authored twice. A full bar that does nothing is the opposite failure and is
+    also refused - that inert state is what made the showman's canon win
+    condition unreachable for a full sweep.
+    """
+    ri = doc.get("reference_instruments")
+    if ri is None:
+        return ["no reference_instruments block - a full Crowd Bar does nothing in the reference "
+                "model, so every win condition phrased as 'converting the bar' is unreachable"]
+    u = ri["instrument_ultimate"]
+    errs = []
+    if u["impact_multiplier"] <= 1.0:
+        errs.append("the Ultimate delivers no more than the punch it rides - spending a full bar "
+                    "for nothing is authored-but-inert")
+    if u["impact_multiplier"] > 2.0:
+        errs.append("Ultimate impact above 2.0 approaches a different physics rather than an "
+                    "amplified punch (Rule 11's unblockable-by-design, arrived at by force)")
+    if u["recovery_multiplier"] < 1.0:
+        errs.append("the Ultimate recovers faster than its base punch - the bar is buying "
+                    "safety, which is what every prohibition in this file exists to prevent")
+    if u["stamina_cost_multiplier"] < 1.0:
+        errs.append("Rule 15: the Ultimate discounts its resource cost - a bypass by multiplier")
+    return errs
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 10:36 UTC | END ]
+
+
 ALL_CHECKS = [
     ("schema", check_schema),
     ("classes_rule11_rule12", check_classes),
     ("counterplay_rule22", check_counterplay),
     ("activation_rule15", check_activation),
     ("exclusivity_rule12", check_exclusivity),
+    ("reference_instruments_rule15", check_reference_instruments),
     ("prohibitions", check_prohibitions),
     ("invariants_declared", check_invariants),
 ]

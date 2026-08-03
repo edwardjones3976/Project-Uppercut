@@ -119,4 +119,31 @@ def test_required_prohibitions_and_invariants_are_declared():
     d = _mut()
     d["invariants"] = [i for i in d["invariants"] if i["id"] != "every_ability_is_counterable"]
     assert ability.check_invariants(d)
-# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 09:26 UTC | END ]
+
+
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 10:52 UTC | START ]
+# Appended below the original author's END tag, which is theirs and untouched.
+def test_the_bar_may_never_buy_safety():
+    d = _mut()
+    d["reference_instruments"]["instrument_ultimate"]["recovery_multiplier"] = 0.8
+    assert any("buying" in e for e in ability.check_reference_instruments(d))
+
+
+def test_a_full_bar_that_does_nothing_is_refused():
+    """The showman's canon win condition is 'converting a full Crowd Bar'; a
+    sweep ran with the bar inert and the style won 5 of 40. Both failure
+    directions - a bar that buys nothing and a bar that buys safety - are
+    refused, not just the flashy one."""
+    d = _mut()
+    d["reference_instruments"]["instrument_ultimate"]["impact_multiplier"] = 1.0
+    assert any("inert" in e for e in ability.check_reference_instruments(d))
+    d = _mut()
+    del d["reference_instruments"]
+    assert any("unreachable" in e for e in ability.check_reference_instruments(d))
+
+
+def test_the_ultimate_pays_full_resource_cost():
+    d = _mut()
+    d["reference_instruments"]["instrument_ultimate"]["stamina_cost_multiplier"] = 0.5
+    assert any("Rule 15" in e for e in ability.check_reference_instruments(d))
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 10:52 UTC | END ]

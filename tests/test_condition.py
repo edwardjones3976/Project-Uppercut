@@ -139,4 +139,34 @@ def test_required_prohibitions_and_invariants_are_declared():
     d = _mut()
     d["invariants"] = [i for i in d["invariants"] if i["id"] != "chin_is_not_immunity"]
     assert cd.check_invariants(d)
-# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 08:40 UTC | END ]
+
+
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 10:52 UTC | START ]
+# Appended below the original author's END tag, which is theirs and untouched.
+def test_a_declared_impairs_target_may_not_sit_in_a_silent_third_state():
+    """Every impairs target is expressed or named as unexpressed - the torso
+    spent a whole step in the unnamed middle, accumulating numbers that changed
+    no outcome, and two canon win conditions name bodywork."""
+    d = _mut()
+    d["impairment"]["not_yet_expressed"] = []
+    assert any("silent third state" in e for e in cd.check_impairment(d))
+
+
+def test_stamina_impairment_must_be_expressed():
+    d = _mut()
+    d["impairment"]["expressed"] = ["guard_integrity"]
+    assert any("decorative" in e for e in cd.check_impairment(d))
+
+
+def test_guard_integrity_impairment_must_be_expressed():
+    d = _mut()
+    d["impairment"]["expressed"] = ["stamina"]
+    d["impairment"]["not_yet_expressed"].append("guard_integrity")
+    assert any("unlimited force" in e for e in cd.check_impairment(d))
+
+
+def test_missing_impairment_block_is_refused():
+    d = _mut()
+    del d["impairment"]
+    assert any("cosmetic" in e for e in cd.check_impairment(d))
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 10:52 UTC | END ]

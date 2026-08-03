@@ -137,6 +137,39 @@ def check_knockdown(doc: dict) -> list:
     return errs
 
 
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 10:36 UTC | START ]
+def check_impairment(doc: dict) -> list:
+    """Rule 14: a region that impairs nothing is a flat pool wearing eight names.
+
+    damage_regions declared per-region impairs at step 8; this holds the
+    impairment block to that declaration. Every impairs target must be either
+    expressed (and then its coefficients must exist and bind) or listed as
+    not_yet_expressed - the one thing forbidden is the silent third state the
+    torso spent a step in, where a declared consequence changes no outcome.
+    """
+    imp = doc.get("impairment")
+    if imp is None:
+        return ["damage_regions declare impairs but no impairment block exists - every region "
+                "below the neck is cosmetic, and the two styles whose canon win conditions name "
+                "bodywork are fighting with a mechanism that does not exist"]
+    errs = []
+    declared = set()
+    for r in doc["damage_regions"]:
+        declared.update(r["impairs"])
+    covered = set(imp["expressed"]) | set(imp.get("not_yet_expressed", []))
+    for t in sorted(declared - covered):
+        errs.append(f"impairs target '{t}' is declared by a region and neither expressed nor "
+                    f"named as unexpressed - the silent third state is the defect")
+    if "stamina" not in imp["expressed"]:
+        errs.append("torso regions impair stamina and the block does not express it - body work "
+                    "would remain decorative")
+    if "guard_integrity" not in imp["expressed"]:
+        errs.append("arm regions impair guard_integrity and the block does not express it - a "
+                    "guard could absorb unlimited force without opening")
+    return errs
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 10:36 UTC | END ]
+
+
 def check_chin(doc: dict) -> list:
     """Rule 14: +100 Chin is the most resistance available and still loses to evidence."""
     c = doc["chin"]
@@ -194,6 +227,7 @@ ALL_CHECKS = [
     ("regions_rule14", check_regions),
     ("stamina_rule14", check_stamina),
     ("knockdown_rule14_rule16", check_knockdown),
+    ("impairment_rule14", check_impairment),
     ("chin_rule14", check_chin),
     ("recovery_rule8", check_recovery),
     ("stoppages_rule3", check_stoppages),

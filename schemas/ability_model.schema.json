@@ -11,86 +11,288 @@
   "title": "Ability Architecture",
   "description": "ROADMAP Phase 1A step 12: Special, Ultimate and Full-Crowd Trait architecture. Rule 12 and Rule 11. Architecture only - no fighter-specific content. Engine-neutral; definitions only (Rule 18).",
   "type": "object",
-  "required": ["schema_version", "tuning_status", "ability_classes", "counterplay_requirements", "activation", "exclusivity", "prohibitions", "invariants"],
+  "required": [
+    "schema_version",
+    "tuning_status",
+    "ability_classes",
+    "counterplay_requirements",
+    "activation",
+    "exclusivity",
+    "prohibitions",
+    "invariants",
+    "reference_instruments"
+  ],
   "additionalProperties": false,
   "properties": {
-    "contribution": { "type": "object" },
-    "$comment": { "type": "string" },
-    "schema_version": { "type": "string" },
-    "tuning_status": { "enum": ["hypothesis", "validated"] },
+    "contribution": {
+      "type": "object"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "tuning_status": {
+      "enum": [
+        "hypothesis",
+        "validated"
+      ]
+    },
     "ability_classes": {
       "type": "array",
       "minItems": 3,
       "maxItems": 3,
       "items": {
         "type": "object",
-        "required": ["id", "per_fighter", "resource", "cost_fraction", "counterable", "grants_invulnerability", "bypasses_commitment"],
+        "required": [
+          "id",
+          "per_fighter",
+          "resource",
+          "cost_fraction",
+          "counterable",
+          "grants_invulnerability",
+          "bypasses_commitment"
+        ],
         "additionalProperties": false,
         "properties": {
-          "id": { "enum": ["special", "ultimate", "full_crowd_trait"] },
-          "per_fighter": { "type": "integer", "exclusiveMinimum": 0, "maximum": 2 },
-          "resource": { "enum": ["crowd_bar_partial", "crowd_bar_full"] },
-          "cost_fraction": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
-          "counterable": { "const": true, "description": "Rule 11: no unblockable-by-design attack exists." },
-          "grants_invulnerability": { "const": false },
-          "bypasses_commitment": { "const": false },
-          "notes": { "type": "string" }
+          "id": {
+            "enum": [
+              "special",
+              "ultimate",
+              "full_crowd_trait"
+            ]
+          },
+          "per_fighter": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 2
+          },
+          "resource": {
+            "enum": [
+              "crowd_bar_partial",
+              "crowd_bar_full"
+            ]
+          },
+          "cost_fraction": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1
+          },
+          "counterable": {
+            "const": true,
+            "description": "Rule 11: no unblockable-by-design attack exists."
+          },
+          "grants_invulnerability": {
+            "const": false
+          },
+          "bypasses_commitment": {
+            "const": false
+          },
+          "notes": {
+            "type": "string"
+          }
         }
       }
     },
     "counterplay_requirements": {
       "type": "object",
-      "required": ["must_define", "min_startup_frames", "min_recovery_frames", "whiff_is_punishable"],
+      "required": [
+        "must_define",
+        "min_startup_frames",
+        "min_recovery_frames",
+        "whiff_is_punishable"
+      ],
       "additionalProperties": false,
       "properties": {
-        "$comment": { "type": "string" },
-        "must_define": { "type": "array", "minItems": 9, "items": { "type": "string" } },
-        "min_startup_frames": { "type": "integer", "exclusiveMinimum": 0 },
-        "min_recovery_frames": { "type": "integer", "exclusiveMinimum": 0 },
-        "whiff_is_punishable": { "const": true },
-        "notes": { "type": "string" }
+        "$comment": {
+          "type": "string"
+        },
+        "must_define": {
+          "type": "array",
+          "minItems": 9,
+          "items": {
+            "type": "string"
+          }
+        },
+        "min_startup_frames": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "min_recovery_frames": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "whiff_is_punishable": {
+          "const": true
+        },
+        "notes": {
+          "type": "string"
+        }
       }
     },
     "activation": {
       "type": "object",
-      "required": ["requires_explicit_confirmation", "bypasses_stun", "bypasses_recovery", "bypasses_range", "bypasses_resource_cost", "bypasses_startup", "bypasses_whiff_punishment"],
+      "required": [
+        "requires_explicit_confirmation",
+        "bypasses_stun",
+        "bypasses_recovery",
+        "bypasses_range",
+        "bypasses_resource_cost",
+        "bypasses_startup",
+        "bypasses_whiff_punishment"
+      ],
       "additionalProperties": false,
       "properties": {
-        "$comment": { "type": "string" },
-        "requires_explicit_confirmation": { "const": true },
-        "recognition_is_remappable": { "type": "boolean" },
-        "recognition_is_trainable": { "type": "boolean" },
-        "bypasses_stun": { "const": false },
-        "bypasses_recovery": { "const": false },
-        "bypasses_range": { "const": false },
-        "bypasses_resource_cost": { "const": false },
-        "bypasses_startup": { "const": false },
-        "bypasses_whiff_punishment": { "const": false }
+        "$comment": {
+          "type": "string"
+        },
+        "requires_explicit_confirmation": {
+          "const": true
+        },
+        "recognition_is_remappable": {
+          "type": "boolean"
+        },
+        "recognition_is_trainable": {
+          "type": "boolean"
+        },
+        "bypasses_stun": {
+          "const": false
+        },
+        "bypasses_recovery": {
+          "const": false
+        },
+        "bypasses_range": {
+          "const": false
+        },
+        "bypasses_resource_cost": {
+          "const": false
+        },
+        "bypasses_startup": {
+          "const": false
+        },
+        "bypasses_whiff_punishment": {
+          "const": false
+        }
       }
     },
     "exclusivity": {
       "type": "object",
-      "required": ["full_bar_choice", "both_from_one_bar"],
+      "required": [
+        "full_bar_choice",
+        "both_from_one_bar"
+      ],
       "additionalProperties": false,
       "properties": {
-        "full_bar_choice": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "enum": ["ultimate", "full_crowd_trait"] } },
-        "both_from_one_bar": { "const": false },
-        "notes": { "type": "string" }
+        "full_bar_choice": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "enum": [
+              "ultimate",
+              "full_crowd_trait"
+            ]
+          }
+        },
+        "both_from_one_bar": {
+          "const": false
+        },
+        "notes": {
+          "type": "string"
+        }
       }
     },
-    "prohibitions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "prohibitions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
     "invariants": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["id", "rule", "statement"],
+        "required": [
+          "id",
+          "rule",
+          "statement"
+        ],
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
-          "rule": { "type": "string" },
-          "statement": { "type": "string", "minLength": 1 },
-          "enforced_by": { "type": "string" }
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "rule": {
+            "type": "string"
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "enforced_by": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "reference_instruments": {
+      "type": "object",
+      "required": [
+        "instrument_ultimate"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "instrument_ultimate": {
+          "type": "object",
+          "required": [
+            "rides",
+            "impact_multiplier",
+            "recovery_multiplier",
+            "stamina_cost_multiplier",
+            "spends",
+            "emits"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "rides": {
+              "const": "heaviest_in_band_punch",
+              "description": "It is an ordinary punch, amplified - which is what guarantees the nine counterplay properties without authoring them twice."
+            },
+            "impact_multiplier": {
+              "type": "number",
+              "exclusiveMinimum": 1.0,
+              "maximum": 2.0
+            },
+            "recovery_multiplier": {
+              "type": "number",
+              "minimum": 1.0,
+              "description": "Never below 1: the bar may buy force, never safety."
+            },
+            "stamina_cost_multiplier": {
+              "type": "number",
+              "minimum": 1.0,
+              "description": "Rule 15: no resource bypass."
+            },
+            "spends": {
+              "const": "crowd_bar_full"
+            },
+            "emits": {
+              "const": "ultimate_activated"
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "full_crowd_trait_note": {
+          "type": "string"
         }
       }
     }

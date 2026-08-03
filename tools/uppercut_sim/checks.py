@@ -374,12 +374,21 @@ def check_repetition_abuse_list() -> list:
             errs.append(f"abuse '{xid}' never acted at all - it was prohibited rather than "
                         f"punished, which Rule 4 explicitly forbids")
 
-    # Crowd farming must be answered by novelty, not by a lockout.
+    # Crowd farming must be answered by novelty, not by a lockout. Compared on
+    # CUMULATIVE earnings, not the residual bar: once full-bar spending exists,
+    # the bar at the final bell is whatever is left after ultimates, and an
+    # end-of-bout comparison of residues measures spending schedules rather
+    # than income. This check briefly failed for exactly that reason.
     farm = _bout(52100, "technician", "_x_meter_farmer", rounds=2, round_seconds=90)
     farmer, varied = farm.fighters[1], farm.fighters[0]
-    if farmer.crowd > varied.crowd:
-        errs.append("the meter farmer out-earned a varied fighter on crowd - novelty decay is not "
-                    "answering low-risk farming")
+    earned = {f.name: 0.0 for f in farm.fighters}
+    for e in farm.log:
+        if e["type"] == "crowd_gain":
+            earned[e["actor"]] += e["payload"]["amount"]
+    if earned[farmer.name] > earned[varied.name]:
+        errs.append(f"the meter farmer out-earned a varied fighter on cumulative crowd "
+                    f"({earned[farmer.name]:.1f} vs {earned[varied.name]:.1f}) - novelty decay "
+                    f"is not answering low-risk farming")
     gains = [e for e in farm.log if e["type"] == "crowd_gain" and e["actor"] == farmer.name]
     if gains and all(g["payload"]["amount"] <= 0 for g in gains):
         errs.append("the farmer's crowd gain was zeroed outright rather than decayed - Rule 4 "

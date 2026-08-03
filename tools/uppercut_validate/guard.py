@@ -232,6 +232,62 @@ def check_invariants(doc: dict) -> list:
     return [f"missing required invariant '{r}'" for r in REQUIRED_INVARIANTS if r not in present]
 
 
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 10:36 UTC | START ]
+# Added inside the original author's file; their tags are theirs and untouched.
+def check_telegraph(doc: dict) -> list:
+    """The loading tell, kept honest against the move table it claims to read.
+
+    Two failure directions. If the reference startup is above the fastest punch,
+    the fastest punches carry a NEGATIVE telegraph - free evasion resistance
+    nobody authored. If the cap is enormous, a slow punch becomes undodgeable-in
+    -reverse: effectively prohibited, which Rule 11 forbids from either side.
+    """
+    t = doc["telegraph"]
+    errs = []
+    moves = json.loads((REPO / "data" / "moves" / "generic_sandbox_moves.json").read_text(
+        encoding="utf-8"))["moves"]
+    offensive = {"jab", "cross", "hook", "uppercut", "overhand", "body_shot"}
+    startups = [m["startup_frames"] for m in moves if m.get("category") in offensive]
+    if not startups:
+        return ["no offensive moves found to anchor the telegraph reference"]
+    if t["reference_startup_frames"] != min(startups):
+        errs.append(f"reference_startup_frames {t['reference_startup_frames']} is not the "
+                    f"table's fastest startup ({min(startups)}) - the fastest punch must carry "
+                    f"zero telegraph, not a discount")
+    worst = 1.0 + (max(startups) - t["reference_startup_frames"]) * t[
+        "evasion_gain_per_startup_frame"]
+    if worst <= 1.05:
+        errs.append("the slowest punch in the table gains almost no telegraph - the mechanism "
+                    "is authored but inert, which is the exact defect class this block exists "
+                    "to close")
+    if t["max_multiplier"] > 2.5:
+        errs.append("telegraph cap above 2.5 lets evasion approach certainty against slow "
+                    "punches - a telegraph makes a punch riskier, never impossible (Rule 11)")
+    return errs
+
+
+def check_committed_defense(doc: dict) -> list:
+    """The counter window as physics: strictly reduced defence while committed,
+    never zeroed. Zero is a stun-lock by geometry (Rule 11); unity makes
+    counter_window_ticks a number that changes nothing, which a 40-bout sweep
+    showed produces counter-HUNTING without counter-LANDING."""
+    cdf = doc.get("committed_defense")
+    if cdf is None:
+        return ["no committed_defense block - a committed fighter defends at full strength, so "
+                "every counter window the punch model declares is inert at contact"]
+    errs = []
+    for k in ("evasion_multiplier_while_committed", "guard_extent_multiplier_while_committed"):
+        if not 0 < cdf[k] < 1:
+            errs.append(f"{k} must sit strictly inside (0,1) - zero is a guaranteed hit, one is "
+                        f"an inert window")
+    if cdf["evasion_multiplier_while_committed"] > cdf["guard_extent_multiplier_while_committed"]:
+        errs.append("evasion survives commitment better than the guard does - backwards: feet "
+                    "and torso are what a punch spends, the arms less so; slipping mid-punch "
+                    "must degrade at least as hard as covering")
+    return errs
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 10:36 UTC | END ]
+
+
 ALL_CHECKS = [
     ("schema", check_schema),
     ("authority_rule13", check_authority),
@@ -242,6 +298,8 @@ ALL_CHECKS = [
     ("evasion_moves_rule22", check_evasion_moves),
     ("guard_integrity_rule14", check_guard_integrity),
     ("matchup_reference", check_matchup_reference),
+    ("telegraph_rule11", check_telegraph),
+    ("committed_defense_rule11", check_committed_defense),
     ("prohibitions", check_prohibitions),
     ("invariants_declared", check_invariants),
 ]
