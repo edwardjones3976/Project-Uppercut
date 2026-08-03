@@ -1,12 +1,12 @@
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | START ]
-"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget|states|movement|camera|animation|collision]"""
+"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget|states|movement|camera|animation|collision|punches]"""
 from __future__ import annotations
 import json
 import sys
 from pathlib import Path
 
 from . import (animation, attributes, budget, camera, collision, combat_states,
-               contracts, movement, schema_check, score_isolation)
+               contracts, movement, punches, schema_check, score_isolation)
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -194,6 +194,24 @@ def cmd_camera() -> int:
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:03 UTC | END edit ]
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 06:52 UTC | START edit: Phase 1A step 6 ]
+def cmd_punches() -> int:
+    """ROADMAP Phase 1A step 6: what throwing a punch costs."""
+    doc = punches.load()
+    failures = 0
+    for name, fn in punches.ALL_CHECKS:
+        errs = fn(doc)
+        print(f"{'PASS' if not errs else 'FAIL'}  {name}")
+        for e in errs:
+            print(f"        {e}")
+        failures += len(errs)
+    print(f"INFO  {len(doc['outcome_recovery']['rows'])} outcome-recovery rows over all seven "
+          f"contact classes, {len(doc['repetition_economy']['mechanisms'])} observable repetition "
+          f"mechanisms, no cancelable phase (Rule 18: definitions only)")
+    return failures
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 06:52 UTC | END edit ]
+
+
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:13 UTC | START edit: Phase 1A step 5 ]
 def cmd_collision() -> int:
     """ROADMAP Phase 1A step 5: collision truth laws."""
@@ -255,6 +273,8 @@ def main(argv: list) -> int:
         print("== Phase 1A animation states =="); total += cmd_animation(); print()
     if cmd in ("all", "collision"):
         print("== Phase 1A collision truth =="); total += cmd_collision(); print()
+    if cmd in ("all", "punches"):
+        print("== Phase 1A basic punches =="); total += cmd_punches(); print()
     print(f"RESULT: {'OK' if total == 0 else str(total) + ' FAILURE(S)'}")
     return 1 if total else 0
 

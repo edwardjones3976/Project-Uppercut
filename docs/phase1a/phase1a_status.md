@@ -13,7 +13,7 @@ data plus validator plus tests exist in the repository; it never means engine im
 | 3 | Camera behavior | **defined** | `data/camera_model.json`, `schemas/camera_model.schema.json`, `tools/uppercut_validate/camera.py`, `tests/test_camera.py`, `docs/phase1a/camera_behavior.md` |
 | 4 | Animation states | **defined** | `data/animation_model.json`, `schemas/animation_model.schema.json`, `tools/uppercut_validate/animation.py`, `tests/test_animation.py`, `docs/phase1a/animation_states.md` |
 | 5 | Hitboxes, hurtboxes, guard regions, collision truth | **defined** (taken ahead of step 4 by Director instruction) | `data/collision_model.json`, `schemas/collision_model.schema.json`, `tools/uppercut_validate/collision.py`, `tests/test_collision.py`, `docs/phase1a/collision_truth.md` |
-| 6 | Basic punches | not started | move data exists (`data/moves/generic_sandbox_moves.json`); behavior does not |
+| 6 | Basic punches | **defined** | `data/punch_model.json`, `schemas/punch_model.schema.json`, `tools/uppercut_validate/punches.py`, `tests/test_punches.py`, `docs/phase1a/basic_punches.md`; the move table supplies each punch, this supplies what throwing one costs |
 | 7 | Guard and evasion | not started | - |
 | 8 | Stamina, health, condition, knockdowns, recovery | not started | condition regions defined (`data/condition_regions.json`) |
 | 9 | CPU decision-making (observable info only) | not started | decision-reason schema exists |
@@ -51,8 +51,18 @@ explicitly deferred, behind steps 3-4 in the binding order.
 ## Quality gate
 
 The Phase 1A quality gate is defined in `ROADMAP.md`. Nothing in it is claimed. Current honest
-position: steps 1-5 defined and validated (step 1 additionally has a first engine slice);
-steps 6-10 not started; steps 11-12 provisioned only. 242 tests.
+position: steps 1-6 defined and validated (step 1 additionally has a first engine slice);
+steps 7-10 not started; steps 11-12 provisioned only. 262 tests.
+
+**Step 6 note.** The move table already carried all nine per-attack properties ROADMAP line 51
+requires, so step 6 did not restate them. It defines what *throwing* costs: commitment with no
+thrower cancel, the recovery differential that turns `contact_classes.json`'s blocked-dodged-whiffed
+ordering into actual frames and counter windows, the range and stamina gates (nothing is rescued,
+nothing is eaten), the Rule 4 repetition economy, and chaining. The Rule 4 work is the part worth
+flagging for review: the validator requires repetition to cost the thrower **and** to give the
+defender a growing answer, because a model that only tires the spammer is punishment without
+counterplay, and it rejects any mechanism whose trigger is described in repeat-count language.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 06:58 UTC | edit: step 6 defined ] -->
 
 **Pinned drift closed: "10 guards vs. 2 guard volumes."** The execution plan has carried this item
 since the guard design reference landed. Resolved on mechanism rather than on wording, per

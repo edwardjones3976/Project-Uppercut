@@ -1,0 +1,143 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 06:52 UTC",
+    "end": "2026-08-03 06:52 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/punch_model.schema.json",
+  "title": "Punch Execution Model",
+  "description": "ROADMAP Phase 1A step 6: what throwing a punch costs. The move table defines each punch; this defines commitment, the outcome recovery differential, the observable repetition economy (Rule 4), and chaining. Engine-neutral; definitions only (Rule 18).",
+  "type": "object",
+  "required": ["schema_version", "tuning_status", "commitment", "outcome_recovery", "range_gate", "stamina_gate", "repetition_economy", "chaining", "prohibitions", "invariants"],
+  "additionalProperties": false,
+  "properties": {
+    "contribution": { "type": "object" },
+    "$comment": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "tuning_status": { "enum": ["hypothesis", "validated"] },
+    "commitment": {
+      "type": "object",
+      "required": ["thrower_cancelable_phases", "free_cancel_permitted", "input_buffer_ticks"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "thrower_cancelable_phases": { "type": "array", "maxItems": 0, "description": "Rule 13: empty by construction. A thrower never takes a punch back." },
+        "startup_interruptible_by": { "type": "array", "items": { "enum": ["being_struck"] } },
+        "active_interruptible_by": { "type": "array", "items": { "enum": ["being_struck"] } },
+        "recovery_interruptible_by": { "type": "array", "items": { "enum": ["being_struck"] } },
+        "free_cancel_permitted": { "const": false },
+        "input_buffer_ticks": { "type": "integer", "minimum": 0, "maximum": 4, "description": "Rule 19 responsiveness. Bounded: a long buffer would let a queued input outlive the read that justified it." },
+        "notes": { "type": "string" }
+      }
+    },
+    "outcome_recovery": {
+      "type": "object",
+      "required": ["rows"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "rows": {
+          "type": "array",
+          "minItems": 7,
+          "maxItems": 7,
+          "items": {
+            "type": "object",
+            "required": ["class", "recovery_multiplier", "counter_window_ticks"],
+            "additionalProperties": false,
+            "properties": {
+              "class": { "enum": ["clean", "solid", "grazed", "brushed", "blocked", "dodged", "whiffed"] },
+              "recovery_multiplier": { "type": "number", "minimum": 1.0, "maximum": 3.0 },
+              "counter_window_ticks": { "type": "integer", "minimum": 0, "maximum": 60 },
+              "notes": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "range_gate": {
+      "type": "object",
+      "required": ["band_source", "outside_band_outcome", "auto_advance_on_throw"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "band_source": { "type": "string" },
+        "outside_band_outcome": { "const": "whiffed" },
+        "auto_advance_on_throw": { "const": false, "description": "Rule 12: no invisible lunges." },
+        "notes": { "type": "string" }
+      }
+    },
+    "stamina_gate": {
+      "type": "object",
+      "required": ["cost_source", "insufficient_stamina_outcome", "input_ever_ignored"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "cost_source": { "type": "string" },
+        "insufficient_stamina_outcome": { "const": "throw_permitted_at_degraded_quality" },
+        "input_ever_ignored": { "const": false, "description": "Rule 19: exhaustion is visible as worse boxing, never as a dead controller." },
+        "low_stamina_startup_multiplier_max": { "type": "number", "exclusiveMinimum": 1.0, "maximum": 2.0 },
+        "low_stamina_alignment_penalty_max": { "type": "number", "exclusiveMinimum": 0, "maximum": 0.5 },
+        "notes": { "type": "string" }
+      }
+    },
+    "repetition_economy": {
+      "type": "object",
+      "required": ["mechanisms", "prohibited_mechanisms", "legitimate_repetition"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "mechanisms": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": ["id", "fires_on", "observable_as", "affects", "target"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+              "fires_on": { "type": "string", "minLength": 1, "description": "Rule 4: what actually triggers it. Never a repeat count." },
+              "observable_as": { "type": "string", "minLength": 1, "description": "How a spectator or the opponent can see it happening - the difference between boxing and bookkeeping." },
+              "affects": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+              "target": { "enum": ["thrower", "defender"] }
+            }
+          }
+        },
+        "prohibited_mechanisms": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "legitimate_repetition": { "type": "string", "minLength": 1 }
+      }
+    },
+    "chaining": {
+      "type": "object",
+      "required": ["link_earliest_recovery_fraction", "opposite_hand_link_startup_multiplier", "same_hand_link_startup_multiplier", "power_repeat_same_hand_startup_multiplier", "free_cancel_permitted"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "link_earliest_recovery_fraction": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "opposite_hand_link_startup_multiplier": { "type": "number", "minimum": 1.0 },
+        "same_hand_link_startup_multiplier": { "type": "number", "minimum": 1.0 },
+        "power_repeat_same_hand_startup_multiplier": { "type": "number", "minimum": 1.0 },
+        "free_cancel_permitted": { "const": false },
+        "notes": { "type": "string" }
+      }
+    },
+    "prohibitions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "rule", "statement"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "rule": { "type": "string" },
+          "statement": { "type": "string", "minLength": 1 },
+          "enforced_by": { "type": "string" }
+        }
+      }
+    }
+  }
+}
