@@ -1,0 +1,166 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 04:03 UTC",
+    "end": "2026-08-03 04:03 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$comment": "ROADMAP Phase 1A step 3 - camera behaviour. Engine-neutral canon (Rule 22 / Decision 0002). CPU vs. CPU is a first-class spectator experience (Rule 7), so the camera is a readability instrument before it is a spectacle instrument. Definitions only - no engine implementation is claimed (Rule 18). Every number is a tuning hypothesis. Semantics: docs/phase1a/camera_behavior.md.",
+  "schema_version": "0.1.0-draft",
+  "tuning_status": "hypothesis",
+  "authority": {
+    "$comment": "The camera is downstream of truth and cannot bend it.",
+    "writes_simulation_state": false,
+    "participates_in_determinism_hash": false,
+    "derivation": "pure_function_of_observable_event_log_and_tick"
+  },
+  "observable_inputs": [
+    "observable_event_log",
+    "range_and_position_observable",
+    "authoritative_clock_observable",
+    "count_observable",
+    "referee_instructions_observable",
+    "crowd_observable",
+    "opponent_observables"
+  ],
+  "framing_modes": [
+    {
+      "id": "stoppage_hold",
+      "priority": 90,
+      "description": "A stoppage or doctor decision is resolving. The camera holds the decisive subject and does not cut away for spectacle.",
+      "trigger": { "kind": "fight_event", "events": ["stoppage", "doctor_check"] },
+      "both_fighters_framed": false,
+      "distance_bands": [],
+      "max_hold_ticks": null,
+      "notes": "Rule 8's clarity-over-queued-dialogue principle applied to framing: event clarity outranks presentation flourish."
+    },
+    {
+      "id": "knockdown_read",
+      "priority": 80,
+      "description": "A fighter is down or rising. Frames the downed fighter, the count, and the neutral-corner instruction together so the count is legible.",
+      "trigger": { "kind": "fight_event", "events": ["knockdown", "count_tick", "rise"] },
+      "both_fighters_framed": true,
+      "distance_bands": [],
+      "max_hold_ticks": null,
+      "notes": "The referee's count is the authority; the camera must never imply a different count state."
+    },
+    {
+      "id": "count_segment",
+      "priority": 70,
+      "description": "Clock is in the count segment: wide enough to hold downed fighter, referee and neutral corner.",
+      "trigger": { "kind": "clock_segment", "clock_segment": "count" },
+      "both_fighters_framed": true,
+      "distance_bands": [],
+      "max_hold_ticks": null
+    },
+    {
+      "id": "doctor_check_segment",
+      "priority": 65,
+      "description": "Medical inspection. Frames the inspected region and the official; side-specific eye damage must be visibly attributable (Rule 14).",
+      "trigger": { "kind": "clock_segment", "clock_segment": "doctor_check" },
+      "both_fighters_framed": false,
+      "distance_bands": [],
+      "max_hold_ticks": null
+    },
+    {
+      "id": "clinch_inside",
+      "priority": 50,
+      "description": "Clinch or inside work. Tightens without losing either fighter's hands, so legal inside work stays distinguishable from fouling (Rule 16).",
+      "trigger": { "kind": "range_band", "bands": ["clinch", "inside"] },
+      "both_fighters_framed": true,
+      "distance_bands": ["clinch", "inside"],
+      "max_hold_ticks": 600
+    },
+    {
+      "id": "showmanship_flourish",
+      "priority": 40,
+      "description": "Comedy and Showmanship beat: a brief punch-in on an authored flourish. Comedy is the highest PRESENTATION priority (Rule 17), and it still yields to every officiating and safety mode above.",
+      "trigger": { "kind": "fight_event", "events": ["showmanship", "crowd_full", "special_activated", "ultimate_activated", "full_crowd_trait_activated"] },
+      "both_fighters_framed": false,
+      "distance_bands": [],
+      "max_hold_ticks": 90,
+      "notes": "Hard tick cap: the joke never outlasts the boxing. Rule 19 orders responsiveness and readability above humour in game feel even though comedy leads presentation."
+    },
+    {
+      "id": "exchange_read",
+      "priority": 30,
+      "description": "Live exchange at boxing range. The default working shot: both fighters, both guards, and the space between them, so a spectator can attribute cause to effect (criterion F.24).",
+      "trigger": { "kind": "range_band", "bands": ["mid", "outside"] },
+      "both_fighters_framed": true,
+      "distance_bands": ["mid", "outside"],
+      "max_hold_ticks": null
+    },
+    {
+      "id": "ring_wide",
+      "priority": 20,
+      "description": "Fighters out of range: ring position, ropes and corners readable, so Ringcraft is visible rather than inferred.",
+      "trigger": { "kind": "range_band", "bands": ["out_of_range"] },
+      "both_fighters_framed": true,
+      "distance_bands": ["out_of_range"],
+      "max_hold_ticks": null
+    },
+    {
+      "id": "corner_break",
+      "priority": 15,
+      "description": "Between-round break: corner work and condition are visible. The break clock is not paused by presentation (Rule 9).",
+      "trigger": { "kind": "clock_segment", "clock_segment": "break" },
+      "both_fighters_framed": false,
+      "distance_bands": [],
+      "max_hold_ticks": null
+    },
+    {
+      "id": "entrance",
+      "priority": 10,
+      "description": "Entrances and referee disclosure (Rule 16). Character presentation lives here, where it costs no combat readability.",
+      "trigger": { "kind": "clock_segment", "clock_segment": "entrance" },
+      "both_fighters_framed": false,
+      "distance_bands": [],
+      "max_hold_ticks": null
+    },
+    {
+      "id": "post_fight",
+      "priority": 5,
+      "description": "Result and immediate post-fight flow. Official cards stay sealed through this segment (Rule 3) - the camera has no privileged view of them.",
+      "trigger": { "kind": "clock_segment", "clock_segment": "post_fight" },
+      "both_fighters_framed": false,
+      "distance_bands": [],
+      "max_hold_ticks": null
+    },
+    {
+      "id": "bout_default",
+      "priority": 0,
+      "description": "Fallback working shot when no other mode claims the tick. Guarantees the selector is total.",
+      "trigger": { "kind": "default" },
+      "both_fighters_framed": true,
+      "distance_bands": [],
+      "max_hold_ticks": null
+    }
+  ],
+  "readability": {
+    "$comment": "Rule 19: visual speed may not destroy readable cause and effect. These are the structural guards.",
+    "min_ticks_between_cuts": 45,
+    "contact_window_cut_prohibited": true,
+    "max_angular_rate_deg_per_tick": 3.5,
+    "settle_ticks_after_cut": 6
+  },
+  "prohibitions": [
+    "Read official scorecards or any sealed event - the camera is named in Rule 3's live-replay-presentation list.",
+    "Write, nudge or gate any simulation state, including fighter position, timing, stamina or contact classification.",
+    "Frame so that a whiffed or blocked punch reads as a clean landed punch (Rule 13's presentation half).",
+    "Cut between a punch's active window and its outcome event.",
+    "Hold a showmanship or comedy flourish through a knockdown, count, doctor check or stoppage.",
+    "Depend on wall-clock time, frame rate or render timing for any decision; all timing is tick-anchored.",
+    "Hide accumulated condition that the simulation considers decisive - eye and guard damage must remain visually attributable (Rule 14)."
+  ],
+  "invariants": [
+    { "id": "camera_never_writes", "rule": "Criterion E.19", "statement": "The camera writes no simulation state; resimulation is independent of presentation.", "enforced_by": "schema const + tools/uppercut_validate/camera.py::check_authority" },
+    { "id": "camera_score_isolated", "rule": "Rule 3", "statement": "Camera inputs are observable-only; official cards and sealed events are unreachable from framing decisions.", "enforced_by": "tools/uppercut_validate/camera.py::check_input_domains" },
+    { "id": "framing_selector_total", "rule": "Criterion A.1", "statement": "Priorities form a strict total order and a default mode exists, so exactly one framing mode is selected every tick - camera behaviour is inspectable and never ambiguous.", "enforced_by": "tools/uppercut_validate/camera.py::check_priority_order" },
+    { "id": "officiating_outranks_spectacle", "rule": "Rules 8/16/17", "statement": "Stoppage, knockdown, count and doctor modes outrank every spectacle mode; comedy leads presentation but never obscures officiating.", "enforced_by": "tools/uppercut_validate/camera.py::check_officiating_precedence" },
+    { "id": "exchange_readability", "rule": "Criterion F.24", "statement": "Every mode that can be active during the round segment keeps both fighters framed, and no cut may fall inside a contact window.", "enforced_by": "tools/uppercut_validate/camera.py::check_readability" },
+    { "id": "band_lock", "rule": "Rule 13", "statement": "Camera distance bands are exactly the movement model's range bands; framing follows position rather than redefining it.", "enforced_by": "tools/uppercut_validate/camera.py::check_band_lock" },
+    { "id": "tick_anchored", "rule": "Criterion E.19", "statement": "Every camera duration is expressed in ticks; wall-clock and frame-rate dependence do not exist in the model.", "enforced_by": "schema (max_hold_ticks, *_ticks) + check_readability" },
+    { "id": "replay_pure", "rule": "Criterion E.20", "statement": "Framing is a pure function of the observable event log and tick, so replay reproduces recorded presentation without rerunning uncertain decisions.", "enforced_by": "authority.derivation const" }
+  ]
+}

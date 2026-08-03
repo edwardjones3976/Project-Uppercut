@@ -10,7 +10,7 @@ data plus validator plus tests exist in the repository; it never means engine im
 |---|---|---|---|
 | 1 | Combat-state definitions | **defined + first engine slice** | canon files as before; `sandbox/Content/StateWalk/` executes the machine in the Blueprint VM, byte-reproducibly (`determinism_probe_results.md` Phase C) |
 | 2 | Movement and facing | **defined** | `data/movement_model.json`, `schemas/movement_model.schema.json`, `tools/uppercut_validate/movement.py`, `tests/test_movement.py` |
-| 3 | Camera behavior | not started | - |
+| 3 | Camera behavior | **defined** | `data/camera_model.json`, `schemas/camera_model.schema.json`, `tools/uppercut_validate/camera.py`, `tests/test_camera.py`, `docs/phase1a/camera_behavior.md` |
 | 4 | Animation states | not started | - |
 | 5 | Hitboxes, hurtboxes, guard regions, collision truth | not started | - |
 | 6 | Basic punches | not started | move data exists (`data/moves/generic_sandbox_moves.json`); behavior does not |
@@ -51,6 +51,8 @@ explicitly deferred, behind steps 3-4 in the binding order.
 ## Quality gate
 
 The Phase 1A quality gate is defined in `ROADMAP.md`. Nothing in it is claimed. Current honest
-position: steps 1-2 defined and validated; steps 3-10 not started; steps 11-12 provisioned only.
+position: steps 1-3 defined and validated (step 1 additionally has a first engine slice); steps 4-10
+not started; steps 11-12 provisioned only. 165 tests.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:03 UTC | edit: step 3 defined ] -->
 
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 21:56 UTC | END ] -->

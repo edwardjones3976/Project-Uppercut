@@ -1,11 +1,12 @@
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | START ]
-"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget|states|movement]"""
+"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget|states|movement|camera]"""
 from __future__ import annotations
 import json
 import sys
 from pathlib import Path
 
-from . import attributes, budget, combat_states, contracts, movement, schema_check, score_isolation
+from . import (attributes, budget, camera, combat_states, contracts, movement,
+               schema_check, score_isolation)
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -174,6 +175,25 @@ def cmd_movement() -> int:
 # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 22:16 UTC | END edit ]
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:03 UTC | START edit: Phase 1A step 3 ]
+def cmd_camera() -> int:
+    """ROADMAP Phase 1A step 3: camera behaviour laws."""
+    doc = camera.load()
+    failures = 0
+    for name, fn in camera.ALL_CHECKS:
+        errs = fn(doc)
+        print(f"{'PASS' if not errs else 'FAIL'}  {name}")
+        for e in errs:
+            print(f"        {e}")
+        failures += len(errs)
+    modes = doc["framing_modes"]
+    print(f"INFO  {len(modes)} framing modes, strict priority {max(m['priority'] for m in modes)}"
+          f"..{min(m['priority'] for m in modes)}; camera writes no simulation state and is excluded "
+          f"from the determinism hash (Rule 18: definitions only)")
+    return failures
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:03 UTC | END edit ]
+
+
 def main(argv: list) -> int:
     cmd = argv[1] if len(argv) > 1 else "all"
     total = 0
@@ -191,6 +211,8 @@ def main(argv: list) -> int:
         print("== Phase 1A combat-state definitions =="); total += cmd_states(); print()
     if cmd in ("all", "movement"):
         print("== Phase 1A movement and facing =="); total += cmd_movement(); print()
+    if cmd in ("all", "camera"):
+        print("== Phase 1A camera behaviour =="); total += cmd_camera(); print()
     print(f"RESULT: {'OK' if total == 0 else str(total) + ' FAILURE(S)'}")
     return 1 if total else 0
 

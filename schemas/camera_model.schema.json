@@ -1,0 +1,100 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 04:03 UTC",
+    "end": "2026-08-03 04:03 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/camera_model.schema.json",
+  "title": "Camera Model",
+  "description": "ROADMAP Phase 1A step 3: engine-neutral camera behaviour the Unreal sandbox must implement (Rule 22 / Decision 0002). The camera is a PURE CONSUMER of authoritative state - it never writes simulation state and never reads sealed data. Definitions only; no engine implementation is claimed (Rule 18).",
+  "type": "object",
+  "required": ["schema_version", "tuning_status", "authority", "observable_inputs", "framing_modes", "readability", "prohibitions", "invariants"],
+  "additionalProperties": false,
+  "properties": {
+    "contribution": { "type": "object" },
+    "$comment": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "tuning_status": { "enum": ["hypothesis", "validated"] },
+    "authority": {
+      "type": "object",
+      "required": ["writes_simulation_state", "participates_in_determinism_hash", "derivation"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "writes_simulation_state": {
+          "const": false,
+          "description": "Rule 13 / criterion E.19: the camera is downstream of truth. A camera that can influence simulation state would make resimulation depend on presentation."
+        },
+        "participates_in_determinism_hash": {
+          "const": false,
+          "description": "Criterion E.20: replay reproduces recorded PRESENTATION from a saved log. Camera output is therefore excluded from the authoritative event-log hash, but must itself be a pure function of that log (see derivation)."
+        },
+        "derivation": {
+          "const": "pure_function_of_observable_event_log_and_tick",
+          "description": "Same log + same tick -> same framing. This is what makes replay reproducible without rerunning uncertain decisions."
+        }
+      }
+    },
+    "observable_inputs": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "framing_modes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "priority", "description", "trigger", "both_fighters_framed", "distance_bands", "max_hold_ticks"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "priority": { "type": "integer", "minimum": 0, "description": "Higher wins. Must form a strict total order (no ties)." },
+          "description": { "type": "string", "minLength": 1 },
+          "trigger": {
+            "type": "object",
+            "required": ["kind"],
+            "additionalProperties": false,
+            "properties": {
+              "kind": { "enum": ["clock_segment", "fight_event", "range_band", "default"] },
+              "clock_segment": { "enum": ["entrance", "round", "break", "count", "doctor_check", "post_fight"] },
+              "events": { "type": "array", "items": { "type": "string" } },
+              "bands": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "both_fighters_framed": { "type": "boolean", "description": "Criterion F.24: during live exchange the spectator must be able to see cause and effect. Modes active during the round segment must keep both fighters framed." },
+          "distance_bands": { "type": "array", "items": { "type": "string" }, "description": "Range bands (movement_model.json) this framing serves. Empty = not range-driven." },
+          "max_hold_ticks": { "type": ["integer", "null"], "minimum": 1, "description": "Tick-anchored duration cap; null = holds until its trigger clears. No wall-clock timers (criterion E.19)." },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "readability": {
+      "type": "object",
+      "required": ["min_ticks_between_cuts", "contact_window_cut_prohibited", "max_angular_rate_deg_per_tick", "settle_ticks_after_cut"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "min_ticks_between_cuts": { "type": "integer", "minimum": 1 },
+        "contact_window_cut_prohibited": { "const": true, "description": "Rule 19: visual speed may not destroy readable cause and effect. No cut may land between a punch's active window and its outcome event." },
+        "max_angular_rate_deg_per_tick": { "type": "number", "exclusiveMinimum": 0 },
+        "settle_ticks_after_cut": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "prohibitions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "rule", "statement"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "rule": { "type": "string" },
+          "statement": { "type": "string", "minLength": 1 },
+          "enforced_by": { "type": "string" }
+        }
+      }
+    }
+  }
+}
