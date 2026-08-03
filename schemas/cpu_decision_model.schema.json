@@ -1,0 +1,102 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 08:47 UTC",
+    "end": "2026-08-03 08:47 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/cpu_decision_model.schema.json",
+  "title": "CPU Decision Model",
+  "description": "ROADMAP Phase 1A step 9: CPU policy from observable information only. Rule 3's score firewall and Rule 4's no-hidden-advantage law, made checkable. Engine-neutral; definitions only (Rule 18).",
+  "type": "object",
+  "required": ["schema_version", "tuning_status", "observable_inputs", "forbidden_inputs", "estimate_policy", "reaction", "difficulty_tiers", "difficulty_may_change", "difficulty_may_never_change", "prohibitions", "invariants"],
+  "additionalProperties": false,
+  "properties": {
+    "contribution": { "type": "object" },
+    "$comment": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "tuning_status": { "enum": ["hypothesis", "validated"] },
+    "observable_inputs": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "type": "string" },
+      "description": "fight_event types the CPU may read. Sealed judge events may never appear here."
+    },
+    "forbidden_inputs": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["id", "rule", "why"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "rule": { "type": "string" },
+          "why": { "type": "string", "minLength": 1, "description": "Stated so a later contributor knows what the ban protects, not just that it exists." }
+        }
+      }
+    },
+    "estimate_policy": {
+      "type": "object",
+      "required": ["confidence_required", "max_confidence", "uncertainty_note_required_below", "evidence_must_cite_observed_events"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "confidence_required": { "const": true },
+        "max_confidence": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "description": "Strictly below 1: a certain CPU has stopped estimating." },
+        "uncertainty_note_required_below": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
+        "evidence_must_cite_observed_events": { "const": true },
+        "notes": { "type": "string" }
+      }
+    },
+    "reaction": {
+      "type": "object",
+      "required": ["floor_ticks", "decision_interval_ticks", "respects_commitment", "may_cancel_own_commitment"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "floor_ticks": { "type": "integer", "exclusiveMinimum": 0, "description": "Rule 4: an instant answer is indistinguishable from input reading." },
+        "decision_interval_ticks": { "type": "integer", "exclusiveMinimum": 0 },
+        "respects_commitment": { "const": true },
+        "may_cancel_own_commitment": { "const": false },
+        "notes": { "type": "string" }
+      }
+    },
+    "difficulty_tiers": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["id", "reaction_ticks", "read_depth", "aggression_bias", "error_rate"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "reaction_ticks": { "type": "integer", "exclusiveMinimum": 0 },
+          "read_depth": { "type": "integer", "exclusiveMinimum": 0 },
+          "aggression_bias": { "type": "number", "minimum": 0, "maximum": 1 },
+          "error_rate": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "difficulty_may_change": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "difficulty_may_never_change": { "type": "array", "minItems": 5, "items": { "type": "string" } },
+    "prohibitions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "rule", "statement"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "rule": { "type": "string" },
+          "statement": { "type": "string", "minLength": 1 },
+          "enforced_by": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -16,7 +16,7 @@ data plus validator plus tests exist in the repository; it never means engine im
 | 6 | Basic punches | **defined** | `data/punch_model.json`, `schemas/punch_model.schema.json`, `tools/uppercut_validate/punches.py`, `tests/test_punches.py`, `docs/phase1a/basic_punches.md`; the move table supplies each punch, this supplies what throwing one costs |
 | 7 | Guard and evasion | **defined** | `data/guard_evasion_model.json`, `schemas/guard_evasion_model.schema.json`, `tools/uppercut_validate/guard.py`, `tests/test_guard.py`, `docs/phase1a/guard_and_evasion.md`; all ten named guards authored as postures over the two collision volumes, closing Decision 0010's step-7 promise |
 | 8 | Stamina, health, condition, knockdowns, recovery | **defined** | `data/condition_model.json`, `schemas/condition_model.schema.json`, `tools/uppercut_validate/condition.py`, `tests/test_condition.py`, `docs/phase1a/condition_and_recovery.md`; closes the stamina pool step 6 left open, eight region tracks, no generic pool, no flat KO roll, Chin is never immunity |
-| 9 | CPU decision-making (observable info only) | not started | decision-reason schema exists |
+| 9 | CPU decision-making (observable info only) | **defined** | `data/cpu_decision_model.json`, `schemas/cpu_decision_model.schema.json`, `tools/uppercut_validate/cpu.py`, `tests/test_cpu.py`, `docs/phase1a/cpu_decision_making.md`; the score firewall is proven as a set relation against the isolation contract, not as a discipline, and difficulty changes perception only |
 | 10 | Deterministic logging and replay evidence | not started | fight-event schema exists |
 | 11 | Crowd Bar architecture | provisioned slots only | provisioned states in `data/combat_states.json` |
 | 12 | Special / Full-Crowd Trait / Ultimate architecture | provisioned slots only | same |
@@ -51,8 +51,15 @@ explicitly deferred, behind steps 3-4 in the binding order.
 ## Quality gate
 
 The Phase 1A quality gate is defined in `ROADMAP.md`. Nothing in it is claimed. Current honest
-position: steps 1-8 defined and validated, with engine slices for steps 1, 2 and 5;
-steps 9-10 not started; steps 11-12 provisioned only. 302 tests.
+position: steps 1-9 defined and validated, with engine slices for steps 1, 2 and 5;
+step 10 not started; steps 11-12 provisioned only. 319 tests.
+
+**Gate item answered structurally.** The gate asks that CPU fighters use "no hidden score, opponent
+input, or privileged state knowledge" - an absence, which behaviour testing struggles to show. Step 9
+answers it as a set relation: the CPU's declared observable inputs are checked against the
+`fight_event` vocabulary and against every sealed symbol in `score_isolation_contract.json`, so a
+firewall breach fails validation rather than surviving until someone reads the code. The blindness
+loophole is closed too - an empty input set would satisfy containment and is rejected.
 
 **Structural risk, and the first payment against it (Rule 18).** Definitions had outrun the engine
 seven to one: steps 1-7 defined, one engine slice. The Phase 1A gate does not ask for definitions,

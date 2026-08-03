@@ -1,12 +1,12 @@
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | START ]
-"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget|states|movement|camera|animation|collision|punches|guard|condition]"""
+"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget|states|movement|camera|animation|collision|punches|guard|condition|cpu]"""
 from __future__ import annotations
 import json
 import sys
 from pathlib import Path
 
 from . import (animation, attributes, budget, camera, collision, combat_states,
-               condition, contracts, guard, movement, punches, schema_check,
+               condition, contracts, cpu, guard, movement, punches, schema_check,
                score_isolation)
 
 REPO = Path(__file__).resolve().parents[2]
@@ -195,6 +195,25 @@ def cmd_camera() -> int:
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:03 UTC | END edit ]
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 08:52 UTC | START edit: Phase 1A step 9 ]
+def cmd_cpu() -> int:
+    """ROADMAP Phase 1A step 9: CPU decision-making from observable evidence."""
+    doc = cpu.load()
+    failures = 0
+    for name, fn in cpu.ALL_CHECKS:
+        errs = fn(doc)
+        print(f"{'PASS' if not errs else 'FAIL'}  {name}")
+        for e in errs:
+            print(f"        {e}")
+        failures += len(errs)
+    print(f"INFO  {len(doc['observable_inputs'])} observable event types readable, "
+          f"{len(doc['forbidden_inputs'])} privileged reads explicitly forbidden, "
+          f"{len(doc['difficulty_tiers'])} difficulty tiers changing perception only; "
+          f"reaction floor {doc['reaction']['floor_ticks']} ticks (Rule 18: definitions only)")
+    return failures
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 08:52 UTC | END edit ]
+
+
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 08:41 UTC | START edit: Phase 1A step 8 ]
 def cmd_condition() -> int:
     """ROADMAP Phase 1A step 8: condition, knockdowns and recovery."""
@@ -318,6 +337,8 @@ def main(argv: list) -> int:
         print("== Phase 1A guard and evasion =="); total += cmd_guard(); print()
     if cmd in ("all", "condition"):
         print("== Phase 1A condition and recovery =="); total += cmd_condition(); print()
+    if cmd in ("all", "cpu"):
+        print("== Phase 1A CPU decision-making =="); total += cmd_cpu(); print()
     print(f"RESULT: {'OK' if total == 0 else str(total) + ' FAILURE(S)'}")
     return 1 if total else 0
 

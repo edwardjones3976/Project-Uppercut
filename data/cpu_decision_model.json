@@ -1,0 +1,76 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 08:47 UTC",
+    "end": "2026-08-03 08:47 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$comment": "ROADMAP Phase 1A step 9 - CPU decision-making from observable information only. This is where Rule 3's score firewall stops being architecture and becomes testable, and where Rule 4's 'no hidden CPU advantages' becomes a checkable list rather than a promise. The Phase 1A gate asks that CPU fighters use no hidden score, no opponent input and no privileged state; this file is what that claim is checked against. Engine-neutral definitions only (Rule 18). Semantics: docs/phase1a/cpu_decision_making.md.",
+  "schema_version": "0.1.0-draft",
+  "tuning_status": "hypothesis",
+  "observable_inputs": [
+    "step", "pivot", "stance_change", "range_change",
+    "punch_thrown", "punch_outcome", "guard_impact", "evasion",
+    "clinch_start", "clinch_end",
+    "condition_change", "stamina_change", "balance_change", "composure_change",
+    "knockdown", "count_tick", "rise", "stoppage",
+    "doctor_check", "referee_warning", "referee_deduction", "referee_instruction",
+    "crowd_gain", "crowd_full", "showmanship",
+    "bout_start", "round_start", "round_end", "break_start", "break_end",
+    "special_activated", "ultimate_activated", "full_crowd_trait_activated"
+  ],
+  "forbidden_inputs": [
+    { "id": "official_cards", "rule": "Rule 3", "why": "The judge subsystem is sealed during the bout and the immediate result flow. A CPU that knows it is behind is not boxing, it is reading the answer sheet." },
+    { "id": "opponent_input_buffer", "rule": "Rule 4", "why": "Reading the opponent's pending input is the classic fighting-game cheat: it produces reactions no human could earn and defences that feel arbitrary." },
+    { "id": "rng_state", "rule": "Criterion E.19", "why": "Peeking at the seeded stream would let policy pre-empt outcomes it should have to risk." },
+    { "id": "hidden_attributes", "rule": "Rule 4", "why": "Opponent attributes are inferred from what they have shown, never read." },
+    { "id": "future_ticks", "rule": "Rule 13", "why": "Decisions are made on a pre-tick snapshot; nothing may read ahead of the authoritative tick." }
+  ],
+  "estimate_policy": {
+    "$comment": "Rule 3 permits estimates from observable evidence with explicit uncertainty. It does not permit certainty.",
+    "confidence_required": true,
+    "max_confidence": 0.95,
+    "uncertainty_note_required_below": 0.6,
+    "evidence_must_cite_observed_events": true,
+    "notes": "Capping confidence below 1.0 is deliberate: a CPU that is ever certain has stopped estimating and started knowing, and the difference is exactly what Rule 3 protects."
+  },
+  "reaction": {
+    "$comment": "Rule 4 and Rule 19. A CPU may be fast; it may not be instant, because an instant answer is indistinguishable from input reading.",
+    "floor_ticks": 6,
+    "decision_interval_ticks": 4,
+    "respects_commitment": true,
+    "may_cancel_own_commitment": false,
+    "notes": "The floor is a hard minimum at every difficulty. Six ticks at 60Hz is 100ms - fast, and inside the range a trained human reaches."
+  },
+  "difficulty_tiers": [
+    { "id": "novice", "reaction_ticks": 20, "read_depth": 1, "aggression_bias": 0.35, "error_rate": 0.35 },
+    { "id": "club", "reaction_ticks": 14, "read_depth": 2, "aggression_bias": 0.45, "error_rate": 0.22 },
+    { "id": "contender", "reaction_ticks": 10, "read_depth": 3, "aggression_bias": 0.55, "error_rate": 0.12 },
+    { "id": "champion", "reaction_ticks": 6, "read_depth": 4, "aggression_bias": 0.6, "error_rate": 0.05 }
+  ],
+  "difficulty_may_change": ["reaction_ticks", "read_depth", "aggression_bias", "error_rate"],
+  "difficulty_may_never_change": [
+    "damage_dealt", "damage_taken", "stamina_cost", "stamina_regeneration",
+    "attribute_values", "contact_classification", "knockdown_resistance",
+    "crowd_gain", "input_responsiveness", "judging_criteria", "referee_behaviour"
+  ],
+  "prohibitions": [
+    "Read official scorecards, or any sealed judge event, from CPU policy (Rule 3).",
+    "Read the opponent's input buffer, the RNG state, hidden attributes, or any future tick (Rule 4).",
+    "React faster than the reaction floor at any difficulty, at any time.",
+    "Let difficulty alter damage, stamina, attributes, contact classification, crowd gain, input responsiveness, judging or refereeing (Rule 4).",
+    "Cancel a committed action because the estimate changed (Rule 13).",
+    "Hold an estimate at full certainty rather than as an estimate with stated uncertainty (Rule 3)."
+  ],
+  "invariants": [
+    { "id": "observable_only", "rule": "Rule 3", "statement": "Every declared CPU input is a fight_event type, and no sealed judge event appears among them.", "enforced_by": "tools/uppercut_validate/cpu.py::check_observable_inputs" },
+    { "id": "firewall_is_structural", "rule": "Rule 3", "statement": "Every sealed event type named by the score-isolation contract is absent from the CPU's observable input set - the firewall is proven by construction rather than by discipline.", "enforced_by": "tools/uppercut_validate/cpu.py::check_observable_inputs" },
+    { "id": "no_privileged_reads", "rule": "Rule 4", "statement": "The forbidden-input list names official cards, opponent input, RNG state, hidden attributes and future ticks, each with the rule it serves.", "enforced_by": "tools/uppercut_validate/cpu.py::check_forbidden_inputs" },
+    { "id": "reaction_floor_holds", "rule": "Rule 4", "statement": "No difficulty reacts faster than the declared floor, and the floor is greater than zero.", "enforced_by": "tools/uppercut_validate/cpu.py::check_reaction" },
+    { "id": "difficulty_never_cheats", "rule": "Rule 4", "statement": "Difficulty may change perception, depth, aggression and error only; the may-never list covers damage, stamina, attributes, classification, crowd, responsiveness, judging and refereeing, and the two lists never intersect.", "enforced_by": "tools/uppercut_validate/cpu.py::check_difficulty" },
+    { "id": "difficulty_is_monotone", "rule": "Rule 20", "statement": "Difficulty tiers order coherently: reaction time and error rate fall as read depth rises, so a harder opponent is genuinely sharper rather than differently random.", "enforced_by": "tools/uppercut_validate/cpu.py::check_difficulty" },
+    { "id": "estimates_stay_estimates", "rule": "Rule 3", "statement": "Confidence is required, bounded below certainty, and low-confidence beliefs must carry an uncertainty note.", "enforced_by": "tools/uppercut_validate/cpu.py::check_estimate_policy" },
+    { "id": "commitment_binds_cpu", "rule": "Rule 13", "statement": "CPU policy respects commitment and may not cancel its own committed action.", "enforced_by": "tools/uppercut_validate/cpu.py::check_reaction" }
+  ]
+}
