@@ -1,12 +1,12 @@
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | START ]
-"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget|states|movement|camera|collision]"""
+"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget|states|movement|camera|animation|collision]"""
 from __future__ import annotations
 import json
 import sys
 from pathlib import Path
 
-from . import (attributes, budget, camera, collision, combat_states, contracts,
-               movement, schema_check, score_isolation)
+from . import (animation, attributes, budget, camera, collision, combat_states,
+               contracts, movement, schema_check, score_isolation)
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -213,6 +213,25 @@ def cmd_collision() -> int:
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:13 UTC | END edit ]
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 05:47 UTC | START edit: Phase 1A step 4 ]
+def cmd_animation() -> int:
+    """ROADMAP Phase 1A step 4: animation state laws."""
+    doc = animation.load()
+    failures = 0
+    for name, fn in animation.ALL_CHECKS:
+        errs = fn(doc)
+        print(f"{'PASS' if not errs else 'FAIL'}  {name}")
+        for e in errs:
+            print(f"        {e}")
+        failures += len(errs)
+    print(f"INFO  {len(doc['state_animations'])} state animations, "
+          f"{len(doc['move_animations'])} move animations frame-locked to the move table, "
+          f"{len(doc['interrupts'])} interrupt tiers; animation supplies pose, never truth "
+          f"(Rule 18: definitions only)")
+    return failures
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 05:47 UTC | END edit ]
+
+
 def main(argv: list) -> int:
     cmd = argv[1] if len(argv) > 1 else "all"
     total = 0
@@ -232,6 +251,8 @@ def main(argv: list) -> int:
         print("== Phase 1A movement and facing =="); total += cmd_movement(); print()
     if cmd in ("all", "camera"):
         print("== Phase 1A camera behaviour =="); total += cmd_camera(); print()
+    if cmd in ("all", "animation"):
+        print("== Phase 1A animation states =="); total += cmd_animation(); print()
     if cmd in ("all", "collision"):
         print("== Phase 1A collision truth =="); total += cmd_collision(); print()
     print(f"RESULT: {'OK' if total == 0 else str(total) + ' FAILURE(S)'}")

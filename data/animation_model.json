@@ -1,0 +1,106 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 05:47 UTC",
+    "end": "2026-08-03 05:47 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$comment": "ROADMAP Phase 1A step 4 - animation states. Engine-neutral canon (Rule 22 / Decision 0002). The governing idea: animation supplies POSE, never TRUTH. It is the visible half of Rule 13's promise that visible action and authoritative result agree, which makes it the layer that can most easily turn the whole simulation into a lie. Definitions only - no engine implementation is claimed (Rule 18). Semantics: docs/phase1a/animation_states.md.",
+  "schema_version": "0.1.0-draft",
+  "tuning_status": "hypothesis",
+  "authority": {
+    "$comment": "Animation is downstream of truth in every direction that matters, including the one that is easy to get wrong: hitbox transforms.",
+    "writes_simulation_state": false,
+    "participates_in_determinism_hash": false,
+    "derivation": "pure_function_of_authoritative_state_and_tick",
+    "hitbox_transform_source": "authored_pose_sampled_at_tick_index",
+    "root_motion_drives_position": false
+  },
+  "state_animations": [
+    { "combat_state": "idle", "clip_id": "anim_idle_stance", "loops": true, "duration_source": "sustained" },
+    { "combat_state": "move_startup", "clip_id": "anim_move_startup", "loops": false, "duration_source": "move_data", "notes": "Windup must read as a windup: this is the window in which an opponent earns the interception (Rule 22 counterplay)." },
+    { "combat_state": "move_active", "clip_id": "anim_move_active", "loops": false, "duration_source": "move_data" },
+    { "combat_state": "move_recovery", "clip_id": "anim_move_recovery", "loops": false, "duration_source": "move_data", "notes": "Recovery length scales with the commitment tier of the outcome, so a whiff must LOOK more expensive than a block (Rule 13)." },
+    { "combat_state": "guard_hold", "clip_id": "anim_guard_hold", "loops": true, "duration_source": "sustained", "notes": "Guard posture is visible; a spectator can see which structure is being held." },
+    { "combat_state": "clinch", "clip_id": "anim_clinch", "loops": true, "duration_source": "sustained" },
+    { "combat_state": "hit_stun", "clip_id": "anim_hit_reaction", "loops": false, "duration_source": "condition_scaled", "notes": "Reaction magnitude scales with contact class and struck region, so the picture matches the classification." },
+    { "combat_state": "staggered", "clip_id": "anim_stagger", "loops": false, "duration_source": "condition_scaled", "notes": "Balance loss must be legible at a glance - it is a counter window a spectator should be able to see (criterion F.24)." },
+    { "combat_state": "knocked_down", "clip_id": "anim_down", "loops": false, "duration_source": "authoritative_clock" },
+    { "combat_state": "rising", "clip_id": "anim_rise", "loops": false, "duration_source": "authoritative_clock", "notes": "The rise plays against the count clock; the animation never decides whether the rise succeeds." },
+    { "combat_state": "between_rounds_corner", "clip_id": "anim_corner", "loops": true, "duration_source": "authoritative_clock" },
+    { "combat_state": "stopped", "clip_id": "anim_stopped", "loops": false, "duration_source": "authored_ticks" }
+  ],
+  "move_animations": [
+    { "move_id": "jab_lead", "clip_id": "anim_jab_lead", "startup_ticks": 4, "active_ticks": 2, "recovery_ticks": 8 },
+    { "move_id": "cross_rear", "clip_id": "anim_cross_rear", "startup_ticks": 8, "active_ticks": 3, "recovery_ticks": 16 },
+    { "move_id": "hook_lead", "clip_id": "anim_hook_lead", "startup_ticks": 7, "active_ticks": 3, "recovery_ticks": 15 },
+    { "move_id": "hook_rear", "clip_id": "anim_hook_rear", "startup_ticks": 9, "active_ticks": 3, "recovery_ticks": 18 },
+    { "move_id": "uppercut_lead", "clip_id": "anim_uppercut_lead", "startup_ticks": 8, "active_ticks": 3, "recovery_ticks": 16, "notes": "The upward travel path must be visible, because that path is what the low guard intercepts (collision_model guard_interception)." },
+    { "move_id": "uppercut_rear", "clip_id": "anim_uppercut_rear", "startup_ticks": 10, "active_ticks": 3, "recovery_ticks": 20 },
+    { "move_id": "body_hook_lead", "clip_id": "anim_body_hook_lead", "startup_ticks": 7, "active_ticks": 3, "recovery_ticks": 15 },
+    { "move_id": "body_straight_rear", "clip_id": "anim_body_straight_rear", "startup_ticks": 9, "active_ticks": 3, "recovery_ticks": 17 },
+    { "move_id": "guard_high", "clip_id": "anim_guard_high", "startup_ticks": 2, "active_ticks": 0, "recovery_ticks": 3 },
+    { "move_id": "guard_body", "clip_id": "anim_guard_body", "startup_ticks": 2, "active_ticks": 0, "recovery_ticks": 3 },
+    { "move_id": "slip_lead", "clip_id": "anim_slip_lead", "startup_ticks": 3, "active_ticks": 5, "recovery_ticks": 7, "notes": "The evasion active window must be visibly distinct from a simple miss - dodged and whiffed carry different commitment tiers." },
+    { "move_id": "roll_under", "clip_id": "anim_roll_under", "startup_ticks": 4, "active_ticks": 6, "recovery_ticks": 9 },
+    { "move_id": "step_in", "clip_id": "anim_step_in", "startup_ticks": 3, "active_ticks": 0, "recovery_ticks": 4 },
+    { "move_id": "step_out", "clip_id": "anim_step_out", "startup_ticks": 3, "active_ticks": 0, "recovery_ticks": 4 },
+    { "move_id": "step_lateral", "clip_id": "anim_step_lateral", "startup_ticks": 3, "active_ticks": 0, "recovery_ticks": 5 },
+    { "move_id": "pivot_lead", "clip_id": "anim_pivot_lead", "startup_ticks": 5, "active_ticks": 0, "recovery_ticks": 8, "notes": "Pivots carry visible weight transfer (Rule 13) and are the believable mechanism for stance switching (Rule 15)." },
+    { "move_id": "clinch_entry", "clip_id": "anim_clinch_entry", "startup_ticks": 6, "active_ticks": 4, "recovery_ticks": 12 }
+  ],
+  "interrupts": [
+    { "id": "stoppage", "priority": 100, "interrupts_everything_below": true, "description": "A stoppage ends the fighter's animation authority entirely." },
+    { "id": "knockdown", "priority": 90, "interrupts_everything_below": true, "description": "A knockdown interrupts any clip, including an in-flight attack. A fighter who is down must never finish a punch animation." },
+    { "id": "stagger", "priority": 70, "interrupts_everything_below": true, "description": "Balance loss overrides offence and guard clips." },
+    { "id": "hit_reaction", "priority": 60, "interrupts_everything_below": true, "description": "Landed contact interrupts the struck fighter's current clip. Without this, a fighter absorbs a clean shot while still visibly throwing - the exact lie Rule 13 forbids." },
+    { "id": "round_bell", "priority": 50, "interrupts_everything_below": true, "description": "The bell interrupts standing action; the authoritative clock owns the round, not the clip." },
+    { "id": "move_commit", "priority": 20, "interrupts_everything_below": false, "description": "A committed move plays through its authored phases unless something above interrupts it. Commitment is real (Rule 13)." },
+    { "id": "locomotion", "priority": 10, "interrupts_everything_below": false, "description": "Steps and pivots yield to every combat event above." },
+    { "id": "idle", "priority": 0, "interrupts_everything_below": false, "description": "Lowest priority; the fallback pose." }
+  ],
+  "blending": {
+    "$comment": "Rule 19 orders the game feel: impressively responsive first, visually fast second, readable cause and effect throughout.",
+    "max_blend_ticks": 3,
+    "blend_may_delay_state_change": false,
+    "input_to_visible_response_ticks": 1
+  },
+  "damage_visualization": [
+    { "condition_region": "head", "visible": true, "side_specific": false },
+    { "condition_region": "jaw_chin", "visible": true, "side_specific": false },
+    { "condition_region": "eye_left", "visible": true, "side_specific": true, "notes": "Rule 14: eye damage is visible and side-specific, and must not be conveyed by extreme visual blur." },
+    { "condition_region": "eye_right", "visible": true, "side_specific": true },
+    { "condition_region": "torso_upper", "visible": true, "side_specific": false },
+    { "condition_region": "torso_lower", "visible": true, "side_specific": false },
+    { "condition_region": "arm_left", "visible": true, "side_specific": true, "notes": "Arm attrition is the counterplay to passive blocking; if it is invisible, the counterplay is invisible (Rule 4)." },
+    { "condition_region": "arm_right", "visible": true, "side_specific": true },
+    { "condition_region": "stamina", "visible": true, "side_specific": false, "notes": "Carried in posture and guard height rather than a bar." },
+    { "condition_region": "balance", "visible": true, "side_specific": false },
+    { "condition_region": "guard_integrity", "visible": true, "side_specific": false }
+  ],
+  "stance": {
+    "southpaw_handling": "exact_mirror",
+    "switch_mechanism": "Stance changes emerge through steps, pivots, pullbacks and angle changes and are driven by the authoritative stance_change event - never by a dedicated slow transition clip (Rule 15). Familiarity penalties are attribute data, never animation timing."
+  },
+  "prohibitions": [
+    "Derive hitbox transforms from blended runtime playback; sample authored pose at the tick index instead.",
+    "Let root motion drive authoritative position - the movement model owns position (Rule 13).",
+    "Play a clip that implies a different contact class than the collision pipeline assigned.",
+    "Delay an authoritative state change to let a blend or clip finish (Rules 13 and 19).",
+    "Show accumulated condition cosmetically without the simulation carrying it, or carry it without showing it (Rule 14).",
+    "Use a separate southpaw clip set with different timing; southpaw is the exact mirror (Rule 15).",
+    "Depend on frame rate or wall-clock time for any phase boundary; all phases are tick-anchored."
+  ],
+  "invariants": [
+    { "id": "animation_never_writes", "rule": "Criterion E.19", "statement": "Animation writes no simulation state and does not participate in the determinism hash; resimulation is independent of presentation.", "enforced_by": "schema consts + tools/uppercut_validate/animation.py::check_authority" },
+    { "id": "pose_not_truth", "rule": "Rule 13", "statement": "Hitbox transforms come from authored pose sampled at a tick index, never from blended playback, so contact classification cannot depend on frame timing.", "enforced_by": "schema const hitbox_transform_source" },
+    { "id": "position_belongs_to_movement", "rule": "Rule 13", "statement": "Root motion does not drive position; feet establish position through the movement model.", "enforced_by": "schema const root_motion_drives_position" },
+    { "id": "state_coverage", "rule": "Criterion A.1", "statement": "Every non-provisioned fighter_action state has an animation, so animation states exist and are inspectable.", "enforced_by": "tools/uppercut_validate/animation.py::check_state_coverage" },
+    { "id": "frames_match_move_data", "rule": "Rule 13", "statement": "Every move's animation phase ticks equal its authored startup, active and recovery frames exactly. The picture and the timing are the same numbers.", "enforced_by": "tools/uppercut_validate/animation.py::check_move_frame_lock" },
+    { "id": "reaction_interrupts_offence", "rule": "Rule 13", "statement": "Hit reaction, stagger, knockdown and stoppage interrupt any in-flight clip; a struck fighter never finishes throwing.", "enforced_by": "tools/uppercut_validate/animation.py::check_interrupts" },
+    { "id": "responsiveness_bounded", "rule": "Rule 19", "statement": "Visible response begins within the declared tick bound of the authoritative state change, and blending never delays that change.", "enforced_by": "tools/uppercut_validate/animation.py::check_blending" },
+    { "id": "condition_is_visible", "rule": "Rule 14", "statement": "Every condition region the simulation tracks as decisive is visually attributable, with the eyes and arms side-specific.", "enforced_by": "tools/uppercut_validate/animation.py::check_damage_visualization" },
+    { "id": "stance_mirror_exact", "rule": "Rule 15", "statement": "Southpaw animation is the exact mirror of orthodox; no separate clip set with divergent timing exists.", "enforced_by": "schema const + tools/uppercut_validate/animation.py::check_stance" }
+  ]
+}

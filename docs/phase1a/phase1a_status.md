@@ -11,7 +11,7 @@ data plus validator plus tests exist in the repository; it never means engine im
 | 1 | Combat-state definitions | **defined + first engine slice** | canon files as before; `sandbox/Content/StateWalk/` executes the machine in the Blueprint VM, byte-reproducibly (`determinism_probe_results.md` Phase C) |
 | 2 | Movement and facing | **defined** | `data/movement_model.json`, `schemas/movement_model.schema.json`, `tools/uppercut_validate/movement.py`, `tests/test_movement.py` |
 | 3 | Camera behavior | **defined** | `data/camera_model.json`, `schemas/camera_model.schema.json`, `tools/uppercut_validate/camera.py`, `tests/test_camera.py`, `docs/phase1a/camera_behavior.md` |
-| 4 | Animation states | not started | - |
+| 4 | Animation states | **defined** | `data/animation_model.json`, `schemas/animation_model.schema.json`, `tools/uppercut_validate/animation.py`, `tests/test_animation.py`, `docs/phase1a/animation_states.md` |
 | 5 | Hitboxes, hurtboxes, guard regions, collision truth | **defined** (taken ahead of step 4 by Director instruction) | `data/collision_model.json`, `schemas/collision_model.schema.json`, `tools/uppercut_validate/collision.py`, `tests/test_collision.py`, `docs/phase1a/collision_truth.md` |
 | 6 | Basic punches | not started | move data exists (`data/moves/generic_sandbox_moves.json`); behavior does not |
 | 7 | Guard and evasion | not started | - |
@@ -51,14 +51,17 @@ explicitly deferred, behind steps 3-4 in the binding order.
 ## Quality gate
 
 The Phase 1A quality gate is defined in `ROADMAP.md`. Nothing in it is claimed. Current honest
-position: steps 1-3 and 5 defined and validated (step 1 additionally has a first engine slice);
-steps 4 and 6-10 not started; steps 11-12 provisioned only. 200 tests.
+position: steps 1-5 defined and validated (step 1 additionally has a first engine slice);
+steps 6-10 not started; steps 11-12 provisioned only. 228 tests.
 
-**Order deviation, recorded honestly.** Step 5 was taken ahead of step 4 on Director instruction
-(2026-08-03). This is coherent at the definitions level - collision geometry does not depend on
-animation - but NOT at the implementation level, where hitboxes and hurtboxes attach to animated
-skeletons. Step 4 therefore remains a prerequisite for building step 5 in the engine, and remains
-not started.
+**Order deviation, resolved.** Step 5 was taken ahead of step 4 on Director instruction
+(2026-08-03), coherent at the definitions level but not at the implementation level, where hitboxes
+attach to animated skeletons. Step 4 was completed immediately afterwards and **closes that gap**:
+`animation_model.json` fixes hitbox transforms to authored pose sampled at a tick index (never
+blended playback), with timing owned by move data and authority retained by the collision pipeline.
+The seam between the two layers is now defined rather than assumed. The binding order is restored
+from step 6 onward.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 05:52 UTC | edit: step 4 defined, order deviation resolved ] -->
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:13 UTC | edit: step 5 defined, order deviation ] -->
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:03 UTC | edit: step 3 defined ] -->
 
