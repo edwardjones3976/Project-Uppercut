@@ -63,6 +63,35 @@ becomes a real trade-off instead of a label: high guard covers the head cluster 
 and body work, body guard covers the torso and eats hooks and straights upstairs. A regression test
 pins the uppercut case so the correction cannot be quietly undone.
 
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 06:44 UTC | START: coverage extents ] -->
+
+## Ten guards over two volumes
+
+The design reference names ten guards. This model declares two guard volumes. That count mismatch
+sat pinned in the execution plan until a review pass forced the sharper question: the reference's
+best content is *conditional* — a cross-arm bar riding low intercepts a chin-line uppercut and the
+same bar riding high gets split by it; a shell roll that is timed turns an overhand and the same
+roll arriving late lets it over the shoulder. A fixed `guard_interaction` → volume map cannot say
+any of that. It knows which volume may block a path, not whether the volume is currently *there*.
+
+Decision 0010 resolves it without adding volumes or branches. Each guard volume carries a
+`coverage_extent` — how much of its nominal structure is actually presented this tick — and a
+posture's alignment state moves that number. `guard_interception` still decides which volume is
+permitted to intercept a given path; the extent decides whether it reaches. A posture is therefore
+geometry, and the pipeline never learns its name.
+
+Two bounds keep this from becoming a free parameter. No alignment may take an extent to zero, since
+a guard covering nothing is a different posture rather than a misaligned one; and none may exceed
+1.0, since anything above that would let an alignment cover more than the structure it belongs to —
+the moment a guard stops being a trade. A third check earns its keep: the validator rejects a canon
+in which every posture holds identical extents across its states, because that model would satisfy
+the schema while expressing nothing, and the drift would be documented rather than closed.
+
+The four worked examples shipped in the data are illustrative under Rule 18, present to prove the
+mechanism can express the two contested rows. Authoring the real posture set is step 7.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 06:44 UTC | END: coverage extents ] -->
+
 ## Region truth and determinism
 
 Eight hurtboxes map one-to-one onto the physically strikeable condition regions of

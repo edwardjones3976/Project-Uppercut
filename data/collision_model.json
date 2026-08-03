@@ -39,6 +39,7 @@
         "height_class": "high",
         "covers_regions": ["head", "jaw_chin", "eye_left", "eye_right"],
         "absorbs_into": ["arm_left", "arm_right", "guard_integrity", "stamina"],
+        "coverage_extent": { "baseline": 1.0, "min_modulated": 0.4, "max_modulated": 1.0 },
         "notes": "Covers the head cluster only. A high guard does not protect the body - that is the counterplay against passive high blocking (Rule 4)."
       },
       {
@@ -46,15 +47,30 @@
         "height_class": "low",
         "covers_regions": ["torso_upper", "torso_lower"],
         "absorbs_into": ["arm_left", "arm_right", "guard_integrity", "stamina"],
+        "coverage_extent": { "baseline": 1.0, "min_modulated": 0.4, "max_modulated": 1.0 },
         "notes": "Elbows and forearms down. Leaves the head cluster exposed - the mirror trade-off."
       }
     ]
   },
   "guard_interception": {
-    "$comment": "Which guard VOLUMES intercept each move.schema.json guard_interaction value. Interception follows the punch's PATH, not its target region - this is the correction the validator forced on 2026-08-03. An uppercut lands on the jaw (a high region) yet is authored blockable_low, because it travels upward into the guard: a dropped forearm stops it and a high shell does not. That is precisely why the uppercut punishes a high guard, and why the high/low guard choice is a real trade-off rather than a label.",
+    "$comment": "Which guard VOLUMES intercept each move.schema.json guard_interaction value. Interception follows the punch's PATH, not its target region - this is the correction the validator forced on 2026-08-03. An uppercut lands on the jaw (a high region) yet is authored blockable_low, because it travels upward into the guard: a dropped forearm stops it and a high shell does not. That is precisely why the uppercut punishes a high guard, and why the high/low guard choice is a real trade-off rather than a label. Division of labour with guard_alignment: this map decides which volume is PERMITTED to intercept a given path; the volume's coverage extent decides whether it actually reaches. Neither alone is sufficient, and posture identity is read by neither.",
     "blockable_high": ["guard_high"],
     "blockable_low": ["guard_body"],
     "blockable_either": ["guard_high", "guard_body"]
+  },
+  "guard_alignment": {
+    "$comment": "Closes the pinned 10-guards-vs-2-volumes drift (Decision 0010). The design reference docs/design/boxing_guard_matchups.md describes ten named guards whose coverage changes with sub-state - a cross-arm bar riding low or high, a shell roll timed or late. A fixed guard_interaction -> volume map cannot express that, so postures instead modulate the COVERAGE EXTENT of these same two volumes. The pipeline reads extents and never a posture's name, which keeps collision the sole authority and keeps ten guards from becoming ten special cases.",
+    "authority": "coverage_extent_only",
+    "posture_identity_read_by_pipeline": false,
+    "extent_bounds": { "min": 0.4, "max": 1.0 },
+    "states_authored_in": "ROADMAP Phase 1A step 7 (guard and evasion)",
+    "worked_examples": [
+      { "posture": "cross_arm", "state": "bar_low_aligned", "extents": { "guard_high": 1.0, "guard_body": 0.85 }, "expresses": "A low, aligned forearm bar intercepts chin-line uppercuts: the low volume is fully presented across the centerline." },
+      { "posture": "cross_arm", "state": "bar_high_or_split", "extents": { "guard_high": 0.6, "guard_body": 0.5 }, "expresses": "The same posture, opened by pressure - the uppercut splits upward through the middle. Same volumes, less extent." },
+      { "posture": "philly_shell", "state": "roll_timed_aligned", "extents": { "guard_high": 0.95, "guard_body": 0.6 }, "expresses": "The overhand is turned off the raised shoulder line." },
+      { "posture": "philly_shell", "state": "roll_late_or_misaligned", "extents": { "guard_high": 0.45, "guard_body": 0.6 }, "expresses": "The overhand arcs over the shoulder. Nothing changed but when the roll happened - which is exactly the fact the matchup tables kept contradicting." }
+    ],
+    "notes": "Illustrative only (Rule 18): the authored posture set is step 7 content. These four exist to prove the mechanism can express the design reference's conditional rows, and the validator holds them to the same bounds as real states."
   },
   "resolution_pipeline": [
     {
@@ -81,7 +97,7 @@
       "question": "Did a guard volume covering that region intercept first along the sweep, and does the move's guard_interaction permit blocking at that height?",
       "verdict_if_true": "blocked",
       "on_false": "dispatch_quality",
-      "reads": ["guard_volumes", "move_guard_interaction", "hitbox_swept_path"],
+      "reads": ["guard_volumes", "guard_coverage_extent", "move_guard_interaction", "hitbox_swept_path"],
       "notes": "'First along the sweep' is what makes a guard a physical object rather than a status flag. Blocked force still absorbs into arms and guard structure - blocking reduces clean damage without erasing consequence (Rule 14)."
     },
     {
@@ -114,6 +130,7 @@
     "Grant an unblockable-by-design attack; move.schema.json marks that value prohibited (Rule 11).",
     "Award a guard break to predictable single-action spam rather than to intelligent varied pressure (Rule 14).",
     "Apply a flat random knockout roll at the moment of contact (Rule 14).",
+    "Branch collision resolution on a guard posture's identity rather than on the coverage extents that posture produces.",
     "Let iteration order, container layout, frame rate or wall-clock time affect any classification."
   ],
   "invariants": [
@@ -122,6 +139,7 @@
     { "id": "region_lock", "rule": "Rule 14", "statement": "Every hurtbox maps to a declared condition region, and every physically strikeable region has a hurtbox. No generic health volume exists.", "enforced_by": "tools/uppercut_validate/collision.py::check_region_lock" },
     { "id": "guard_is_physical", "rule": "Rule 13", "statement": "A block requires a guard volume covering the struck region to intercept first along the swept path; guard is an object in space, not a status flag.", "enforced_by": "pipeline stage guard_intercept + check_guard_coverage" },
     { "id": "guard_costs_something", "rule": "Rule 14", "statement": "Every guard volume absorbs into arms and guard integrity; blocking reduces clean damage without erasing consequence.", "enforced_by": "tools/uppercut_validate/collision.py::check_guard_coverage" },
+    { "id": "posture_is_geometry", "rule": "Rule 13", "statement": "Guard postures influence collision only by modulating the coverage extents of the declared guard volumes. The pipeline never reads a posture identity; no alignment state may zero a volume, and none may extend one past its own structure.", "enforced_by": "tools/uppercut_validate/collision.py::check_guard_alignment" },
     { "id": "commitment_order_holds", "rule": "Rule 13", "statement": "The classes this pipeline emits are exactly the seven of data/contact_classes.json, whose commitment consequence strictly increases blocked -> dodged -> whiffed.", "enforced_by": "tools/uppercut_validate/collision.py::check_contact_classes" },
     { "id": "quality_total", "rule": "Criterion A.5", "statement": "Quality bands tile alignment [0,1] with no gap or overlap, and delivered force increases strictly brushed -> grazed -> solid -> clean.", "enforced_by": "tools/uppercut_validate/collision.py::check_quality_bands" },
     { "id": "move_table_lock", "rule": "Rule 22", "statement": "Every region the move table targets has a hurtbox, and every guard_interaction value the move table uses is covered by guard_coverage.", "enforced_by": "tools/uppercut_validate/collision.py::check_move_table_lock" },

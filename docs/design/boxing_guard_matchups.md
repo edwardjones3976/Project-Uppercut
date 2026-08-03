@@ -31,8 +31,20 @@
 > ten structures below are *postures*: named configurations of those same two
 > volumes plus an offensive profile. The collision pipeline remains the sole
 > authority on whether an attempt resolves as blocked, and `guard_interception`
-> remains the sole authority on which volume intercepts which punch path. Any
-> future entry here that contradicts it is wrong by construction.
+> remains the sole authority on which volume intercepts which punch path.
+>
+> **Amended 2026-08-03 06:31 UTC (Claude Opus 5, claude-opus-5).** The clause
+> here originally read that any entry contradicting `guard_interception` is
+> "wrong by construction." That was drawn too tight. The conditional rows below
+> — cross-arm bar low or high, shell roll timed or late — are state-dependent
+> *geometry*, which a fixed `guard_interaction` → volume map cannot express, so
+> the clause condemned the most boxing-truthful content in the document.
+> Resolved per Decision 0010: posture and alignment states modulate the
+> **coverage extents** of the same two volumes. `guard_interception` still
+> decides which volume is *permitted* to intercept a given path; the extents
+> decide whether it actually reaches. The collision pipeline remains the sole
+> authority and never reads a posture's identity. An entry here is wrong only
+> if it claims an interception the resulting extents cannot produce.
 >
 > Worth recording: the "Core rule" stated below — a guard protects the
 > interception *path*, not the final target — was reached independently in this
@@ -206,7 +218,7 @@ rear cheek/chin, lead shoulder raised to protect the lead side of the jaw
 | Jab | The lead hand is down; jabs must be shoulder-checked or rear-hand parried |
 | Lead hook around the guard | Can wrap the shoulder position |
 | Center / rear-side body straights | Torso center remains targetable |
-| Overhand | Can arc over the shoulder line |
+| Overhand — *roll late or shoulder misaligned* | Arcs over the shoulder line. A timed roll turns it instead — conditional by design (reconciliation item 4) |
 | Fast combinations | Multiple angles stress the shell |
 | Southpaw straight left | Travels down the open side and breaks the roll rhythm; shell fighters historically switch to a conventional guard vs southpaws |
 
@@ -214,8 +226,11 @@ rear cheek/chin, lead shoulder raised to protect the lead side of the jaw
 
 - *Effective:* counter right crosses, check hooks, fast flicking jabs from the
   hip.
-- *Awkward:* stiff driving power jabs and lead uppercuts — mechanically hard to
-  generate from the low-hanging lead arm.
+- *Awkward:* stiff driving power jabs and lead uppercuts — the low-hanging lead
+  arm offers no loading path, so both carry a very high `offense_launch_cost`.
+  Neither is unavailable: elite shell fighters land the lead uppercut routinely,
+  so ringcraft buys the cost down rather than gating the punch out
+  (reconciliation item 5).
 
 **Best guard responses:** shoulder roll, pull counter, check hook, rear-hand
 counter, pivot away.
@@ -225,6 +240,8 @@ excellent_vs_predictable_straight_power
 high_counter_readiness
 offense_favors_counters_over_pressure
 weak_vs_volume_bodywork_hooks_around_shell_and_southpaw_angles
+overhand_coverage_depends_on_roll_alignment_state
+lead_uppercut_available_at_high_launch_cost_scaling_with_ringcraft
 requires_high_ringcraft   # high skill guard
 ```
 
@@ -528,7 +545,7 @@ offense_favors_touch_counters
 | --- | --- | --- |
 | High Guard | Jabs, crosses, head hooks, overhands | Uppercuts, body shots, angles |
 | Peek-a-Boo | Jabs, crosses, 1-2s, hooks, some uppercuts | Check hooks, body jabs, punches timed on entry |
-| Philly Shell | Crosses, overhands, lead-side body hooks, single shots | Jabs, lead hooks around the shell, center bodywork, southpaw angles |
+| Philly Shell | Crosses, lead-side body hooks, single shots; overhands *when the roll is timed and the shoulder aligned* | Jabs, lead hooks around the shell, center bodywork, southpaw angles; overhands *when the roll is late or misaligned* |
 | Cross-Arm | Hooks, overhands, face straights, flurries; chin-line uppercuts *if bar is low/aligned* | Body shots, uppercuts *when arms ride high*, arm damage |
 | Long Guard | Jabs, rushes, wide hooks, long entries | Overhands, body entries, inside hooks |
 | Low Lead Hand | Predictable jabs, lunges | Fast jabs, lead hooks, overhands |
@@ -543,7 +560,7 @@ offense_favors_touch_counters
 | --- | --- | --- |
 | High Guard | Uppercut, body hook, body jab, angle hook | Repeated head jab, straights into gloves |
 | Peek-a-Boo | Check hook, body jab, step-back straight, uppercut timed on entry | Lazy straights, predictable single jab |
-| Philly Shell | Jab, lead hook, body straight, overhand, southpaw straight | Naked rear cross, predictable jab-cross |
+| Philly Shell | Jab, lead hook, body straight, southpaw straight; overhand *against a late or misaligned roll* | Naked rear cross, predictable jab-cross; overhand *into a timed roll* |
 | Cross-Arm | Body hook, angled body shot, volume to arms; uppercut split *only when arms ride high* | Single head hook, slow overhand, straights into the bar |
 | Long Guard | Overhand, body entry, slip-inside hook, angle change | Long straight down the same line |
 | Low Lead Hand | Fast jab, lead hook, overhand, double jab | Slow lunging straight |
@@ -563,7 +580,7 @@ offense_favors_touch_counters
 | Uppercut | Tight Elbow Guard, Peek-a-Boo, low/mid forearm catch; Cross-Arm *only with a low, aligned bar* | Loose High Guard, Ear-Muff, Cross-Arm with high-riding arms |
 | Body hook | Tight Elbow Guard, Peek-a-Boo, Philly Shell (lead side only) | Long Guard, Low Lead Hand, High Guard |
 | Body jab / straight | Tight Elbow Guard, elbow drop, active parry | Ear-Muff, loose High Guard, Cross-Arm |
-| Overhand | High Guard, Ear-Muff, Cross-Arm, Philly Shell (shoulder roll) | Long Guard, Low Lead Hand |
+| Overhand | High Guard, Ear-Muff, Cross-Arm, Philly Shell *with a timed roll* | Long Guard, Low Lead Hand, Philly Shell *with a late or misaligned roll* |
 | Flurry / combination | Peek-a-Boo, Ear-Muff, Cross-Arm | Active Hands if overwhelmed |
 | Feint-to-punch | Disciplined High Guard, compact guards, patience | Active Hands, Low Lead Hand, overreactive shell |
 
@@ -573,7 +590,7 @@ offense_favors_touch_counters
 | --- | --- | --- |
 | High Guard | Fast jabs, crosses, short lead hooks | Looping body shots, wide uppercuts |
 | Peek-a-Boo | Hooks head/body, inside uppercuts off slips | Long-range straight boxing |
-| Philly Shell | Counter rights, check hooks, flicker jabs | Driving power jabs, lead uppercuts |
+| Philly Shell | Counter rights, check hooks, flicker jabs | Driving power jabs; lead uppercuts (very high cost, not unavailable — scales with ringcraft) |
 | Cross-Arm | Wide hooks, overhand rights, flip jabs | Quick straight jabs and crosses |
 | Long Guard | Stiff long jabs, straight rights, pull counters | Short inside hooks, tight uppercuts |
 | Low Lead Hand | Up-jabs, unseen lead hooks, pull counters | Sustained blocking-position exchanges |
@@ -632,6 +649,9 @@ high_counter_readiness
 weak_vs_hooks_and_bodywork
 requires_high_ringcraft
 low_launch_cost_counters / high_launch_cost_power_jab
+guard_alignment_state: {roll_timed_aligned, roll_late_or_misaligned}
+overhand_intercept: strong when roll_timed_aligned, weak when roll_late_or_misaligned
+lead_uppercut_launch_cost: very_high, reduced_by_ringcraft
 
 # Tight Elbow Guard
 strong_vs_body_and_uppercut
@@ -675,8 +695,10 @@ This makes boxing knowledge functional, not decorative.
 
 ## Reconciliation Log (deliberate design decisions)
 
-Two source references disagreed on points below; resolutions are intentional —
-do not "fix" them back without a design discussion.
+Items 1–3 record disagreements between two source references. Items 4–5 record
+contradictions this document produced internally, caught by a later review pass.
+All resolutions are intentional — do not "fix" them back without a design
+discussion.
 
 1. **Cross-arm vs uppercuts.** One source listed uppercuts as a cross-arm
    weakness (split up the middle); another listed the cross-arm as the *best*
@@ -692,6 +714,23 @@ do not "fix" them back without a design discussion.
    for uppercuts arriving at the chin lane, while the rear uppercut *timed on
    entry* stays a headline vulnerability — the two are different situations
    (static coverage vs punished movement).
+4. **Philly shell vs the overhand.** This document contradicted itself in four
+   places: the guard entry called the overhand a shell weakness, the strength
+   table called it a shell strength, the punch-selection table recommended it
+   *against* the shell, and the best-response table named the shoulder roll a
+   best answer *to* it. Resolved the same way as item 1, because it is the same
+   kind of fact: a roll that is timed and aligned turns the overhand off the
+   shoulder, and a roll that is late or misaligned lets it arc over the
+   shoulder line. Formalized as a shell `guard_alignment_state`
+   {roll_timed_aligned, roll_late_or_misaligned}, which also delivers the guard
+   state the charter already promised. Do not flatten it back to a single
+   verdict in either direction.
+5. **Philly shell lead uppercut.** An earlier draft treated this as skill-gated;
+   the landed text called it "mechanically hard to generate," which reads as
+   unavailable. Resolved as expensive rather than absent: a very high
+   `offense_launch_cost` that ringcraft reduces. Elite shell fighters do land
+   it, so removing the punch outright would fail the coach test, while making
+   it cheap would erase the structural cost of carrying the lead hand low.
 
 ---
 

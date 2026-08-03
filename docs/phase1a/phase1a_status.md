@@ -52,7 +52,19 @@ explicitly deferred, behind steps 3-4 in the binding order.
 
 The Phase 1A quality gate is defined in `ROADMAP.md`. Nothing in it is claimed. Current honest
 position: steps 1-5 defined and validated (step 1 additionally has a first engine slice);
-steps 6-10 not started; steps 11-12 provisioned only. 228 tests.
+steps 6-10 not started; steps 11-12 provisioned only. 242 tests.
+
+**Pinned drift closed: "10 guards vs. 2 guard volumes."** The execution plan has carried this item
+since the guard design reference landed. Resolved on mechanism rather than on wording, per
+**Decision 0010**: a posture modulates the *coverage extent* of the same two guard volumes, so the
+ten named guards need neither ten volumes nor ten branches, and the collision pipeline remains the
+sole authority over blocking. Bounded so no alignment can zero a volume or push one past its own
+structure, and validated non-inert - a canon where every posture holds identical extents fails.
+The authored posture set stays step 7 content; only the architecture lands here. A review pass the
+same day also found four locations where the design reference contradicted itself on the shell
+versus the overhand; that is resolved conditionally on roll alignment and logged in the document's
+reconciliation log as items 4 and 5.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 06:43 UTC | edit: drift item closed, test count ] -->
 
 **Order deviation, resolved.** Step 5 was taken ahead of step 4 on Director instruction
 (2026-08-03), coherent at the definitions level but not at the implementation level, where hitboxes

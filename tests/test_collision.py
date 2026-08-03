@@ -273,3 +273,109 @@ def test_required_invariants_declared():
     doc["invariants"] = [i for i in doc["invariants"] if i["id"] != "no_miss_as_hit"]
     assert col.check_invariants(doc)
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:13 UTC | END ]
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 06:38 UTC | START
+#   Decision 0010: guard postures as coverage-extent modulation. Closes the pinned
+#   "10 guards vs 2 guard volumes" drift. ]
+
+
+def _ga(doc):
+    return doc["guard_alignment"]
+
+
+def test_canonical_guard_alignment_passes():
+    assert col.check_guard_alignment(CANON) == []
+
+
+def test_posture_identity_must_not_reach_the_pipeline():
+    d = _mut()
+    _ga(d)["posture_identity_read_by_pipeline"] = True
+    assert any("posture identity" in e for e in col.check_guard_alignment(d))
+
+
+def test_authority_must_be_extent_only():
+    d = _mut()
+    _ga(d)["authority"] = "posture_lookup_table"
+    assert col.check_guard_alignment(d)
+
+
+def test_no_alignment_state_may_zero_a_volume():
+    d = _mut()
+    _ga(d)["extent_bounds"]["min"] = 0.0
+    assert any("zero" in e for e in col.check_guard_alignment(d))
+
+
+def test_no_alignment_state_may_exceed_its_own_structure():
+    d = _mut()
+    _ga(d)["extent_bounds"]["max"] = 1.4
+    assert any("past its own structure" in e for e in col.check_guard_alignment(d))
+
+
+def test_volume_extent_range_must_respect_the_global_bounds():
+    d = _mut()
+    _guard(d, "guard_high")["coverage_extent"]["min_modulated"] = 0.05
+    assert any("undercuts" in e for e in col.check_guard_alignment(d))
+
+
+def test_baseline_must_sit_inside_its_own_modulation_range():
+    d = _mut()
+    _guard(d, "guard_body")["coverage_extent"]["baseline"] = 0.2
+    assert any("outside its own" in e for e in col.check_guard_alignment(d))
+
+
+def test_worked_example_cannot_name_an_unknown_volume():
+    d = _mut()
+    _ga(d)["worked_examples"][0]["extents"]["guard_shoulder"] = 0.9
+    assert any("unknown" in e for e in col.check_guard_alignment(d))
+
+
+def test_worked_example_extent_must_stay_in_range():
+    d = _mut()
+    _ga(d)["worked_examples"][0]["extents"]["guard_high"] = 0.05
+    assert any("outside that volume" in e for e in col.check_guard_alignment(d))
+
+
+def test_mechanism_must_not_be_inert():
+    """Every posture holding identical extents across its states would satisfy
+    the schema while expressing nothing - the drift would still be open."""
+    d = _mut()
+    flat = {"guard_high": 0.9, "guard_body": 0.9}
+    for w in _ga(d)["worked_examples"]:
+        w["extents"] = dict(flat)
+    assert any("inert" in e for e in col.check_guard_alignment(d))
+
+
+def test_intercept_stage_must_read_the_extent():
+    d = _mut()
+    st = _stage(d, "guard_intercept")
+    st["reads"] = [r for r in st["reads"] if r != "guard_coverage_extent"]
+    assert any("guard_coverage_extent" in e for e in col.check_guard_alignment(d))
+
+
+def test_the_two_documented_conditionals_are_actually_expressible():
+    """The point of the mechanism: the cross-arm uppercut split and the shell
+    overhand turn are the same two volumes at different extents, not two new
+    volumes and not a branch on a posture's name."""
+    ex = {(w["posture"], w["state"]): w["extents"] for w in _ga(CANON)["worked_examples"]}
+    assert ex[("cross_arm", "bar_low_aligned")]["guard_body"] > \
+           ex[("cross_arm", "bar_high_or_split")]["guard_body"]
+    assert ex[("philly_shell", "roll_timed_aligned")]["guard_high"] > \
+           ex[("philly_shell", "roll_late_or_misaligned")]["guard_high"]
+    ids = {g["id"] for g in CANON["volumes"]["guard_volumes"]}
+    for e in ex.values():
+        assert set(e) <= ids, "a posture invented a volume instead of reshaping one"
+
+
+def test_posture_is_geometry_invariant_is_declared():
+    d = _mut()
+    d["invariants"] = [i for i in d["invariants"] if i["id"] != "posture_is_geometry"]
+    assert col.check_invariants(d)
+
+
+def test_posture_branching_prohibition_is_declared():
+    d = _mut()
+    d["prohibitions"] = [p for p in d["prohibitions"] if "coverage extents" not in p]
+    assert col.check_prohibitions(d)
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 06:38 UTC | END ]
+

@@ -29,12 +29,14 @@ FORBIDDEN_KEYS = {"snap_to_target", "hitbox_inflation", "magnetic_correction",
                   "auto_aim", "assist_radius", "knockout_roll"}
 
 REQUIRED_PROHIBITIONS = ("visible miss", "magnetic range correction", "tunnel",
-                         "generic health volume", "unblockable", "flat random knockout")
+                         "generic health volume", "unblockable", "flat random knockout",
+                         "coverage extents")
 
 REQUIRED_INVARIANTS = (
     "pipeline_total", "no_miss_as_hit", "region_lock", "guard_is_physical",
     "guard_costs_something", "commitment_order_holds", "quality_total",
     "move_table_lock", "swept_and_ordered", "closing_velocity_bounded",
+    "posture_is_geometry",
 )
 
 
@@ -288,6 +290,78 @@ def check_anti_cheat(doc: dict) -> list:
     return [f"Rule 13: forbidden collision-assist key '{k}' has no place in this model" for k in found]
 
 
+def check_guard_alignment(doc: dict) -> list:
+    """Decision 0010: a guard posture is geometry over the two volumes.
+
+    The design reference names ten guards whose coverage changes with sub-state -
+    a cross-arm bar riding low or high, a shell roll timed or late. Those are not
+    ten volumes and not ten branches: they are extent modulation on the same two
+    volumes, so the pipeline stays the single authority and never learns a
+    posture's name.
+    """
+    ga = doc.get("guard_alignment")
+    if not ga:
+        return ["Decision 0010: guard_alignment block is absent"]
+    errs = []
+    if ga.get("authority") != "coverage_extent_only":
+        errs.append("Decision 0010: postures may influence collision only through coverage extents")
+    if ga.get("posture_identity_read_by_pipeline") is not False:
+        errs.append("Rule 13: the pipeline must not read posture identity - a guard is an object "
+                    "in space, not a status flag the resolver branches on")
+
+    b = ga.get("extent_bounds", {})
+    lo, hi = b.get("min"), b.get("max")
+    if not isinstance(lo, (int, float)) or lo <= 0:
+        errs.append("Decision 0010: extent_bounds.min must exceed 0 - no alignment state may zero "
+                    "a guard volume, because a guard that covers nothing is a different posture")
+    if hi != 1.0:
+        errs.append("Decision 0010: extent_bounds.max must be 1.0 - no alignment state extends a "
+                    "volume past its own structure, which is how a guard would stop being a trade")
+
+    vols = {g["id"]: g for g in doc["volumes"]["guard_volumes"]}
+    for vid, g in vols.items():
+        ce = g.get("coverage_extent")
+        if not ce:
+            errs.append(f"guard volume '{vid}' declares no coverage_extent")
+            continue
+        if not ce["min_modulated"] <= ce["baseline"] <= ce["max_modulated"]:
+            errs.append(f"guard volume '{vid}': baseline {ce['baseline']} lies outside its own "
+                        f"modulation range [{ce['min_modulated']}, {ce['max_modulated']}]")
+        if isinstance(lo, (int, float)) and ce["min_modulated"] < lo:
+            errs.append(f"guard volume '{vid}': min_modulated {ce['min_modulated']} undercuts "
+                        f"extent_bounds.min {lo}")
+        if isinstance(hi, (int, float)) and ce["max_modulated"] > hi:
+            errs.append(f"guard volume '{vid}': max_modulated {ce['max_modulated']} exceeds "
+                        f"extent_bounds.max {hi}")
+
+    seen: dict = {}
+    for w in ga.get("worked_examples", []):
+        for vid, val in w["extents"].items():
+            if vid not in vols:
+                errs.append(f"worked example {w['posture']}/{w['state']} sets an extent on unknown "
+                            f"guard volume '{vid}'")
+                continue
+            ce = vols[vid].get("coverage_extent", {})
+            if "min_modulated" in ce and not ce["min_modulated"] <= val <= ce["max_modulated"]:
+                errs.append(f"worked example {w['posture']}/{w['state']}: extent {val} on '{vid}' "
+                            f"falls outside that volume's modulation range")
+        seen.setdefault(w["posture"], []).append(w["extents"])
+
+    # Non-vacuity: some posture must actually move its extents between states.
+    # Otherwise the mechanism is decoration and the conditional matchups it
+    # exists to express are still unrepresentable.
+    if not any(len(states) > 1 and any(s != states[0] for s in states[1:])
+               for states in seen.values()):
+        errs.append("Decision 0010: no posture varies its extents across states - the mechanism "
+                    "would be inert and the drift it closes would still be open")
+
+    stage = next((s for s in doc["resolution_pipeline"] if s["id"] == "guard_intercept"), None)
+    if stage and "guard_coverage_extent" not in stage.get("reads", []):
+        errs.append("the guard_intercept stage must read guard_coverage_extent, or extents cannot "
+                    "affect interception and postures become cosmetic")
+    return errs
+
+
 def check_prohibitions(doc: dict) -> list:
     blob = " ".join(doc["prohibitions"]).lower()
     return [f"missing required prohibition covering '{p}'"
@@ -310,6 +384,7 @@ ALL_CHECKS = [
     ("move_table_lock_rule22", check_move_table_lock),
     ("closing_velocity_rule14", check_closing_velocity),
     ("anti_cheat_rule13", check_anti_cheat),
+    ("guard_alignment_d0010", check_guard_alignment),
     ("prohibitions", check_prohibitions),
     ("invariants_declared", check_invariants),
 ]

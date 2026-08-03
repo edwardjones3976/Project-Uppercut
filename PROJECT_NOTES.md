@@ -312,7 +312,7 @@ Reusable tools and licensed assets may accelerate development. Every asset requi
 Project Uppercut’s characters, mechanics, tuning, branding, writing, finished presentation, and project-specific code remain original.
 
 Current repository status: preproduction closed with the Phase 0 quality gate passed on repository
-evidence; the validation toolchain (228 tests in CI) and Phase 1A definitions for ROADMAP steps 1–5
+evidence; the validation toolchain (242 tests in CI) and Phase 1A definitions for ROADMAP steps 1–5
 (combat states, movement/facing, camera, animation states, collision truth) are in place; a verified
 Unreal Engine 5.8.1 sandbox exists, and deterministic fixed-tick resimulation is validated in-engine
 at three levels (docs/phase1a/determinism_probe_results.md). Design documentation is still not
