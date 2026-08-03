@@ -82,7 +82,9 @@ Every phase must pass a defined quality gate before the next phase begins.
 - [Decision 0010 — Guard postures as coverage extents](docs/decisions/0010-guard-postures-as-coverage-extents.md)
 - [Phase 0 gate status](docs/phase0/phase0_status.md) and [pinned technical baseline](docs/phase0/technical_baseline.md)
 - [Phase 1A status](docs/phase1a/phase1a_status.md), [determinism evidence](docs/phase1a/determinism_probe_results.md), and [engine setup runbook](docs/phase1a/engine_setup_runbook.md)
-- [Design reference — boxing guard and style matchups](docs/design/boxing_guard_matchups.md)
+- [Design reference — boxing guard and style matchups](docs/design/boxing_guard_matchups.md) *(authoritative for punch-versus-guard matchups)*
+- [Design reference — punches, target zones, angles and guard matchups](docs/design/boxing-punches-guards-and-target-matchups.md)
+- [Punch-doc intake record](docs/development-log/2026-08-03-punch-doc-intake.md)
 - [Contribution tagging convention](CONTRIBUTION_TAGGING.md)
 
 ## Technical foundation

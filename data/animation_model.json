@@ -38,6 +38,7 @@
     { "move_id": "hook_rear", "clip_id": "anim_hook_rear", "startup_ticks": 9, "active_ticks": 3, "recovery_ticks": 18 },
     { "move_id": "uppercut_lead", "clip_id": "anim_uppercut_lead", "startup_ticks": 8, "active_ticks": 3, "recovery_ticks": 16, "notes": "The upward travel path must be visible, because that path is what the low guard intercepts (collision_model guard_interception)." },
     { "move_id": "uppercut_rear", "clip_id": "anim_uppercut_rear", "startup_ticks": 10, "active_ticks": 3, "recovery_ticks": 20 },
+    { "move_id": "overhand_rear", "clip_id": "anim_overhand_rear", "startup_ticks": 11, "active_ticks": 3, "recovery_ticks": 21 },
     { "move_id": "body_hook_lead", "clip_id": "anim_body_hook_lead", "startup_ticks": 7, "active_ticks": 3, "recovery_ticks": 15 },
     { "move_id": "body_straight_rear", "clip_id": "anim_body_straight_rear", "startup_ticks": 9, "active_ticks": 3, "recovery_ticks": 17 },
     { "move_id": "guard_high", "clip_id": "anim_guard_high", "startup_ticks": 2, "active_ticks": 0, "recovery_ticks": 3 },

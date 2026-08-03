@@ -6,6 +6,39 @@
 
 > **A punch's intended landing zone is not necessarily the guard plane that intercepts it.**
 
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 07:19 UTC | START intake: contribution tags, Rule 18 status, canonical-taxonomy mapping, and table authority. The original author's body text below is unmodified; this block and the two marked notes are additive. ] -->
+
+> **Status (Rule 18): DESIGN REFERENCE — not canon data, not implemented.**
+> This document proposes vocabulary and structures. It creates no schema and
+> changes no behaviour. Every value in it is a tuning hypothesis until a
+> validator and fixtures promote it, matching the pattern used for combat
+> states, movement, camera, animation, collision and punches. Merged to `main`
+> as commit `524df30` on 2026-08-03; tagged on intake per Decision 0006 and
+> `CONTRIBUTION_TAGGING.md`, which the file arrived without.
+>
+> **Authority for the matchup tables (section 5).** `docs/design/boxing_guard_matchups.md`
+> is authoritative for punch-versus-guard and guard-versus-punch matchups and
+> carries the reconciliation log that resolves their contested rows. The tables
+> here are a second live copy of reconciled content, which is this project's
+> signature failure mode — the shell-versus-overhand contradiction happened
+> exactly this way, across four locations. Treat section 5 as a reading aid,
+> resolve any disagreement in favour of the guard doc, and prefer amending the
+> guard doc over editing both.
+>
+> **Canonical region mapping.** Section 1's `intended_target_region` vocabulary
+> is finer-grained than `data/condition_regions.json`, which declares eight
+> strikeable regions. The collision validator rejects any move targeting a
+> region with no hurtbox, so these names must not enter move data before a
+> taxonomy decision. Design prose here maps as: temple, cheek, nose and
+> forehead → `head`; jaw → `jaw_chin`; sternum and solar plexus →
+> `torso_upper`; liver and ribs → `torso_lower`; guard_arm → `arm_left` /
+> `arm_right`. Two gaps are deliberate to note rather than silently bridge: the
+> canonical `eye_left` and `eye_right` regions have no counterpart in this
+> vocabulary, and the collarbone appears in neither — a collarbone contact is a
+> mistarget outcome, not a region.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 07:19 UTC | END intake ] -->
+
 This document provides a boxing-informed vocabulary for Project Uppercut. It is not a claim that one punch or guard always defeats another. Effectiveness depends on range, stance relationship, timing, setup, angle, posture, movement, fatigue, guard integrity, contact quality, and the fighter's attributes.
 
 The original Queensberry rules established the broad form of modern gloved stand-up boxing. Current commissions and sanctioning bodies provide the detailed legal target and foul rules used today. For Project Uppercut, legal punches use the knuckle surface of a closed glove and target the front or sides of the opponent above the belt. The back of the head or neck, kidneys, spine, groin, and an opponent who is down are not legal targets.
@@ -683,7 +716,7 @@ The following is a game-design effectiveness guide, not a medical prediction tab
 
 | Incoming punch | Strong guard answers | Conditional answers | Guards commonly challenged |
 |---|---|---|---|
-| Head jab | High guard, long guard, active hands | Peek-a-boo, shoulder roll | Low lead-hand guard, loose open guard |
+| Head jab | High guard, long guard, active hands | Peek-a-boo; shoulder roll *only as skill-gated mitigation — see note* | Low lead-hand guard, loose open guard, shoulder roll |
 | Rear straight / cross | High guard, shoulder roll, cross-arm | Active hands, peek-a-boo | Low/open guard, displaced long guard |
 | Lead head hook | High-side guard, ear-muff, peek-a-boo | Cross-arm, roll-under | Shoulder roll, long guard after entry |
 | Rear head hook | High-side guard, ear-muff, cross-arm | Peek-a-boo, angle exit | Long guard at collapsed range, low guard |
@@ -695,6 +728,20 @@ The following is a game-design effectiveness guide, not a medical prediction tab
 | Overhand | High-side guard, ear-muff, cross-arm | Roll-under, angle exit | Long guard, low lead hand, misaligned shoulder roll |
 | Shovel hook | Tight-elbow guard, forearm wedge | Step-back, pivot | Loose high guard, long guard, elevated ear-muff |
 | Multi-angle flurry | Peek-a-boo, cross-arm, temporary ear-muff | High guard with active exits | Low guard, active hands overwhelmed by volume |
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 07:20 UTC | START intake note: shell/jab row aligned to canon ] -->
+
+> **Note on the shoulder roll versus the jab.** The head-jab row originally
+> listed the shoulder roll as a conditional answer. Canon puts it in the
+> challenged column in every table of `boxing_guard_matchups.md`, and has since
+> the doc lineage began: the shell carries its lead hand low, so the jab arrives
+> before the hand can. The defensible kernel — elite shell fighters mitigate
+> with a rear-hand parry and a shoulder check — is real, but it is *skill-gated
+> mitigation*, not structural coverage, which is the same shape canon already
+> uses for the shell's lead uppercut. Baseline stays weak; ringcraft narrows the
+> gap. The row now says both.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 07:20 UTC | END intake note ] -->
 
 ---
 
