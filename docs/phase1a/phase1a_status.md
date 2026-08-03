@@ -32,7 +32,10 @@ install completed: **UE 5.8.1** (CL 56057345) is on the machine and pinned in
 `docs/phase0/technical_baseline.md`. Runbook step 5 was then executed by agent under
 Decision 0009: `sandbox/UppercutSandbox.uproject` exists and a headless editor run accepted it
 (commandlet result 0, zero errors, zero warnings, 2026-08-02 23:23 UTC). The engine prerequisite is
-**cleared**. Next in-engine task per Decision 0002: deterministic fixed-tick resimulation validation.
+**cleared**. The determinism question's engine-runtime half **passed** 2026-08-03: byte-identical
+10,008-line logs across independent editor processes, seed-sensitive, over the canonical
+combat-state machine (`docs/phase1a/determinism_probe_results.md`). The Blueprint actor-tick half
+remains open and is the next in-engine task; Rule 22's C++ trigger is neither fired nor dismissed.
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 22:16 UTC | edit: step 2 defined, runbook added ] -->
 
 ## Quality gate
