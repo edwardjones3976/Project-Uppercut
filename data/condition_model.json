@@ -258,10 +258,8 @@
   },
   "reference_model_coverage": {
     "$comment": "What this file declares that the reference simulator does not yet execute. Enforced by tools/uppercut_validate/coverage.py: a mechanical key must be read by the bout or appear here. The list is debt on the record, not a suppression list - three separate passes over this repository each found a major inert mechanism by accident before it existed.",
-    "reason": "Eye and composure impairment, the doctor-check and corner-stoppage paths, and the count's rise window are declared and unbuilt. Named here rather than left to look implemented.",
+    "reason": "Chin and start_fraction left this list on 2026-08-03 when attribute_effects gave it a coefficient and the knockdown site started reading it. Eye and composure impairment, the doctor-check and corner-stoppage paths, and the count's rise window are declared and unbuilt. Named here rather than left to look implemented.",
     "not_yet_expressed": [
-      "attribute",
-      "chin",
       "count_to",
       "decision_path_must_survive",
       "early_stoppage_possible_at_max",
@@ -275,8 +273,6 @@
       "regen_per_tick_moving",
       "regen_per_tick_throwing",
       "rise_window_ticks",
-      "scales",
-      "start_fraction",
       "stoppage_conditions",
       "trigger"
     ]

@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import (ability, animation, attributes, budget, camera, clock, collision,
+from . import (ability, animation, attribute_effects, attributes, budget, camera, clock, collision,
                combat_states, condition, contracts, coverage, cpu, crowd, event, guard, movement,
                punches, replay, schema_check, score_isolation)
 
@@ -232,6 +232,23 @@ def cmd_clock() -> int:
 
 
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 11:40 UTC | START edit ]
+def cmd_attribute_effects() -> int:
+    """How attributes reach the fight (Rules 10, 11, 14, 18)."""
+    doc = attribute_effects.load()
+    failures = 0
+    for name, fn in attribute_effects.ALL_CHECKS:
+        errs = fn(doc)
+        print(f"{'PASS' if not errs else 'FAIL'}  {name}")
+        for e in errs:
+            print(f"        {e}")
+        failures += len(errs)
+    named = len(doc["reference_model_coverage"]["not_yet_expressed"])
+    print(f"INFO  {len(doc['effects'])} attributes reach the fight, {named} named as not yet "
+          f"expressed; every multiplier band is bounded so no extreme decides an outcome alone "
+          f"(Rule 11)")
+    return failures
+
+
 def cmd_coverage() -> int:
     """Canon the reference simulator does not execute (the inert-mechanism class)."""
     docs = coverage.load()
@@ -455,6 +472,8 @@ def main(argv: list) -> int:
         print("== Phase 1A ability architecture =="); total += cmd_ability(); print()
     if cmd in ("all", "event"):
         print("== Event presentation =="); total += cmd_event(); print()
+    if cmd in ("all", "attreffects"):
+        print("== Attribute effects =="); total += cmd_attribute_effects(); print()
     if cmd in ("all", "coverage"):
         print("== Reference-model coverage =="); total += cmd_coverage(); print()
     if cmd in ("all", "clock"):

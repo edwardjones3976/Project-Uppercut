@@ -47,6 +47,11 @@ EXEMPT_EXACT = {
     # would be a category error, and check_registry_is_honest is what keeps it
     # from becoming a place to hide things.
     "reference_model_coverage", "not_yet_expressed", "unexpressed_keys", "reason",
+    # attribute_effects carries a second registry answering a different question -
+    # which ATTRIBUTES have no effect, as opposed to which JSON keys go unread. Its
+    # own validator enforces it. Two registries under one name is what the
+    # registry_is_honest pass caught the moment that file entered scope.
+    "unexpressed_attributes",
 }
 EXEMPT_SUFFIX = ("_note", "_notes", "_comment", "_rationale", "_definition",
                  "_description", "_derivation", "_source_note")
@@ -92,6 +97,12 @@ SIMULATED = {
     "movement_model.json",
     "combat_states.json",
     "ability_model.json",
+    # Added 2026-08-03 with the attribute work. The next-steps review found that
+    # attribute_families declared twenty-four attributes in Phase 0 and the bout read
+    # none of them - the same inert class this checker exists for, sitting one file
+    # outside its scope because the original list stopped at combat models. The scope
+    # line was the defect, not an oversight in the data.
+    "attribute_effects.json",
 }
 
 

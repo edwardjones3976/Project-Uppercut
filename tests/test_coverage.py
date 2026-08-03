@@ -95,5 +95,11 @@ def test_the_scope_list_is_deliberate():
         "punch_model.json", "collision_model.json", "condition_model.json",
         "guard_evasion_model.json", "crowd_model.json", "movement_model.json",
         "combat_states.json", "ability_model.json",
+        # Added 2026-08-03. attribute_effects entered scope when attributes entered
+        # the bout; before that the attribute files sat outside this checker while
+        # carrying exactly the inert-mechanism defect it exists to catch. This test
+        # failing on a scope change is the intended behaviour - widening or narrowing
+        # the set is a design decision, so it has to be restated here on purpose.
+        "attribute_effects.json",
     }
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 11:44 UTC | END ]

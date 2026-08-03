@@ -1,0 +1,212 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 15:30 UTC",
+    "end": "2026-08-03 15:30 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$comment": "How a fighter's attributes reach the fight. attribute_families.json has declared three families of twenty-four attributes on a -100..+100 scale since Phase 0, fighter fixtures carry them, a budget validator polices them - and until 2026-08-03 the reference bout read none of them. It ran on six hardcoded tuning tuples, so two fighters could not differ in durability because there were no fighters. The ROADMAP's Phase 1A minimum scope asks for outcomes explainable in terms of attributes; this file is what makes that sentence mechanical. Every effect is a bounded multiplier interpolated linearly across the attribute range, so an attribute's whole influence is one inspectable row rather than a constant buried in a simulator.",
+  "schema_version": "0.1.0-draft",
+  "tuning_status": "hypothesis",
+  "curve": {
+    "shape": "linear",
+    "domain": [
+      -100,
+      100
+    ],
+    "centre_multiplier": 1.0,
+    "notes": "Linear because nobody can yet defend a curve. A zeroed attribute multiplies by exactly one, so a fighter with an empty card fights the baseline model - which is what makes the difference between two cards attributable to the card rather than to the mapping."
+  },
+  "bounds": {
+    "$comment": "Rule 11 from both sides. A maximum attribute may not make an outcome certain and a minimum one may not make it impossible, so every multiplier band is clamped and the validator refuses a band that reaches zero or that is wide enough to dominate the term it scales.",
+    "min_multiplier": 0.6,
+    "max_multiplier": 1.6,
+    "max_band_width": 0.7,
+    "min_band_width": 0.1
+  },
+  "effects": [
+    {
+      "attribute": "power",
+      "scales": "delivered_impact",
+      "multiplier_at_minus_100": 0.78,
+      "multiplier_at_plus_100": 1.28,
+      "direction": "higher_is_stronger",
+      "rule": "Rule 14",
+      "notes": "Scales the impact a landed punch delivers, on top of contact quality and the commitment-derived weight the punch already carries. Power buys force, never accuracy."
+    },
+    {
+      "attribute": "chin",
+      "scales": "knockdown_pressure_threshold",
+      "multiplier_at_minus_100": 0.82,
+      "multiplier_at_plus_100": 1.32,
+      "direction": "higher_is_stronger",
+      "rule": "Rule 14",
+      "notes": "Raises the line pressure must cross to drop this fighter. Bounded above precisely because condition_model.chin.max_resistance_confers_immunity is false: +100 is the most authored resistance in the game and still loses to enough evidence."
+    },
+    {
+      "attribute": "durability",
+      "scales": "condition_accumulation",
+      "multiplier_at_minus_100": 1.25,
+      "multiplier_at_plus_100": 0.75,
+      "direction": "higher_is_weaker",
+      "rule": "Rule 14",
+      "notes": "Scales how fast region condition accumulates from landed force. Higher durability means damage banks slower, which is a different thing from being harder to drop - chin decides the knockdown, durability decides how quickly the night catches up with you."
+    },
+    {
+      "attribute": "hand_speed",
+      "scales": "punch_startup",
+      "multiplier_at_minus_100": 1.25,
+      "multiplier_at_plus_100": 0.8,
+      "direction": "higher_is_weaker",
+      "rule": "Rule 13",
+      "notes": "Faster hands shorten startup, which shortens the telegraph the defender reads. It does not shorten recovery: commitment is what a punch costs after it is thrown, and speed does not buy a way out of it."
+    },
+    {
+      "attribute": "foot_speed",
+      "scales": "stride_length",
+      "multiplier_at_minus_100": 0.8,
+      "multiplier_at_plus_100": 1.25,
+      "direction": "higher_is_stronger",
+      "rule": "Rule 13",
+      "notes": "Ground covered per step, which feeds the advance/retreat asymmetry rather than replacing it - a fast runner still gives up ground more slowly than it is taken."
+    },
+    {
+      "attribute": "stamina_pool",
+      "scales": "stamina_maximum",
+      "multiplier_at_minus_100": 0.8,
+      "multiplier_at_plus_100": 1.25,
+      "direction": "higher_is_stronger",
+      "rule": "Rule 14",
+      "notes": "The size of the tank. Deliberately separate from recovery: how much you have and how fast you get it back are different fighters' virtues."
+    },
+    {
+      "attribute": "recovery",
+      "scales": "between_rounds_recovery",
+      "multiplier_at_minus_100": 0.75,
+      "multiplier_at_plus_100": 1.3,
+      "direction": "higher_is_stronger",
+      "rule": "Rule 8",
+      "notes": "What the corner is worth, and what rising from a count buys back."
+    },
+    {
+      "attribute": "reach",
+      "scales": "range_band_offset",
+      "multiplier_at_minus_100": 0.85,
+      "multiplier_at_plus_100": 1.2,
+      "direction": "higher_is_stronger",
+      "rule": "Rule 11",
+      "notes": "Scales the separation at which this fighter's punches reach. The movement model is already reach-relative by construction, so this modulates the band boundaries for the pairing rather than adding a hidden modifier - Rule 11's requirement that differing reach be balanced through geometry."
+    },
+    {
+      "attribute": "accuracy",
+      "scales": "alignment",
+      "multiplier_at_minus_100": 0.88,
+      "multiplier_at_plus_100": 1.15,
+      "direction": "higher_is_stronger",
+      "rule": "Rule 13",
+      "notes": "Nudges the alignment roll the quality bands read. Band-narrow on purpose: accuracy should improve the grade of contact, not decide whether contact happens."
+    },
+    {
+      "attribute": "defensive_technique",
+      "scales": "evasion_chance",
+      "multiplier_at_minus_100": 0.78,
+      "multiplier_at_plus_100": 1.28,
+      "direction": "higher_is_stronger",
+      "rule": "Rule 11",
+      "notes": "Scales active evasion. Bounded below 1.6 so no fighter evades by default and bounded above 0.6 so none is undodgeable-adjacent from the other side."
+    },
+    {
+      "attribute": "guard_structure",
+      "scales": "guard_coverage_extent",
+      "multiplier_at_minus_100": 0.82,
+      "multiplier_at_plus_100": 1.22,
+      "direction": "higher_is_stronger",
+      "rule": "Decision 0010",
+      "notes": "Scales the coverage extents a posture presents. It cannot create coverage a posture does not have - a shell still sells the body - because it multiplies the posture's own extent."
+    },
+    {
+      "attribute": "counter_timing",
+      "scales": "counter_window_exploitation",
+      "multiplier_at_minus_100": 0.8,
+      "multiplier_at_plus_100": 1.3,
+      "direction": "higher_is_stronger",
+      "rule": "Rule 4",
+      "notes": "How much of an opponent's commitment window this fighter converts. Scales the pressure gained from catching someone inside their own recovery."
+    },
+    {
+      "attribute": "body_work",
+      "scales": "body_shot_force",
+      "multiplier_at_minus_100": 0.8,
+      "multiplier_at_plus_100": 1.3,
+      "direction": "higher_is_stronger",
+      "rule": "Rule 14",
+      "notes": "Force delivered specifically to torso regions, which is what makes body investment a distinct competence rather than a target choice."
+    },
+    {
+      "attribute": "combination_fluency",
+      "scales": "chain_link_cost",
+      "multiplier_at_minus_100": 1.25,
+      "multiplier_at_plus_100": 0.78,
+      "direction": "higher_is_weaker",
+      "rule": "Rule 13",
+      "notes": "Scales the startup penalty a linked punch pays. Fluency makes combinations cheaper; it never makes them free, because link_earliest_recovery_fraction still gates when a link may begin."
+    }
+  ],
+  "unexpressed_attributes": {
+    "$comment": "Attributes the reference bout cannot yet express, named rather than left to look implemented. Attribute names, not JSON keys - see reference_model_coverage below for that. Enforced by tools/uppercut_validate/attribute_effects.py: every attribute in attribute_families.json is either given an effect above or listed here.",
+    "reason": "The reference bout has no cut model, no fouls, no corner, no crowd geometry and no adaptation layer, so the attributes that would drive those have nothing to scale. Frame and inside_work need a clinch model with real leverage; ring_awareness and ringcraft need the two-dimensional ring the reference model deliberately does not have; adaptability, discipline and coachability need a planning layer above the current per-tick policy; composure needs the composure track itself, which condition_model lists as unexpressed; showmanship needs the Showmanship event class the crowd model declares and nothing emits; footwork_technique overlaps foot_speed until pivots exist to distinguish them.",
+    "not_yet_expressed": [
+      "frame",
+      "inside_work",
+      "footwork_technique",
+      "composure",
+      "ring_awareness",
+      "adaptability",
+      "discipline",
+      "coachability",
+      "ringcraft",
+      "showmanship"
+    ]
+  },
+  "prohibitions": [
+    "Give an attribute an effect that is not declared in this file.",
+    "Let a maximum attribute make any outcome certain, or a minimum attribute make one impossible (Rule 11).",
+    "Scale an attribute's influence anywhere other than through its declared multiplier.",
+    "Add an attribute to a fighter card that neither has an effect here nor appears in not_yet_expressed."
+  ],
+  "invariants": [
+    {
+      "id": "zero_is_the_baseline",
+      "rule": "Rule 10",
+      "statement": "Every attribute at zero multiplies by exactly one, so an empty card fights the baseline model and any difference between two cards is attributable to the cards.",
+      "enforced_by": "tools/uppercut_validate/attribute_effects.py::check_curve"
+    },
+    {
+      "id": "no_attribute_is_inert",
+      "rule": "Rule 18",
+      "statement": "Every declared effect has a non-degenerate multiplier band, and every attribute in attribute_families.json is either given an effect or named as not yet expressed.",
+      "enforced_by": "tools/uppercut_validate/attribute_effects.py::check_effects"
+    },
+    {
+      "id": "extremes_stay_playable",
+      "rule": "Rule 11",
+      "statement": "No multiplier reaches zero and no band is wide enough for a maximum attribute to decide an outcome by itself.",
+      "enforced_by": "tools/uppercut_validate/attribute_effects.py::check_bounds"
+    }
+  ],
+  "reference_model_coverage": {
+    "$comment": "JSON keys this file declares that the reference bout does not read, as opposed to unexpressed_attributes above, which lists attributes with no effect.",
+    "reason": "The curve and bounds blocks are laws the VALIDATOR enforces against this file rather than inputs the bout consumes: the engine interpolates between the two multipliers on each effect row and never needs to know the shape is linear or what the permitted band width is. They are read by tools/uppercut_validate/attribute_effects.py on every run, so they are enforced rather than decorative - but they are correctly invisible to the simulator, and saying so here is cheaper than a checker exception. max_multiplier is omitted from this list deliberately: it shares its name with guard_evasion_model.telegraph.max_multiplier, which the engine does read, and the coverage scan matches key names across the whole simulator rather than per file. Claiming them here would be a statement the checker can only read as false.",
+    "not_yet_expressed": [
+      "curve",
+      "shape",
+      "domain",
+      "centre_multiplier",
+      "bounds",
+      "max_band_width",
+      "min_band_width",
+      "min_multiplier"
+    ]
+  }
+}

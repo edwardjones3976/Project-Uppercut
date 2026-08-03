@@ -65,6 +65,10 @@ class Fighter:
     # 2026-08-03: a link is a punch that starts inside the previous punch's late
     # recovery. Combinations exist because recovery overlaps the next windup,
     # which is also why 'combinations' is a crowd source nobody could earn.
+    # The fighter's card. Empty means every attribute is zero, which multiplies every
+    # effect by exactly one - so a fighter with no card fights the baseline model and
+    # any difference between two fighters is attributable to their cards (Rule 10).
+    attrs: dict = field(default_factory=dict)
     last_hand: str = ""
     last_move_category: str = ""
     link_open_until: int = 0
@@ -92,8 +96,13 @@ class Bout:
             Fighter(name="A", profile=profile_a, stamina=cm["stamina"]["max"]),
             Fighter(name="B", profile=profile_b, stamina=cm["stamina"]["max"]),
         ]
+        from . import policy as _policy      # local: policy imports canon, not engine
         for f in self.fighters:
             f.condition = {d["region"]: 0.0 for d in cm["damage_regions"]}
+            f.attrs = dict(_policy.attributes_for(f.profile))
+            # The tank is attribute-scaled, so a fighter starts full of THEIR
+            # pool rather than of the canon baseline (stamina.start_fraction).
+            f.stamina = self._stamina_max(f) * cm["stamina"]["start_fraction"]
         self.log: list = []
         self.seq = 0
         self.tick = 0
@@ -156,7 +165,7 @@ class Bout:
         and has no path to self._cards."""
         cm = canon.condition()
         return {
-            "own_stamina_fraction": me.stamina / cm["stamina"]["max"],
+            "own_stamina_fraction": me.stamina / self._stamina_max(me),
             "own_crowd_fraction": me.crowd / canon.crowd()["bar"]["max"],
             "own_knockdowns": me.knockdowns,
             "opponent_knockdowns": opp.knockdowns,
@@ -232,9 +241,9 @@ class Bout:
                "lateral": self._dirmul["lateral_stride_multiplier"]}[direction]
         # A guard is a body structure, and a tight one does not move as freely
         # (posture mobility_multiplier, declared at step 7 and inert until now).
-        mul *= self._posture(f)["mobility_multiplier"]
+        mul *= self._posture(f)["mobility_multiplier"] * self._attr(f, "stride_length")
         cm = canon.condition()
-        if f.stamina / cm["stamina"]["max"] < cm["stamina"]["exhausted_threshold_fraction"]:
+        if f.stamina / self._stamina_max(f) < cm["stamina"]["exhausted_threshold_fraction"]:
             mul *= self._dirmul["exhausted_stride_multiplier"]
 
         payload = {"direction": direction}
@@ -329,6 +338,9 @@ class Bout:
         r_evade = self.rng.random()
         r_guard = self.rng.random()
         align = self.rng.random()
+        # Accuracy nudges the grade of contact, never whether contact happens -
+        # the band is narrow for exactly that reason (attribute_effects).
+        align = min(1.0, align * self._attr(atk, "alignment"))
         # Exhaustion lands worse (punch_model.stamina_gate): the alignment
         # penalty is subtracted here, before the quality bands read it, so a
         # tired fighter's punches grade lower without any of them being refused.
@@ -371,7 +383,7 @@ class Bout:
         gd_commit = cd["guard_extent_multiplier_while_committed"] if dfn.committed > 0 else 1.0
         # Stage 1: active evasion, ranked above guard on purpose.
         evade_chance = (0.10 + 0.10 * postures[dfn.posture]["counter_readiness"]) \
-            * (1.0 + read) * tele * ev_commit
+            * (1.0 + read) * tele * ev_commit * self._attr(dfn, "evasion_chance")
         if r_evade < evade_chance:
             return self._apply(atk, dfn, move, "dodged", align, decision_seq, amp=amp)
         # Stage 2: guard interception - which volume is permitted, and does its
@@ -383,7 +395,10 @@ class Bout:
         volumes = gi.get(move["guard_interaction"], [])
         extent = max((postures[dfn.posture]["extents"].get(v, 0.0) for v in volumes),
                      default=0.0)
-        extent *= self._guard_integrity(dfn) * gd_commit
+        # Guard structure multiplies the posture's own extent - it cannot create
+        # coverage the posture does not have, so a shell still sells the body.
+        extent *= self._guard_integrity(dfn) * gd_commit \
+            * self._attr(dfn, "guard_coverage_extent")
         if r_guard < extent * 0.55 * (1.0 + read):
             return self._apply(atk, dfn, move, "blocked", align, decision_seq, amp=amp)
         # Stage 3: quality dispatch.
@@ -412,6 +427,31 @@ class Bout:
                  + f.condition.get("torso_lower", 0.0) / cap["torso_lower"]) / 2.0)
 
     # ---- the posture as a trade (guard_evasion_model.posture_economy) --------
+    def _stamina_max(self, f: Fighter) -> float:
+        """This fighter's tank. Deliberately separate from recovery: how much you
+        have and how fast you get it back are different fighters' virtues."""
+        return canon.condition()["stamina"]["max"] * self._attr(f, "stamina_maximum")
+
+    # ---- attributes reaching the fight (data/attribute_effects.json) --------
+    def _attr(self, f: Fighter, scales: str) -> float:
+        """The multiplier this fighter's card contributes to a named mechanic.
+
+        Looked up by the mechanic being scaled rather than by attribute name, so a
+        call site says what it is scaling and the data says which attribute does the
+        scaling. Returns 1.0 for a mechanic no effect targets and for a fighter whose
+        card is silent on it, which is what makes an empty card the baseline (Rule 10).
+        """
+        for e in canon.attribute_effects()["effects"]:
+            if e["scales"] != scales:
+                continue
+            v = f.attrs.get(e["attribute"])
+            if v is None:
+                return 1.0
+            lo, hi = e["multiplier_at_minus_100"], e["multiplier_at_plus_100"]
+            t = (max(-100.0, min(100.0, float(v))) + 100.0) / 200.0
+            return lo + (hi - lo) * t
+        return 1.0
+
     def _posture(self, f: Fighter) -> dict:
         return {p["id"]: p for p in canon.guard_evasion()["postures"]}[f.posture]
 
@@ -490,18 +530,28 @@ class Bout:
         linked = self.tick <= atk.link_open_until
         if linked:
             if hand != atk.last_hand:
-                start_mul *= ch["opposite_hand_link_startup_multiplier"]
+                link_cost = ch["opposite_hand_link_startup_multiplier"]
             elif move.get("category") in ("cross", "hook", "uppercut", "overhand"):
-                start_mul *= ch["power_repeat_same_hand_startup_multiplier"]
+                link_cost = ch["power_repeat_same_hand_startup_multiplier"]
             else:
-                start_mul *= ch["same_hand_link_startup_multiplier"]
+                link_cost = ch["same_hand_link_startup_multiplier"]
+            # Fluency makes combinations cheaper and never free: it scales the
+            # SURPLUS above 1.0, so a perfectly fluent fighter still pays the base
+            # cost and link_earliest_recovery_fraction still gates when a link may
+            # begin at all.
+            link_cost = 1.0 + (link_cost - 1.0) * self._attr(atk, "chain_link_cost")
+            start_mul *= link_cost
             atk.combo_length += 1
         else:
             atk.combo_length = 1
 
         atk.stamina = max(0.0, atk.stamina
                           - move["stamina_cost"] * armmul * a_sta * st_mul)
-        startup = move["startup_frames"] * start_mul * fatigue_start
+        # Hand speed shortens startup, which shortens the telegraph the defender
+        # reads. It does not touch recovery: commitment is what a punch costs
+        # after it is thrown, and speed does not buy a way out of it.
+        startup = move["startup_frames"] * start_mul * fatigue_start \
+            * self._attr(atk, "punch_startup")
         recovery = move["recovery_frames"] * rec["recovery_multiplier"] * a_rec
         atk.committed = int(recovery + move["startup_frames"] * (armmul - 1.0)
                             + (startup - move["startup_frames"]))
@@ -545,11 +595,20 @@ class Bout:
             # land. Both, or a clean jab hits like a clean overhand - which is
             # exactly what the repetition-abuse check caught (punch_model
             # delivered_impact).
-            force = bands[cls]["delivered_force_fraction"] * self._impact(move) * a_imp
+            force = bands[cls]["delivered_force_fraction"] * self._impact(move) * a_imp \
+                * self._attr(atk, "delivered_impact")
             region = move["target_regions"][0]
+            # Body work is a distinct competence rather than a target choice: it
+            # scales force delivered downstairs only.
+            if region.startswith("torso"):
+                force *= self._attr(atk, "body_shot_force")
             if region in dfn.condition:
                 cap = {d["region"]: d["capacity"] for d in cm["damage_regions"]}[region]
-                dfn.condition[region] = min(cap, dfn.condition[region] + force * 6.0)
+                # Durability decides how fast the night catches up with you; chin
+                # decides the knockdown. Two different attributes, two different
+                # sites, exactly as attribute_effects declares them.
+                dfn.condition[region] = min(cap, dfn.condition[region] + force * 6.0
+                                            * self._attr(dfn, "condition_accumulation"))
             payload["region"] = region
             payload["force"] = round(force, 4)
             atk.landed += 1
@@ -730,7 +789,7 @@ class Bout:
         head = dfn.condition.get("head", 0.0)
         force = {"solid": 0.75, "clean": 1.0}[cls] * self._impact(move) * a_imp
         accumulated = (jaw * 0.6 + head * 0.4) / 100.0
-        stamina_frac = dfn.stamina / cm["stamina"]["max"]
+        stamina_frac = dfn.stamina / self._stamina_max(dfn)
         kdm = cm["knockdown"]
         pm = kdm["pressure_modifiers"]
         # balance and guard_state: two inputs canon has listed since step 8 that
@@ -738,10 +797,21 @@ class Bout:
         # counter-punch knockdown; an open lane lands heavier than a covered one.
         balance = pm["caught_committed_multiplier"] if dfn.committed > 0 \
             else pm["balanced_multiplier"]
+        if dfn.committed > 0:
+            # Counter timing is how much of an opponent's commitment this fighter
+            # actually converts - it scales the SURPLUS over a balanced target, so
+            # it can never make catching someone worth less than not catching them.
+            balance = pm["balanced_multiplier"] + (balance - pm["balanced_multiplier"]) \
+                * self._attr(atk, "counter_window_exploitation")
         guard = 1.0 + pm["unguarded_lane_bonus"] * (1.0 - max(0.0, min(1.0, extent)))
         pressure = (force * (pm["undamaged_baseline"] + accumulated)
                     * (1.4 - stamina_frac) * balance * guard)
-        if pressure < kdm["pressure_threshold"] \
+        # Chin raises the line pressure must cross. Bounded above by
+        # attribute_effects precisely because condition_model.chin says maximum
+        # resistance is never immunity: +100 Chin is the most authored resistance
+        # in the game and still loses to enough evidence (Rule 14).
+        threshold = kdm["pressure_threshold"] * self._attr(dfn, "knockdown_pressure_threshold")
+        if pressure < threshold \
                 or move["target_regions"][0] not in ("jaw_chin", "head"):
             return
         dfn.knockdowns += 1
@@ -761,11 +831,12 @@ class Bout:
         # Rising is a partial recovery, which is the entire point of the count.
         # Without it accumulated condition only ever climbs, so the first
         # knockdown guarantees the rest and no bout survives to the cards.
-        rel = kdm["count_condition_relief_fraction"]
+        rel = min(0.95, kdm["count_condition_relief_fraction"]
+                  * self._attr(dfn, "between_rounds_recovery"))
         for region in ("jaw_chin", "head"):
             if region in dfn.condition:
                 dfn.condition[region] *= (1.0 - rel)
-        deficit = cm["stamina"]["max"] - dfn.stamina
+        deficit = self._stamina_max(dfn) - dfn.stamina
         dfn.stamina += deficit * kdm["count_stamina_relief_fraction"]
         self.emit("rise", dfn.name, "", {"after_count": 8,
                                          "condition_relief": rel,
@@ -819,7 +890,7 @@ class Bout:
                 opp = self.fighters[1 - i]
                 if f.committed > 0:
                     f.committed -= 1
-                    f.stamina = min(cm["stamina"]["max"], f.stamina)
+                    f.stamina = min(self._stamina_max(f), f.stamina)
                     continue
                 # Idle regeneration, never faster than resting (Rule 14) - and
                 # scaled by body work: torso regions impair stamina
@@ -828,7 +899,7 @@ class Bout:
                 imp = cm["impairment"]
                 torso = self._torso_fatigue(f)
                 regen_mult = 1.0 - (1.0 - imp["stamina_regen_multiplier_at_full_torso"]) * torso
-                f.stamina = min(cm["stamina"]["max"],
+                f.stamina = min(self._stamina_max(f),
                                 f.stamina + cm["stamina"]["regen_per_tick_idle"] * regen_mult)
                 # Holding the guard costs (guard_evasion_model posture
                 # stamina_per_tick, declared at step 7 and read by nothing until
@@ -930,7 +1001,7 @@ class Bout:
         cm = canon.condition()
         bs = self.emit("break_start", "", "", {"ticks": cm["recovery"]["between_rounds_break_ticks"]})
         for f in self.fighters:
-            deficit = cm["stamina"]["max"] - f.stamina
+            deficit = self._stamina_max(f) - f.stamina
             # The corner cannot fully mend a worked body (condition_model.
             # impairment): body investment carries into the next round, which is
             # the whole reason bodywork is named in two canon win conditions.

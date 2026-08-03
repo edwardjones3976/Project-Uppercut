@@ -64,6 +64,14 @@ def combat_states() -> dict:
     return _load("combat_states.json")
 
 
+def attribute_effects() -> dict:
+    return _load("attribute_effects.json")
+
+
+def attribute_families() -> dict:
+    return _load("attribute_families.json")
+
+
 def stress_profile(name: str) -> dict:
     return json.loads((DATA / "stress_profiles" / f"{name}.json").read_text(encoding="utf-8"))
 

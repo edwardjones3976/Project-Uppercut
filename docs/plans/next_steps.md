@@ -74,6 +74,13 @@ not.
 
 ## Recommended order
 
+> **Step A is done** (2026-08-03, `docs/phase1a/attributes_in_the_loop.md`). Fourteen
+> attributes now reach the fight through `data/attribute_effects.json`, ten are named as
+> unexpressed, and the coverage checker's scope was widened to include the file. Balance
+> did **not** improve — the drainer and showman are still below 30% — but it is now a
+> consequence of cards traceable to each style's canon rather than of six constants.
+> Steps B onward stand as written.
+
 **A. Put attributes into the loop.** *Largest gate item, and it unblocks the rest.*
 Fighters become attribute-derived rather than constant-derived: Chin scales knockdown
 resistance and stun duration inside the pressure function; reach shifts the range bands

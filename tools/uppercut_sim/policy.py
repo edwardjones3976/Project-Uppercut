@@ -15,6 +15,60 @@ from __future__ import annotations
 
 from . import canon
 
+# Attribute loadouts. Until 2026-08-03 the instruments had none: attribute_families
+# declared twenty-four attributes in Phase 0, fighter fixtures carried them, a budget
+# validator policed them, and the bout read none. Two instruments could not differ in
+# durability because there were no fighters, only the tuples below.
+#
+# These are written FROM each profile's canon win_condition and risk_condition, not
+# from a desired win rate - the power_threat's card says power and chin because its
+# canon says "contact quality: force, placement and accumulated condition"; the
+# drainer's says recovery and stamina because its canon says "distance, composure,
+# created misses, counters, bodywork, recovery". Every entry a reader can trace back
+# to a sentence in data/stress_profiles/. Unlisted attributes are zero, which
+# multiplies by exactly one (Rule 10), so silence means baseline rather than penalty.
+ATTRIBUTES = {
+    "rusher": {
+        "stamina_pool": 35, "foot_speed": 30, "durability": 25, "body_work": 25,
+        "power": 10, "recovery": -10, "defensive_technique": -25, "counter_timing": -20,
+    },
+    "drainer": {
+        "recovery": 40, "stamina_pool": 30, "defensive_technique": 30, "body_work": 30,
+        # Power stays negative because the drainer wins by draining rather than by
+        # hurting - but at -25 it could not score at all, and a style that cannot
+        # score cannot cash the round it just spent three minutes winning.
+        "counter_timing": 20, "guard_structure": 15, "power": -12, "hand_speed": -10,
+    },
+    "technician": {
+        "accuracy": 40, "guard_structure": 25, "combination_fluency": 25,
+        "hand_speed": 20, "reach": 15, "power": -15, "durability": -10,
+    },
+    "counterpuncher": {
+        "counter_timing": 45, "defensive_technique": 35, "accuracy": 20,
+        "chin": 10, "stamina_pool": -20, "body_work": -20,
+    },
+    "showman": {
+        "hand_speed": 35, "combination_fluency": 30, "foot_speed": 20, "power": 15,
+        # Showmanship creates exposure - that is literally the style's canon
+        # counterplay row - so the guard is genuinely worse. It is not ALSO made of
+        # glass: stacking a low guard with low durability and a low chin punished
+        # the same idea three times over and put the style at 25%.
+        "guard_structure": -25, "durability": -8,
+    },
+    "power_threat": {
+        "power": 45, "chin": 30, "durability": 25, "reach": 10,
+        "hand_speed": -30, "foot_speed": -20, "stamina_pool": -15,
+    },
+}
+
+
+def attributes_for(profile: str) -> dict:
+    """The card this instrument fights with. An exploit policy has no card, so it
+    fights the baseline model - which is what makes an abuse's result attributable to
+    the abuse rather than to a stat line."""
+    return ATTRIBUTES.get(profile, {})
+
+
 # profile id -> (aggression, guard_preference, variety, risk_appetite)
 # Derived from each profile's declared win_condition and risk_condition.
 BIAS = {
