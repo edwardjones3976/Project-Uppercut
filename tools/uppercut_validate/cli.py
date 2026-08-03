@@ -1,12 +1,13 @@
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | START ]
-"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget|states|movement|camera|animation|collision|punches|guard]"""
+"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget|states|movement|camera|animation|collision|punches|guard|condition]"""
 from __future__ import annotations
 import json
 import sys
 from pathlib import Path
 
 from . import (animation, attributes, budget, camera, collision, combat_states,
-               contracts, guard, movement, punches, schema_check, score_isolation)
+               condition, contracts, guard, movement, punches, schema_check,
+               score_isolation)
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -194,6 +195,25 @@ def cmd_camera() -> int:
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:03 UTC | END edit ]
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 08:41 UTC | START edit: Phase 1A step 8 ]
+def cmd_condition() -> int:
+    """ROADMAP Phase 1A step 8: condition, knockdowns and recovery."""
+    doc = condition.load()
+    failures = 0
+    for name, fn in condition.ALL_CHECKS:
+        errs = fn(doc)
+        print(f"{'PASS' if not errs else 'FAIL'}  {name}")
+        for e in errs:
+            print(f"        {e}")
+        failures += len(errs)
+    print(f"INFO  {len(doc['damage_regions'])} region condition tracks, no generic pool; "
+          f"{len(doc['stoppage_conditions'])} evidenced stoppage conditions; count "
+          f"{doc['knockdown']['count_to']} at {doc['knockdown']['count_ticks_per_number']} "
+          f"ticks/number, no flat KO roll (Rule 18: definitions only)")
+    return failures
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 08:41 UTC | END edit ]
+
+
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 07:38 UTC | START edit: Phase 1A step 7 ]
 def cmd_guard() -> int:
     """ROADMAP Phase 1A step 7: guard and evasion."""
@@ -296,6 +316,8 @@ def main(argv: list) -> int:
         print("== Phase 1A basic punches =="); total += cmd_punches(); print()
     if cmd in ("all", "guard"):
         print("== Phase 1A guard and evasion =="); total += cmd_guard(); print()
+    if cmd in ("all", "condition"):
+        print("== Phase 1A condition and recovery =="); total += cmd_condition(); print()
     print(f"RESULT: {'OK' if total == 0 else str(total) + ' FAILURE(S)'}")
     return 1 if total else 0
 

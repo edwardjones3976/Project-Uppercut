@@ -1,0 +1,127 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 08:36 UTC",
+    "end": "2026-08-03 08:36 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/condition_model.schema.json",
+  "title": "Condition and Recovery Model",
+  "description": "ROADMAP Phase 1A step 8: stamina, per-region condition, knockdowns, stoppages and recovery. Engine-neutral; definitions only (Rule 18).",
+  "type": "object",
+  "required": ["schema_version", "tuning_status", "no_generic_health_pool", "stamina", "damage_regions", "knockdown", "chin", "recovery", "stoppage_conditions", "prohibitions", "invariants"],
+  "additionalProperties": false,
+  "properties": {
+    "contribution": { "type": "object" },
+    "$comment": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "tuning_status": { "enum": ["hypothesis", "validated"] },
+    "no_generic_health_pool": { "const": true, "description": "Rule 14: damage lands on regions, never on one bar." },
+    "stamina": {
+      "type": "object",
+      "required": ["max", "regen_per_tick_idle", "regen_per_tick_moving", "regen_per_tick_throwing", "between_rounds_recovery_fraction", "low_threshold_fraction", "exhausted_threshold_fraction"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "max": { "type": "number", "exclusiveMinimum": 0 },
+        "start_fraction": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "regen_per_tick_idle": { "type": "number", "exclusiveMinimum": 0 },
+        "regen_per_tick_moving": { "type": "number", "minimum": 0 },
+        "regen_per_tick_throwing": { "const": 0, "description": "Throwing pays for itself in full." },
+        "between_rounds_recovery_fraction": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
+        "low_threshold_fraction": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
+        "exhausted_threshold_fraction": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
+        "notes": { "type": "string" }
+      }
+    },
+    "damage_regions": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["region", "capacity", "recovers_between_rounds", "impairs"],
+        "additionalProperties": false,
+        "properties": {
+          "region": { "type": "string" },
+          "capacity": { "type": "number", "exclusiveMinimum": 0 },
+          "recovers_between_rounds": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "description": "Strictly below 1: a round never erases accumulated damage." },
+          "impairs": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "knockdown_relevant": { "type": "boolean" }
+        }
+      }
+    },
+    "knockdown": {
+      "type": "object",
+      "required": ["flat_random_roll_per_punch", "inputs", "count_ticks_per_number", "count_to", "max_per_round", "max_per_bout"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "flat_random_roll_per_punch": { "const": false, "description": "Rule 14, stated as a constant so it cannot drift." },
+        "inputs": { "type": "array", "minItems": 4, "items": { "type": "string" } },
+        "count_ticks_per_number": { "type": "integer", "exclusiveMinimum": 0 },
+        "count_to": { "type": "integer", "exclusiveMinimum": 0 },
+        "mandatory_eight_count": { "type": "boolean" },
+        "max_per_round": { "type": "integer", "exclusiveMinimum": 0 },
+        "max_per_bout": { "type": "integer", "exclusiveMinimum": 0 },
+        "rise_window_ticks": { "type": "integer", "exclusiveMinimum": 0 },
+        "notes": { "type": "string" }
+      }
+    },
+    "chin": {
+      "type": "object",
+      "required": ["max_resistance_confers_immunity", "attribute", "scales", "early_stoppage_possible_at_max"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "max_resistance_confers_immunity": { "const": false },
+        "attribute": { "type": "string" },
+        "scales": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "early_stoppage_possible_at_max": { "const": true },
+        "notes": { "type": "string" }
+      }
+    },
+    "recovery": {
+      "type": "object",
+      "required": ["attribute", "scales", "between_rounds_break_ticks"],
+      "additionalProperties": false,
+      "properties": {
+        "attribute": { "type": "string" },
+        "scales": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "between_rounds_break_ticks": { "const": 1800, "description": "Rule 8: thirty real seconds at the authoritative 60-tick clock." },
+        "notes": { "type": "string" }
+      }
+    },
+    "stoppage_conditions": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["id", "trigger", "authority"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "trigger": { "type": "string", "minLength": 1 },
+          "authority": { "enum": ["referee", "doctor", "corner"] }
+        }
+      }
+    },
+    "prohibitions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "rule", "statement"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "rule": { "type": "string" },
+          "statement": { "type": "string", "minLength": 1 },
+          "enforced_by": { "type": "string" }
+        }
+      }
+    }
+  }
+}

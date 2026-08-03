@@ -15,7 +15,7 @@ data plus validator plus tests exist in the repository; it never means engine im
 | 5 | Hitboxes, hurtboxes, guard regions, collision truth | **defined + engine slice** (taken ahead of step 4 by Director instruction) | canon files as before; the quality dispatch (Phase D) and the full four-stage resolution pipeline (Phase E) execute in the Blueprint VM - all seven contact classes reached, zero verdict mismatches against canon over 12,000 rows, zero Rule 13 violations. Stage inputs are still proxied rather than real swept geometry |
 | 6 | Basic punches | **defined** | `data/punch_model.json`, `schemas/punch_model.schema.json`, `tools/uppercut_validate/punches.py`, `tests/test_punches.py`, `docs/phase1a/basic_punches.md`; the move table supplies each punch, this supplies what throwing one costs |
 | 7 | Guard and evasion | **defined** | `data/guard_evasion_model.json`, `schemas/guard_evasion_model.schema.json`, `tools/uppercut_validate/guard.py`, `tests/test_guard.py`, `docs/phase1a/guard_and_evasion.md`; all ten named guards authored as postures over the two collision volumes, closing Decision 0010's step-7 promise |
-| 8 | Stamina, health, condition, knockdowns, recovery | not started | condition regions defined (`data/condition_regions.json`) |
+| 8 | Stamina, health, condition, knockdowns, recovery | **defined** | `data/condition_model.json`, `schemas/condition_model.schema.json`, `tools/uppercut_validate/condition.py`, `tests/test_condition.py`, `docs/phase1a/condition_and_recovery.md`; closes the stamina pool step 6 left open, eight region tracks, no generic pool, no flat KO roll, Chin is never immunity |
 | 9 | CPU decision-making (observable info only) | not started | decision-reason schema exists |
 | 10 | Deterministic logging and replay evidence | not started | fight-event schema exists |
 | 11 | Crowd Bar architecture | provisioned slots only | provisioned states in `data/combat_states.json` |
@@ -51,8 +51,8 @@ explicitly deferred, behind steps 3-4 in the binding order.
 ## Quality gate
 
 The Phase 1A quality gate is defined in `ROADMAP.md`. Nothing in it is claimed. Current honest
-position: steps 1-7 defined and validated, with engine slices for steps 1, 2 and 5;
-steps 8-10 not started; steps 11-12 provisioned only. 284 tests.
+position: steps 1-8 defined and validated, with engine slices for steps 1, 2 and 5;
+steps 9-10 not started; steps 11-12 provisioned only. 302 tests.
 
 **Structural risk, and the first payment against it (Rule 18).** Definitions had outrun the engine
 seven to one: steps 1-7 defined, one engine slice. The Phase 1A gate does not ask for definitions,
