@@ -208,3 +208,76 @@ started or claimed.
 > <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:13 UTC | edit: deferral lifted ] -->
 
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 02:55 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 08:16 UTC | START ] -->
+
+## Phase D — range bands with hysteresis, and quality dispatch, in the Blueprint VM — PASS
+
+The first engine slice for ROADMAP steps 2 and 5. Until now those steps had canon, validators and
+tests but no engine presence at all; step 1 was the only one with a slice.
+
+**What executes.** `BP_RangeWalker` (`sandbox/Content/RangeWalk/`), three ticking instances under
+`-game -UseFixedTimeStep -FPS=60 -Deterministic -nullrhi`, 2000 ticks each:
+
+    r     = RandFloat(Stream)                                  # BP member stream, advances engine-side
+    Dist  = FClamp(Dist + (r - 0.5) * 0.08, 0.0, 2.0)
+    below = Dist < (BandMin[Band] - Hyst)
+    above = Dist > (BandMax[Band] + Hyst)
+    Band  = Clamp(Band + ToInt(above) - ToInt(below), 0, 4)
+    a     = RandFloat(Stream)
+    Qual  = ToInt(a>=0.35) + ToInt(a>=0.6) + ToInt(a>=0.85)
+    marker R|MyIndex|TickCount|floor(Dist*65536)|Band|floor(a*65536)|Qual
+
+Band bounds, the 0.05 hysteresis and the three quality thresholds are read from
+`data/movement_model.json` and `data/collision_model.json` at authoring time, so the Blueprint is
+canon-driven rather than canon-shaped.
+
+The hysteresis rule is the reason this slice is worth building: it is **stateful**. The band you are
+in decides the thresholds you must cross to leave it, so it cannot be reproduced by a pure function
+of distance, and it is the structural anti-magnetic-correction statement of the movement model.
+
+### Legs
+
+| Leg | Seed | Markers | SHA-256 |
+|---|---|---|---|
+| A1 | 56057345 | 6000 | `7F7C18246A36F3FF71B6A4099A4CC7E657EEAB3429E102AF4DAEDF2F3CFA7F3B` |
+| A2 | 56057345 | 6000 | `7F7C18246A36F3FF71B6A4099A4CC7E657EEAB3429E102AF4DAEDF2F3CFA7F3B` |
+| B1 | 99991 | 6000 | `3F5975A424F6D1F0A25DD754325C125AEAB7F4C1C1C4E46935B5F9811D157B47` |
+| A3 | 56057345 | 6000 | `7F7C18246A36F3FF71B6A4099A4CC7E657EEAB3429E102AF4DAEDF2F3CFA7F3B` |
+
+Same-seed runs in independent processes are byte-identical; the different-seed run diverges.
+
+**A3 is the result worth noting.** It ran after the Blueprint was **regenerated from scratch** at the
+canonical seed, and it reproduced A1 and A2 exactly. So the generator is deterministic too: authoring
+the asset again from canon yields byte-identical runtime behaviour, which means the evidence survives
+a rebuild rather than depending on one lucky asset.
+
+### Non-vacuity and canon conformance
+
+A byte-identical log proves reproducibility, not execution — a Blueprint emitting a constant would
+also be byte-identical. That is precisely how the dead-accumulator defect hid during Phase B. So
+`tools/engine/analyze_range_walker.py` checks four things the hash cannot, against canon:
+
+| Check | A1 | B1 |
+|---|---|---|
+| Distinct quantized distances | 5763 | 5785 |
+| Distinct quantized alignments | 5723 | 5727 |
+| Bands visited | 5 of 5 | 4 of 5 |
+| Quality classes reached | 4 of 4 | 4 of 4 |
+| Band changes during the run | 43 | 67 |
+| **Hysteresis violations** | **0** | **0** |
+| **Quality-dispatch mismatches** | **0** | **0** |
+
+The last two rows are the substantive ones. Every band transition in both runs occurred exactly on
+the tick where the distance left `[BandMin[band] - 0.05, BandMax[band] + 0.05]` and on no other
+tick — the engine reproduced the canonical hysteresis rule, not an approximation of it. And every one
+of the 12,000 emitted quality classes equals the canonical dispatch of its own alignment value.
+
+### What this does and does not establish
+
+It establishes that two more layers of canon execute reproducibly in the Blueprint VM, that the
+values are live rather than dead, and that they match canon row by row. It does **not** establish a
+fighter, a punch landing, or a match — no gameplay is claimed (Rule 18). The Rule 22 C++ trigger
+stays unfired and armed for scale.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 08:16 UTC | END ] -->
