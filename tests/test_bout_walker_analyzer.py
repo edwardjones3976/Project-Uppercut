@@ -56,6 +56,47 @@ def test_a_clean_stream_passes():
     assert _errs() == []
 
 
+def test_actors_interleaving_on_the_final_tick_is_not_a_leak():
+    """The real engine's output, which the first version of this analyzer failed.
+
+    Actors tick in sequence inside one frame, so the true final-tick stream reads
+    B(a0) S(a0) B(a1) S(a1): actor 0's card is emitted before actor 1's last
+    observable line. Nothing has leaked - the fight is over for both - and a
+    check comparing raw line positions calls it a Rule 3 violation. This is the
+    regression guard for that false positive, taken from run A1.
+    """
+    lines = []
+    acc = {0: 0, 1: 0}
+    total = ROUND_TICKS * ROUNDS
+    for tick in range(1, total + 1):
+        rnd, tir = divmod(tick - 1, ROUND_TICKS)
+        for i in (0, 1):
+            if tir == 0 and tick > 1:
+                acc[i] = 0
+            acc[i] += 1000 + i
+            lines.append(f"B|{i}|{rnd}|{tir}|{acc[i]}")
+            if tick == total:                      # the card, on the final tick
+                lines.append(f"S|{i}|{rnd}|{acc[i]}")
+    rep = abw.analyse(lines, ROUND_TICKS, ROUNDS, "interleaved")
+    assert rep["errors"] == [], rep["errors"]
+
+
+def test_a_card_stamped_before_the_final_round_is_caught():
+    """The second half of the seal: a card carrying an early round number has been
+    computed early, whatever position it occupies in the log."""
+    lines = _stream()
+    lines = [ln.replace("S|0|2|", "S|0|1|") for ln in lines]
+    rep = abw.analyse(lines, ROUND_TICKS, ROUNDS, "early-stamp")
+    assert any("stamped round 1" in e for e in rep["errors"])
+
+
+def test_a_missing_card_is_caught():
+    lines = [ln for ln in _stream() if not ln.startswith("S|1|")]
+    rep = abw.analyse(lines, ROUND_TICKS, ROUNDS, "one-card")
+    assert any("expected exactly one" in e for e in rep["errors"]) or \
+        any("sealed path is untested" in e for e in rep["errors"])
+
+
 def test_a_leaked_scorecard_is_caught():
     """The defect a hash cannot see: a sealed card emitted while the fight runs is
     perfectly reproducible and still a Rule 3 violation."""

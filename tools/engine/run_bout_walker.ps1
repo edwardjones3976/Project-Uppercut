@@ -7,12 +7,20 @@
 # writing sandbox/Intermediate and sandbox/Saved at once can corrupt the project, and a
 # headless generation can be clobbered by the editor's next save. Pass -Force only if
 # you know the open editor is disposable.
+# -Seed applies to -Gen ONLY. The base seed is compiled into the Blueprint as a literal
+# on the BeginPlay chain, so a run leg cannot change it - passing -Seed to a run leg
+# would silently do nothing and make a divergence leg look like a failure to diverge.
+# Changing seeds means regenerating, which is the stronger evidence anyway: it proves
+# the ASSET regenerates identically, not merely that a fixed asset replays.
 param(
     [switch]$Gen,
     [switch]$Force,
     [string]$Tag = 'A1',
     [int]$Seed = 56057345
 )
+if (-not $Gen -and $PSBoundParameters.ContainsKey('Seed')) {
+    Write-Output "NOTE: -Seed is ignored on a run leg; the seed is compiled in. Regenerate to change it."
+}
 $ErrorActionPreference = 'Continue'
 $editor  = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe'
 $project = 'C:\Users\edwar\project-uppercut\sandbox\UppercutSandbox.uproject'

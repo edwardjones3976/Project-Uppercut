@@ -108,6 +108,21 @@ move at 41% against the 60% gate, determinism byte-identical throughout. Full ac
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 10:56 UTC | START/END ] -->
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 09:52 UTC | edit: steps 11-12, evidence rig ] -->
 
+**The bout structure now executes in the engine (Phase F).** Phases B through E each proved
+one subsystem reproducible in the Blueprint VM - actor tick, the canonical state machine,
+range bands with hysteresis, the four-stage collision pipeline - and every one of them is
+something that happens INSIDE a round. `BP_BoutWalker` runs the round itself: three rounds
+across two ticking actors, boundaries derived from the authoritative tick, a per-round
+accumulator that banks and resets at each bell, and a sealed card that is structurally
+unreachable before the final tick. Four legs, byte-identical across a full asset
+regeneration and divergent on a different seed, all analyzing clean. That closes the
+largest single entry in the reference model's coverage registry and is the first time a
+BOUT rather than an exchange has executed in-engine. Judging arithmetic is not claimed -
+the banked value is a force proxy - and `match_flow`'s entrance, break, count, doctor-check
+and post-fight segments remain named-as-unbuilt rather than implied. Evidence:
+`docs/phase1a/determinism_probe_results.md` (Phase F) and `bout_walker_phase_f.md`.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 13:04 UTC | START/END ] -->
+
 **What "definitions complete" does and does not mean.** Every layer a CPU-vs-CPU match needs is now
 specified, cross-locked to its neighbours, and enforced by something that fails loudly. That is not
 the gate. The gate wants complete matches running from selection through post-fight flow, and the

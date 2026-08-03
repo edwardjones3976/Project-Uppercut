@@ -2,9 +2,19 @@
 
 # Phase F — the bout structure in the Blueprint VM
 
-**Status: authored and analyzer-proven; the engine leg has not been run.** The reason is
-stated plainly below rather than buried, because an engine phase that has not executed
-is not evidence, and this project's own Rule 18 says so.
+**Status: PASS — executed in the Blueprint VM, byte-reproducible across a full asset
+regeneration.** Hashes and the full account are in
+`docs/phase1a/determinism_probe_results.md` under "Phase F".
+
+| Leg | Seed | Produced by | Result |
+|---|---|---|---|
+| A1 | 56057345 | first generation | baseline |
+| A2 | 56057345 | replay | identical to A1 |
+| B1 | 99001122 | regenerated | diverges |
+| A3 | 56057345 | regenerated from scratch | identical to A1 |
+
+A3 is the leg that matters: the asset is deleted and re-authored, and the run returns
+byte-identical. All four analyze clean.
 
 ## What this phase is for
 
@@ -78,28 +88,47 @@ synthetic marker stream and asserts it is caught:
 Building the analyzer first is deliberate. It is the part of an engine phase most able to
 fake a pass, because a leak detector that never fires looks exactly like a clean run.
 
-## Why the engine leg has not run
-
-An interactive `UnrealEditor` (pid 13880) has held the sandbox since 08:21 local and
-created `sandbox/Content/Untitled.umap`. Two UE processes writing `sandbox/Intermediate`
-and `sandbox/Saved` concurrently can corrupt the project, and a headless generation can
-be silently clobbered by the editor's next save.
-
-`tools/engine/run_bout_walker.ps1` now **refuses to start** while an editor is open and
-says why, with `-Force` available for a session known to be disposable. That guard is
-part of the deliverable: every other runner in this folder would have happily raced the
-editor.
-
-To complete the phase, with the editor closed:
+## Running it
 
 ```powershell
-powershell -NoProfile -File tools\engine\run_bout_walker.ps1 -Gen
-powershell -NoProfile -File tools\engine\run_bout_walker.ps1 -Tag A1 -Seed 56057345
-powershell -NoProfile -File tools\engine\run_bout_walker.ps1 -Tag A2 -Seed 56057345
-powershell -NoProfile -File tools\engine\run_bout_walker.ps1 -Tag B1 -Seed 99001122
+powershell -NoProfile -File tools\engine\run_bout_walker.ps1 -Gen -Seed 56057345
+powershell -NoProfile -File tools\engine\run_bout_walker.ps1 -Tag A1
+powershell -NoProfile -File tools\engine\run_bout_walker.ps1 -Tag A2
+powershell -NoProfile -File tools\engine\run_bout_walker.ps1 -Gen -Seed 99001122
+powershell -NoProfile -File tools\engine\run_bout_walker.ps1 -Tag B1
+powershell -NoProfile -File tools\engine\run_bout_walker.ps1 -Gen -Seed 56057345
+powershell -NoProfile -File tools\engine\run_bout_walker.ps1 -Tag A3
 ```
 
-A1 and A2 must be byte-identical; B1 must differ; all three must analyze clean. The
-runner invokes the analyzer automatically on each leg.
+`-Seed` applies to `-Gen` only: the base seed is compiled into the Blueprint as a literal
+on the BeginPlay chain, so passing it to a run leg would silently do nothing and make a
+divergence leg look like a failure to diverge. The runner now says so out loud rather
+than accepting the argument quietly. Changing seeds means regenerating, which is the
+stronger evidence anyway — it puts the generator under test, not just the asset.
+
+The runner **refuses to start while an interactive `UnrealEditor` is open**, with
+`-Force` for a session known to be disposable. Two UE processes writing
+`sandbox/Intermediate` and `sandbox/Saved` concurrently can corrupt the project, and a
+headless generation can be clobbered by the editor's next save. That guard is part of
+the deliverable: every other runner in this folder would have happily raced an open
+editor. The analyzer runs automatically on each leg.
+
+## The analyzer failed the first clean run, and it was the analyzer that was wrong
+
+A1 reported `SEALED LEAK ... position 1439, before the final observable marker at
+position 1440`. Both cards were on the **final tick**; actors tick in sequence inside one
+frame, so actor 0's card is legitimately emitted before actor 1's last observable line.
+
+The temptation there is to relax the check until the run passes, which is the same
+failure the coverage registry's "flattering direction" check exists to catch one layer
+up. Instead the claim was restated precisely — *no card before the final bell*, not *no
+card before the last line* — and the check now tests two things: every card is stamped
+with the final round, and every observable marker after the first card is itself from the
+final tick. A card printed at tick 300 fails both, with hundreds of non-final markers
+behind it. The real interleaving is now a regression test taken verbatim from A1.
+
+A second hole surfaced the same way: "every actor emits exactly one card" iterated the
+sealed rows, so an actor emitting *no* card had no entry to count and could never be seen
+missing. It counts against the observable stream now. Both were found by tests.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 12:30 UTC | END ] -->

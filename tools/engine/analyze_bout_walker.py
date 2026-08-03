@@ -45,30 +45,32 @@ def canon():
 
 
 def parse(path_or_lines):
+    """Returns (observable rows, sealed rows, stream) where `stream` preserves LOG
+    ORDER as (kind, actor, round, tickInRound) - the sealed check is positional, so
+    the interleaving between actors is evidence and must survive parsing."""
     if isinstance(path_or_lines, (list, tuple)):
         lines = list(path_or_lines)
     else:
         lines = list(io.open(path_or_lines, encoding="utf-8"))
-    obs, sealed = [], []
-    order = []
+    obs, sealed, stream = [], [], []
     for raw in lines:
         line = raw.strip()
         if line.startswith("B|"):
-            p = line.split("|")
-            obs.append(tuple(int(x) for x in p[1:5]))
-            order.append("B")
+            p = tuple(int(x) for x in line.split("|")[1:5])
+            obs.append(p)
+            stream.append(("B", p[0], p[1], p[2]))
         elif line.startswith("S|"):
-            p = line.split("|")
-            sealed.append(tuple(int(x) for x in p[1:4]))
-            order.append("S")
-    return obs, sealed, order
+            p = tuple(int(x) for x in line.split("|")[1:4])
+            sealed.append(p)
+            stream.append(("S", p[0], p[1], None))
+    return obs, sealed, stream
 
 
 def analyse(source, round_ticks, rounds, name="markers"):
     """`source` is a path or a list of lines. Returns a report dict; empty `errors`
     means the run is canon-conformant, not merely reproducible."""
     hz = canon()
-    obs, sealed, order = parse(source)
+    obs, sealed, stream = parse(source)
     rep = {"file": name, "tick_rate_hz": hz, "observable": len(obs),
            "sealed": len(sealed), "errors": []}
 
@@ -76,20 +78,55 @@ def analyse(source, round_ticks, rounds, name="markers"):
         rep["errors"].append("no observable markers - nothing ran")
         return rep
 
-    # Rule 3, positionally. A sealed card that appears while the fight is still
-    # emitting observable events has leaked, however deterministic it is.
-    if "S" in order:
-        first_s = order.index("S")
-        last_b = len(order) - 1 - order[::-1].index("B")
-        if first_s < last_b:
+    # Rule 3, positionally - but positional against the FIGHT, not against the log's
+    # line numbering. Actors tick in sequence within a frame, so on the final tick the
+    # stream legitimately reads B(a0) S(a0) B(a1) S(a1): actor 0's card is emitted
+    # before actor 1's last observable line and nothing has leaked. A first version of
+    # this check compared raw line positions and failed the first clean engine run for
+    # exactly that reason. The claim is "no card before the final bell", so that is
+    # what is tested:
+    #
+    #   1. every sealed card is stamped with the final round, and
+    #   2. every observable line following the first sealed card is from the final tick.
+    #
+    # A card printed at tick 300 still fails on both counts, with hundreds of
+    # non-final observable lines behind it.
+    final_round = rounds - 1
+    final_tir = round_ticks - 1
+    if sealed:
+        for idx, rnd, _ in sealed:
+            if rnd != final_round:
+                rep["errors"].append(
+                    "SEALED LEAK: actor %d emitted a card stamped round %d, before the "
+                    "final round %d - the cards were readable while the fight was still "
+                    "running (Rule 3)" % (idx, rnd, final_round))
+        first_s = next(i for i, e in enumerate(stream) if e[0] == "S")
+        stragglers = [e for e in stream[first_s:]
+                      if e[0] == "B" and (e[2], e[3]) != (final_round, final_tir)]
+        if stragglers:
+            k, a, r, t = stragglers[0]
             rep["errors"].append(
-                "SEALED LEAK: an S| card appears at position %d, before the final "
-                "observable marker at position %d - the cards were readable while the "
-                "fight was still running (Rule 3)" % (first_s, last_b))
+                "SEALED LEAK: %d observable markers follow the first sealed card, the "
+                "earliest being actor %d at round %d tick %d, which is not the final "
+                "tick (%d/%d) - the fight was still running when the card appeared "
+                "(Rule 3)" % (len(stragglers), a, r, t, final_round, final_tir))
     else:
         rep["errors"].append("no sealed markers - the sealed path is untested, and a "
                              "check that only forbids passes trivially when the thing "
                              "it forbids never occurs")
+
+    # Every actor that fought must produce exactly one card. Counted against the
+    # actors seen in the OBSERVABLE stream, not against the sealed stream: an actor
+    # that emitted no card at all has no entry to count, so a check that iterates the
+    # sealed rows can never see it missing. Caught by its own test.
+    sealed_by_actor = {}
+    for idx, rnd, val in sealed:
+        sealed_by_actor.setdefault(idx, []).append(val)
+    for idx in sorted({a for a, _, _, _ in obs}):
+        n = len(sealed_by_actor.get(idx, []))
+        if n != 1:
+            rep["errors"].append("actor %d fought and emitted %d sealed cards, expected "
+                                 "exactly one" % (idx, n))
 
     # Rule 8: recompute the round structure from the authoritative tick.
     per_actor = {}

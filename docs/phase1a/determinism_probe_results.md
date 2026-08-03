@@ -348,3 +348,81 @@ the same family as the earlier promotable-DOUBLE literal defect and is recorded 
 `tools/engine/bp_authoring.py`, which now carries the shared authoring discipline.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 08:30 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 12:58 UTC | START ] -->
+
+## Phase F — the bout structure (BP_BoutWalker): PASS
+
+Phases B through E each proved something that happens *inside* a round. This one runs the
+round itself: three rounds of 240 ticks across two ticking actors, with per-round banking
+and a sealed card emitted only past the final bell.
+
+### Determinism
+
+| Leg | Seed | How it was produced | SHA-256 of the marker stream |
+|---|---|---|---|
+| A1 | 56057345 | first generation | `A79437BED99C71529439FE662CB61E2C94811B03D9E0C45FD3FEBC4D99B734C0` |
+| A2 | 56057345 | replay of the same asset | `A79437BED99C71529439FE662CB61E2C94811B03D9E0C45FD3FEBC4D99B734C0` |
+| B1 | 99001122 | regenerated | `1486A67719C1D256E5B763F3E2AC93DF930CC2AA62CC828D8ECC7D36E1401273` |
+| A3 | 56057345 | **regenerated from scratch** | `A79437BED99C71529439FE662CB61E2C94811B03D9E0C45FD3FEBC4D99B734C0` |
+
+A1 = A2 = A3, and B1 differs. A3 is the leg that matters: the asset is deleted and
+re-authored by the generator, and the run comes back byte-identical. The evidence is
+therefore about the generator and the model, not about one lucky compile. 1,442 markers
+per leg — 1,440 observable (720 ticks × 2 actors) and 2 sealed.
+
+All four legs analyze clean against `tools/engine/analyze_bout_walker.py`, which
+recomputes every round boundary from the authoritative tick rather than trusting the
+Blueprint's own count.
+
+### The analyzer failed the first clean run, and it was the analyzer that was wrong
+
+Run A1 came back with `SEALED LEAK: an S| card appears at position 1439, before the final
+observable marker at position 1440`. The log tail is:
+
+```
+B|0|2|239|133244815
+S|0|2|253189147
+B|1|2|239|121736662
+S|1|2|254768311
+```
+
+Both cards are on the **final tick**. Actors tick in sequence inside one frame, so actor
+0's card is legitimately emitted before actor 1's last observable line, and a check
+comparing raw line positions calls that a Rule 3 violation.
+
+This is worth recording because the temptation at that moment is to relax the check until
+the run passes, which is exactly the failure the coverage registry's "flattering direction"
+check exists to catch one layer up. The log was read first, the claim was restated
+precisely — *no card before the final bell*, not *no card before the last line* — and the
+check now tests two things instead of one: every card is stamped with the final round, and
+every observable marker following the first card is itself from the final tick. A card
+printed at tick 300 still fails on both counts with hundreds of non-final markers behind
+it. The real interleaving is now a regression test taken verbatim from A1.
+
+A second hole surfaced the same way: the "every actor emits exactly one card" check
+iterated the sealed rows, so an actor that emitted *no* card had no entry to count and
+could never be seen missing. It now counts against the actors present in the observable
+stream. Both were found by tests, not by reading the code.
+
+### What this establishes, and what it does not
+
+Established: round boundaries derive from the authoritative tick and reproduce exactly;
+the per-round accumulator banks and **resets** at each boundary, which is the shape the
+reference model's `_score_round` was corrected to after it was found summing the bout to
+date; and the sealed card is unreachable before the final bell — structurally, because it
+hangs off the true branch of the final-bell test, and evidentially, because the log says so.
+
+Not established: no judging arithmetic is claimed. The banked value is a force proxy drawn
+from the actor's stream, not scored offence, and `match_flow`'s entrance, break, count,
+doctor-check and post-fight segments remain unbuilt — they are named in
+`data/combat_states.json` → `reference_model_coverage` rather than implied. No gameplay is
+claimed (Rule 18).
+
+Tooling note: the generator compiled and persisted on its first attempt, which is a first
+for this project's Blueprint phases. The discipline in `tools/engine/bp_authoring.py` —
+node handles by graph delta, connections verified from the destination side, literals kept
+off promotable pins — was written down after Phases C, D and E each cost a debugging
+session, and Phase F is the evidence that writing it down worked.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 12:58 UTC | END ] -->
