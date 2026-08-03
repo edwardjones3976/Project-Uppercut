@@ -34,8 +34,12 @@ Decision 0009: `sandbox/UppercutSandbox.uproject` exists and a headless editor r
 (commandlet result 0, zero errors, zero warnings, 2026-08-02 23:23 UTC). The engine prerequisite is
 **cleared**. The determinism question's engine-runtime half **passed** 2026-08-03: byte-identical
 10,008-line logs across independent editor processes, seed-sensitive, over the canonical
-combat-state machine (`docs/phase1a/determinism_probe_results.md`). The Blueprint actor-tick half
-remains open and is the next in-engine task; Rule 22's C++ trigger is neither fired nor dismissed.
+combat-state machine (`docs/phase1a/determinism_probe_results.md`). The **Blueprint actor-tick half
+also passed** the same day: five ticking BP actors, byte-identical 10,000-marker logs across
+independent `-game` processes, seed-sensitive. Blueprint assets were authored **headlessly** via
+editor Python (Route A; no GUI needed). Rule 22's C++ trigger stays armed for scale and for the
+one unmeasured case (float accumulation - see the recorded probe defect), not fired for correctness.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 01:28 UTC | edit: Phase B result ] -->
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 22:16 UTC | edit: step 2 defined, runbook added ] -->
 
 ## Quality gate

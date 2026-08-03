@@ -50,6 +50,12 @@ never guessed (Rule 18). Everything around those two moments is already prepared
 - Accept marketplace/content bundles during install; asset intake goes through the Rule 22
   compatibility audit, not the installer.
 - Enable engine auto-update once pinned. Version changes are decisions, not surprises.
+- Pass `-abslog=` a path the process cannot open. It suppresses **all** logging and the editor looks
+  like a silent hang (cost an hour on 2026-08-03). Prefer the default log plus `-NoLogTimes`.
+- Assume `new_level()` gives a plain level. In 5.8 it creates a **World Partition** level whose
+  actors are external packages that `save_current_level()` does not write - spawned actors silently
+  vanish. Use `new_level_from_template(..., "/Engine/Maps/Templates/Template_Default")` and
+  `EditorLoadingAndSavingUtils.save_dirty_packages(True, True)`.
 - Commit editor-generated credentials. First project load appends an AndroidFileServer section with a
   generated `SecurityToken` to `DefaultEngine.ini`; that plugin is now disabled in the .uproject and
   the committed token was removed (2026-08-02). Diff `sandbox/Config` after any editor session before
