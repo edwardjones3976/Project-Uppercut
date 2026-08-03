@@ -123,6 +123,24 @@ and post-fight segments remain named-as-unbuilt rather than implied. Evidence:
 `docs/phase1a/determinism_probe_results.md` (Phase F) and `bout_walker_phase_f.md`.
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 13:04 UTC | START/END ] -->
 
+**The bout is now scored in the engine (Phase G).** `BP_FightWalker` joins the Phase E
+collision pipeline to the Phase F round structure, so the round card is computed from
+resolved contact rather than a proxy: each resolved class contributes its authored
+delivered force fraction, a blocked punch contributes nothing, the accumulator banks and
+resets at each bell, and the card equals the sum of the banked rounds. Four legs,
+byte-identical across a full asset regeneration, all seven contact classes occurring in a
+single run, and the analyzer recomputing the whole chain from canon tick by tick.
+
+Its first run failed in the most useful way available: the pipeline reported the right
+class and then scored it wrong - a clean punch as nothing, a brushed punch as a grazed
+one - which hashed perfectly and would have passed every Phase E and F check. The cause
+was `RandomFloatFromStream` being a pure node that mutates the stream, so a pure chain
+with several consumers draws several times. Draws are now materialized into variables
+before anything reads them, and that is rule 7 in `tools/engine/bp_authoring.py`. Phase E
+was re-run and still passes, so it stands as evidence, with the caveat recorded rather
+than left to be rediscovered.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 14:16 UTC | START/END ] -->
+
 **What "definitions complete" does and does not mean.** Every layer a CPU-vs-CPU match needs is now
 specified, cross-locked to its neighbours, and enforced by something that fails loudly. That is not
 the gate. The gate wants complete matches running from selection through post-fight flow, and the

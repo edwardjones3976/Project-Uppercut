@@ -426,3 +426,81 @@ off promotable pins — was written down after Phases C, D and E each cost a deb
 session, and Phase F is the evidence that writing it down worked.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 12:58 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 14:12 UTC | START ] -->
+
+## Phase G — a scored bout (BP_FightWalker): PASS
+
+Phase E proved the four-stage collision pipeline resolves correctly in the Blueprint VM.
+Phase F proved the bout structure. Neither connected them: E's verdicts scored nothing,
+and F's round card was fed by a raw stream draw standing in for offence. Phase G joins
+them, so **the round card is computed from resolved contact**.
+
+### Determinism
+
+| Leg | Seed | How it was produced | SHA-256 of the marker stream |
+|---|---|---|---|
+| A1 | 56057345 | first generation | `3D54B317817B3C4CE3A40267804DF03AA25CC70616CAF53E2410BF8D6E4CBC96` |
+| A2 | 56057345 | replay of the same asset | `3D54B317817B3C4CE3A40267804DF03AA25CC70616CAF53E2410BF8D6E4CBC96` |
+| B1 | 99001122 | regenerated | `C0408BD0680BB1B96E0EFE9F703EC9F821446C765DA09F0F8C6C9B19E3D50B9D` |
+| A3 | 56057345 | **regenerated from scratch** | `3D54B317817B3C4CE3A40267804DF03AA25CC70616CAF53E2410BF8D6E4CBC96` |
+
+1,442 markers per leg. All four analyze clean, and all seven contact classes occur in a
+single run: blocked 343, dodged 249, brushed 223, whiffed 190, grazed 171, solid 159,
+clean 105.
+
+The analyzer recomputes the entire chain from canon — `quality_bands` for both the
+thresholds and the delivered force fractions, `contact_classes` for the ordering — and
+compares the round accumulator tick by tick against what the resolved classes should have
+produced. It also checks the sealed card equals the sum of the banked rounds. Nothing the
+Blueprint reports is trusted except as a claim to be checked.
+
+### The first run failed, and it found a hazard in the shared authoring discipline
+
+A1 came back with the accumulator disagreeing with canon, and the disagreement had a
+shape worth reading rather than patching:
+
+```
+actor 0 tick 1: round accumulator reads 0, canon recomputes 1048576
+actor 1 tick 2: round accumulator reads 576716, canon recomputes 157286
+```
+
+Tick 1's inputs resolve to **clean** under canon, and the Blueprint reported **clean** —
+the pipeline was right. It then scored that clean punch as **nothing**. Tick 2 reported
+brushed and scored it as grazed. Both halves individually correct, the whole thing
+hashing perfectly, and the join between them wrong. This is exactly the defect class
+Phase G was built to expose, and it appeared on the first run.
+
+The cause: `RandomFloatFromStream` is a **pure** node that **mutates the stream**. A pure
+node's chain can be evaluated more than once when it has multiple consumers, and each
+evaluation draws again. Phase E's derived quality counter had exactly one consumer;
+Phase G's scoring join added four more, and the class computation and the scoring ended
+up reading different draws.
+
+The fix is structural rather than a patch: the tick's four draws are now stored into
+member variables on the execution chain, in order, and every consumer reads a variable.
+The stream advances exactly four times per tick by construction. This is now **rule 7 in
+`tools/engine/bp_authoring.py`**, the seventh entry in a list where every rule was bought
+with a debugging session.
+
+Phase E was re-run afterwards and still passes with 6,000 markers, zero verdict
+mismatches and zero misses classified as hits. Its analyzer verifies each verdict against
+that verdict's own reported inputs, so it remains valid evidence — but it predates rule 7,
+and any new consumer added to that graph must materialize its draws first. That caveat is
+recorded rather than left for someone to rediscover.
+
+### What this establishes, and what it does not
+
+Established: contact resolved by the canonical pipeline drives per-round scoring, the
+accumulator banks and resets at each bell, and the card equals the sum of the banked
+rounds — all reproducible across a full asset regeneration, and all recomputed from canon
+rather than asserted. A blocked punch cannot score: `landed` is false for it, so the
+weight gate returns zero regardless of which quality band its alignment matched.
+
+Not established: this is still one actor resolving against proxy draws rather than two
+fighters resolving against each other's real geometry, postures and frame data. No
+attributes, no stamina, no knockdowns, no judging beyond a force sum. `match_flow`'s
+entrance, break, count, doctor-check and post-fight segments remain unbuilt and named as
+such. No gameplay is claimed (Rule 18).
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 14:12 UTC | END ] -->

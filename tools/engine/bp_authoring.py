@@ -22,6 +22,18 @@ The rules, each bought with a debugging session (see determinism_probe_results.m
      floating type from a live engine pin instead - see steal_types().
   6. Floating constants never go on pins; promotable DOUBLE pins drop literals.
      Put them on member variables and set them on the CDO.
+  7. A value drawn from a RandomStream is STORED IN A MEMBER VARIABLE on the exec
+     chain before anything reads it, and every consumer reads the variable.
+     RandomFloatFromStream is pure and mutates the stream, so a pure chain hanging
+     off it can be evaluated more than once and draw more than once. Phase G's
+     first run is the evidence: adding four consumers to a derived integer left
+     the pipeline reporting classes that matched canon exactly while the scoring
+     read different draws, so a clean punch scored nothing and a brushed punch
+     scored as a grazed one. Both halves were individually correct and the run
+     hashed perfectly. Draw once, store, then read - the question stops existing.
+     Phases D and E predate this rule; their analyzers verify each verdict against
+     its own reported inputs and pass, so they stand as evidence, but any new
+     consumer added to those graphs must materialize its draws first.
 """
 import unreal
 
