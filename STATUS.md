@@ -5,7 +5,7 @@
 
 # Status
 
-Generated **2026-08-03 22:07 UTC** at `aa21160 attributes reach the fight: twenty-four declared since Phase 0, read by nothing until now, and the bout could not tell two fighters apart`.
+Generated **2026-08-03 22:25 UTC** at `7920017 doc drift closed the same way the data drift was: one generated source of truth, stable documents stripped of volatile tallies, and a guard that refuses the class`.
 
 | Evidence | Result |
 |---|---|
@@ -20,5 +20,8 @@ Generated **2026-08-03 22:07 UTC** at `aa21160 attributes reach the fight: twent
 Open findings, named rather than rounded away:
 
 - Style balance is an open tuning item: drainer and showman sit below 30% on both seed bases (`docs/phase1a/attributes_in_the_loop.md`, "Measured after").
-- The Rule 22 C++/Blueprint decision for the fight core is with the Director (`docs/plans/next_steps.md`, "The one decision that is yours").
 - No rendered fight exists; visual readability (gate item 5) is untestable until one does.
+
+Standing decisions in force this sprint:
+
+- **Decision 0012** (2026-08-03): the Rule 22 C++ trigger fired for the fight core - C++ authoritative simulation, Blueprints presentation, Python tooling - and a document freeze holds for the slice sprint (`docs/decisions/0012-cpp-fight-core-and-slice-sprint-freeze.md`).

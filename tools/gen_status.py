@@ -112,10 +112,15 @@ def main() -> int:
         "",
         "- Style balance is an open tuning item: drainer and showman sit below 30% on "
         "both seed bases (`docs/phase1a/attributes_in_the_loop.md`, \"Measured after\").",
-        "- The Rule 22 C++/Blueprint decision for the fight core is with the Director "
-        "(`docs/plans/next_steps.md`, \"The one decision that is yours\").",
         "- No rendered fight exists; visual readability (gate item 5) is untestable "
         "until one does.",
+        "",
+        "Standing decisions in force this sprint:",
+        "",
+        "- **Decision 0012** (2026-08-03): the Rule 22 C++ trigger fired for the fight "
+        "core - C++ authoritative simulation, Blueprints presentation, Python tooling - "
+        "and a document freeze holds for the slice sprint "
+        "(`docs/decisions/0012-cpp-fight-core-and-slice-sprint-freeze.md`).",
         "",
     ]
     (REPO / "STATUS.md").write_text("\n".join(lines), encoding="utf-8", newline="\n")

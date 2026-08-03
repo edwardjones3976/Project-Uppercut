@@ -112,6 +112,13 @@ unbuilt.
 
 ## The one decision that is yours
 
+> **Decided** (Director, 2026-08-03): the trigger fires. C++ authoritative fight core,
+> Blueprints for presentation and orchestration, Python tooling unchanged — logged as
+> `docs/decisions/0012-cpp-fight-core-and-slice-sprint-freeze.md`, together with a
+> document freeze for the slice sprint. Step D now reads: Phase H is a C++ scaffold
+> proven by the established analyzer-first discipline. The argument below is retained
+> as the record it was decided on.
+
 **Does the fight core stay in Blueprint, or does Rule 22's C++ trigger fire now?**
 
 For firing it: Phase G's graph is already large, and it produced a defect — rule 7,

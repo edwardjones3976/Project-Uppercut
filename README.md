@@ -15,7 +15,7 @@ Project Uppercut is the working title for an original modern arcade-boxing game 
 
 Preproduction closed 2026-08-02 with the Phase 0 quality gate passed on repository evidence
 ([phase0_status](docs/phase0/phase0_status.md)). The repository carries the canonical operating notes,
-binding rules and decisions 0001–0011, the validation toolchain (schemas, contracts, validators,
+binding rules and decisions 0001–0012, the validation toolchain (schemas, contracts, validators,
 fixtures, and a CI-enforced test suite), Phase 1A definitions for **all twelve** ROADMAP steps —
 combat states, movement/facing, camera, animation states, collision truth, basic punches, guard and
 evasion, condition and recovery, CPU decision-making, deterministic logging and replay, the Crowd
@@ -96,6 +96,7 @@ Every phase must pass a defined quality gate before the next phase begins.
 - [Decision 0009 — Director standing authorization](docs/decisions/0009-director-standing-authorization.md)
 - [Decision 0010 — Guard postures as coverage extents](docs/decisions/0010-guard-postures-as-coverage-extents.md)
 - [Decision 0011 — Target-region taxonomy stays prose](docs/decisions/0011-target-region-taxonomy.md)
+- [Decision 0012 — C++ fight core and slice-sprint document freeze](docs/decisions/0012-cpp-fight-core-and-slice-sprint-freeze.md)
 - [Phase 0 gate status](docs/phase0/phase0_status.md) and [pinned technical baseline](docs/phase0/technical_baseline.md)
 - [Phase 1A status](docs/phase1a/phase1a_status.md), [determinism evidence](docs/phase1a/determinism_probe_results.md), and [engine setup runbook](docs/phase1a/engine_setup_runbook.md)
 - [Design reference — boxing guard and style matchups](docs/design/boxing_guard_matchups.md) *(authoritative for punch-versus-guard matchups)*
