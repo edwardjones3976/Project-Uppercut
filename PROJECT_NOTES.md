@@ -312,14 +312,16 @@ Reusable tools and licensed assets may accelerate development. Every asset requi
 Project Uppercut’s characters, mechanics, tuning, branding, writing, finished presentation, and project-specific code remain original.
 
 Current repository status: preproduction closed with the Phase 0 quality gate passed on repository
-evidence; the validation toolchain (402 tests in CI) and Phase 1A definitions for all twelve ROADMAP
+evidence; the CI-enforced validation toolchain and Phase 1A definitions for all twelve ROADMAP
 steps (combat states, movement/facing, camera, animation states, collision truth, basic
-punches, guard and evasion, condition and recovery, CPU decision-making, logging and replay) are in
-place; a verified
-Unreal Engine 5.8.1 sandbox exists, and deterministic fixed-tick resimulation is validated in-engine
-at five levels (docs/phase1a/determinism_probe_results.md). Design documentation is still not
-evidence of implemented gameplay, finished assets, or a playable build — no playable boxing match is
-claimed.
+punches, guard and evasion, condition and recovery, CPU decision-making, logging and replay, the
+Crowd Bar, and the ability architecture) are in place; a verified Unreal Engine 5.8.1 sandbox
+exists, and deterministic fixed-tick resimulation is validated in-engine
+(docs/phase1a/determinism_probe_results.md). Volatile evidence — test counts, check tallies, the
+latest engine phase — lives in the generated STATUS.md rather than here (tests/test_doc_drift.py
+enforces that). Design documentation is still not evidence of implemented gameplay, finished
+assets, or a playable build — no playable boxing match is claimed.
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 21:58 UTC | edit: strip volatile tallies ] -->
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 06:12 UTC | edit: status sync only, no identity change ] -->
 
 ## Document authority and maintenance

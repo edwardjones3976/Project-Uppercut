@@ -2,9 +2,17 @@
 
 ## Current state
 
-**Phase 0 — Preproduction and requirements consolidation: in progress**
+**Phase 0: gate PASSED 2026-08-02 ([evidence](docs/phase0/phase0_status.md)). Phase 1A: in
+progress — all twelve definitions complete, quality gate not passed
+([evidence](docs/phase1a/phase1a_status.md)).**
 
-The project’s confirmed planning exchanges have been consolidated into canonical notes, binding rules, accepted decisions, and the fixed development order. No playable build is claimed.
+Current test counts, check tallies and the latest engine phase live in the generated
+[STATUS.md](STATUS.md), not here — this header went stale within a day of Phase 0 closing
+because it restated a moving fact, and `tests/test_doc_drift.py` now refuses that class.
+The project’s confirmed planning exchanges are consolidated into canonical notes, binding
+rules, accepted decisions, and the fixed development order. No playable build is claimed
+(Rule 18).
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 21:58 UTC | edit: current-state sync ] -->
 
 ## Phase 0 — Foundation
 

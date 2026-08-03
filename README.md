@@ -16,25 +16,33 @@ Project Uppercut is the working title for an original modern arcade-boxing game 
 Preproduction closed 2026-08-02 with the Phase 0 quality gate passed on repository evidence
 ([phase0_status](docs/phase0/phase0_status.md)). The repository carries the canonical operating notes,
 binding rules and decisions 0001–0011, the validation toolchain (schemas, contracts, validators,
-fixtures, 402 tests in CI), Phase 1A definitions for **all twelve** ROADMAP steps — combat states,
-movement/facing, camera, animation states, collision truth, basic punches, guard and evasion,
-condition and recovery, CPU decision-making, deterministic logging and replay, the Crowd Bar, and
-the Special/Ultimate/Full-Crowd-Trait architecture — plus a Python reference simulator running
-complete CPU-vs-CPU bouts with **nine of the eleven** required automated checks green
-([evidence rig](docs/phase1a/evidence_rig.md)), and event-presentation and authoritative-clock
-models ([event and clock](docs/phase1a/event_and_clock.md))
+fixtures, and a CI-enforced test suite), Phase 1A definitions for **all twelve** ROADMAP steps —
+combat states, movement/facing, camera, animation states, collision truth, basic punches, guard and
+evasion, condition and recovery, CPU decision-making, deterministic logging and replay, the Crowd
+Bar, and the Special/Ultimate/Full-Crowd-Trait architecture — plus a Python reference simulator
+running complete CPU-vs-CPU bouts against the eleven required automated checks
+([evidence rig](docs/phase1a/evidence_rig.md)), attribute effects reaching the fight
+([attributes in the loop](docs/phase1a/attributes_in_the_loop.md)), and event-presentation and
+authoritative-clock models ([event and clock](docs/phase1a/event_and_clock.md))
 ([phase1a_status](docs/phase1a/phase1a_status.md)) — a boxing-canon combat reference
 ([guard and style matchups](docs/design/boxing_guard_matchups.md)), and a verified Unreal Engine
 5.8.1 Blueprint sandbox (`sandbox/UppercutSandbox.uproject`, headless editor check: zero errors, zero
 warnings; pinned baseline in [technical_baseline](docs/phase0/technical_baseline.md)). Deterministic
-fixed-tick resimulation (Decision 0002) is validated at five levels — engine runtime, Blueprint actor
-tick, the canonical state machine, range-band resolution with hysteresis, and the four-stage collision
-pipeline — each byte-identical across same-seed processes and seed-sensitive, with zero mismatches
-against canon ([evidence](docs/phase1a/determinism_probe_results.md)); the C++ trigger stays armed for
-scale, not correctness. **No playable boxing match or completed gameplay implementation is claimed
-yet** (Rule 18). Remaining in Phase 1A: steps 11–12 (Crowd Bar and Special/Ultimate architecture),
-the evidence rig, and the substantial distance between validated definitions and a running match.
-<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 09:07 UTC | edit: status sync, steps 8-10 ] -->
+fixed-tick resimulation (Decision 0002) is validated at seven levels — engine runtime, Blueprint actor
+tick, the canonical state machine, range-band resolution with hysteresis, the four-stage collision
+pipeline, the bout structure with sealed cards, and a scored bout — each byte-identical across
+same-seed processes and full asset regeneration, seed-sensitive, with zero mismatches against canon
+([evidence](docs/phase1a/determinism_probe_results.md)); the Rule 22 C++ decision for the fight core
+is with the Director ([next steps](docs/plans/next_steps.md)). **No playable boxing match or
+completed gameplay implementation is claimed yet** (Rule 18). The Phase 1A quality gate is not
+passed; the distance between validated definitions and a running match remains the largest item on
+the board.
+
+**Current evidence — test counts, check tallies, latest engine phase — lives in
+[STATUS.md](STATUS.md), which is generated from the suite rather than hand-maintained.** This
+document deliberately carries no volatile numbers; `tests/test_doc_drift.py` enforces that, after an
+external review caught this paragraph three revisions stale.
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 21:58 UTC | edit: strip volatile tallies per doc-drift guard; supersedes 09:07 status sync ] -->
 
 ## Core direction
 
