@@ -1,860 +1,277 @@
-# Project Uppercut — Boxing Punches, Target Zones, Angles, and Guard Matchups
+<!-- Claude Fable 5 (claude-fable-5) - 2026-08-03 07:19 UTC - boxing-punches-guards-and-target-matchups condensed rewrite start -->
 
-**Status:** Developer-side design reference  
-**Rules context:** Modern gloved boxing descended from the Marquess of Queensberry rules  
-**Purpose:** Support strike data, guard interception, CPU reasoning, Training Mode, commentary, telemetry, and balance tests  
+# Boxing Punches, Target Regions, and Matchup Pointers (Queensberry Rules)
 
-> **A punch's intended landing zone is not necessarily the guard plane that intercepts it.**
-
-<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 07:19 UTC | START intake: contribution tags, Rule 18 status, canonical-taxonomy mapping, and table authority. The original author's body text below is unmodified; this block and the two marked notes are additive. ] -->
+**Project Uppercut — combat system design reference**
+**Path:** `docs/design/boxing-punches-guards-and-target-matchups.md`
+**This revision:** condensed rewrite of the 813-line PR #3 version (reported merge `524df30`). What was removed, what was kept, and why: see Provenance at the bottom.
 
 > **Status (Rule 18): DESIGN REFERENCE — not canon data, not implemented.**
-> This document proposes vocabulary and structures. It creates no schema and
-> changes no behaviour. Every value in it is a tuning hypothesis until a
-> validator and fixtures promote it, matching the pattern used for combat
-> states, movement, camera, animation, collision and punches. Merged to `main`
-> as commit `524df30` on 2026-08-03; tagged on intake per Decision 0006 and
-> `CONTRIBUTION_TAGGING.md`, which the file arrived without.
->
-> **Authority for the matchup tables (section 5).** `docs/design/boxing_guard_matchups.md`
-> is authoritative for punch-versus-guard and guard-versus-punch matchups and
-> carries the reconciliation log that resolves their contested rows. The tables
-> here are a second live copy of reconciled content, which is this project's
-> signature failure mode — the shell-versus-overhand contradiction happened
-> exactly this way, across four locations. Treat section 5 as a reading aid,
-> resolve any disagreement in favour of the guard doc, and prefer amending the
-> guard doc over editing both.
->
-> **Canonical region mapping.** Section 1's `intended_target_region` vocabulary
-> is finer-grained than `data/condition_regions.json`, which declares eight
-> strikeable regions. The collision validator rejects any move targeting a
-> region with no hurtbox, so these names must not enter move data before a
-> taxonomy decision. Design prose here maps as: temple, cheek, nose and
-> forehead → `head`; jaw → `jaw_chin`; sternum and solar plexus →
-> `torso_upper`; liver and ribs → `torso_lower`; guard_arm → `arm_left` /
-> `arm_right`. Two gaps are deliberate to note rather than silently bridge: the
-> canonical `eye_left` and `eye_right` regions have no counterpart in this
-> vocabulary, and the collarbone appears in neither — a collarbone contact is a
-> mistarget outcome, not a region.
+> Every value cited here is a tuning hypothesis. Frame, stamina, and
+> counter-vulnerability data are owned by `data/moves/generic_sandbox_moves.json`;
+> if this file and that file disagree, the data file wins.
 
-<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 07:19 UTC | END intake ] -->
+## Scope and ownership (anti-drift contract)
 
-This document provides a boxing-informed vocabulary for Project Uppercut. It is not a claim that one punch or guard always defeats another. Effectiveness depends on range, stance relationship, timing, setup, angle, posture, movement, fatigue, guard integrity, contact quality, and the fighter's attributes.
+This document owns exactly three things: **punch profiles** (trajectory, entry
+angle, variants, range), **target-region effectiveness**, and the **legal/foul
+boundary**.
 
-The original Queensberry rules established the broad form of modern gloved stand-up boxing. Current commissions and sanctioning bodies provide the detailed legal target and foul rules used today. For Project Uppercut, legal punches use the knuckle surface of a closed glove and target the front or sides of the opponent above the belt. The back of the head or neck, kidneys, spine, groin, and an opponent who is down are not legal targets.
+It deliberately does **not** contain:
 
-## 1. Required strike-model separation
+- the ten-guard catalog → `docs/design/boxing_guard_matchups.md`
+- the punch-vs-guard and guard-vs-punch matchup tables → same file, Master Tables
+- collision and interception truth → `data/collision_model.json` + `docs/phase1a/collision_truth.md` (extent modulation per Decision 0010)
+- frame data and costs → `data/moves/generic_sandbox_moves.json`
 
-Every strike definition should separate at least:
+One table, one home. The PR #3 version reproduced the full guard catalog and
+both matchup tables alongside their canonical copies; duplicated tables drift,
+and the guard doc's reconciliation log exists precisely because they already
+did once. Link, don't copy.
 
-```yaml
-strike_family: jab | straight | hook | uppercut | overhand | shovel_hook
-lead_or_rear: lead | rear
-level: head | body
-intended_target_region: jaw | temple | cheek | nose | forehead | sternum | solar_plexus | liver | ribs | guard_arm
-trajectory: linear | horizontal_arc | rising_arc | descending_arc | diagonal_rising_arc
-entry_angle: center | inside | outside | over | under
-primary_intercept_plane: high_center | high_side | mid_center | mid_side | low_center | low_side | extended_frame
-secondary_intercept_planes: []
-range_band: outside | long | mid | close | inside
-startup: prototype_value
-active_contact: prototype_value
-recovery: prototype_value
-stamina_cost: prototype_value
-counter_exposure: prototype_value
-```
+## Core rule (stated once, owned elsewhere)
 
-`intended_target_region` describes where the punch seeks to land. `primary_intercept_plane` describes where an effective guard usually meets its path.
+> **A guard protects the interception path, not merely the final target.**
 
-Example:
-
-```yaml
-strike_family: uppercut
-level: head
-intended_target_region: jaw
-trajectory: rising_arc
-primary_intercept_plane: low_center
-secondary_intercept_planes:
-  - mid_center
-```
-
-An uppercut may finish at the jaw while being stopped lower by a dropped forearm, elbow frame, or compact centerline structure.
+Canonical statement: `boxing_guard_matchups.md`. Enforced in
+`data/collision_model.json`, whose `guard_interception` map was corrected by the
+validator on 2026-08-03 for exactly this reason. The uppercut is the showcase:
+it targets `jaw_chin` (a high region) yet is authored `blockable_low`, because
+it travels **upward** — a dropped forearm bars its path and a raised shell does
+not. Per Decision 0010, posture and alignment states then modulate the coverage
+*extents* of the two guard volumes; `guard_interception` decides which volume is
+permitted to intercept a path, the extents decide whether it actually reaches.
 
 ---
 
-# 2. Core punch catalog
+## Punch catalog
 
-## 2.1 Lead jab
+Per entry: trajectory and entry angle · move-table ids · `guard_interaction` ·
+variants · effective targets · poor targets · risk profile. Target names use
+`data/condition_regions.json` ids where one exists.
 
-**Path:** Fast linear lead-hand strike.  
-**Typical angles:** Centerline, slight outside step, upward jab, downward jab, body jab.  
-**Primary uses:** Measure distance, interrupt, score, obscure vision, establish rhythm, force guard reactions, prepare combinations.
+### Jab — `blockable_high` — `jab_lead`
 
-### Common legal targets
+- **Trajectory:** straight line, lead hand, shortest possible path — the only
+  punch launched without first opening the guard.
+- **Variants:** probing/measuring jab, power jab (weight transfer), double and
+  triple jab, up-jab (rising line against taller or crouching opponents), body
+  jab (see body shots).
+- **Effective targets:** the nose (waters the eyes — momentary blindness and
+  disorientation), `jaw_chin` (head snap; rhythm and balance disruption), solar
+  plexus as a body jab (breath and stamina tax).
+- **Poor targets:** the forehead (thickest bone on the body; more risk to the
+  puncher's hand than to the target), chest and shoulders (absorbed harmlessly).
+- **Risk:** the lowest in the sport, and the move table agrees — cheapest
+  startup, recovery, stamina, and counter exposure in the generic set. Its job
+  is volume, range control, and setup, never finishing. Mechanically, it should
+  never be the punch that loses an exchange.
 
-- Nose and center face
-- Forehead when posture or height creates that line
-- Jaw or cheek from an angle
-- Sternum or upper abdomen with a body jab
-- Guard gloves or forearms to occupy or disrupt them
+### Cross / straight rear — `blockable_high` — `cross_rear`
 
-### More effective when
+- **Trajectory:** straight line, rear hand, full rear-foot/hip/torso rotation —
+  the highest-leverage straight punch available.
+- **Variants:** basic cross, the 1-2 behind a jab, counter-cross off a slip,
+  body straight (see body shots).
+- **Effective targets:** the point of the chin (`jaw_chin` — maximum rotational
+  force through the jaw hinge; top single-shot KO potential), solar plexus
+  (drives through center guard gaps and winds the opponent).
+- **Poor targets:** the upper skull (glancing contact, hand-injury risk), a
+  tight closed guard (wasted energy plus counter exposure).
+- **Risk:** moderate — rear-hand commitment opens the lead side and briefly
+  costs lateral mobility (move table).
 
-- Used at long range
-- Timed during an opponent's entry
-- Doubled or varied in rhythm
-- Paired with an outside step or angle change
-- Used to expose the body or rear-hand lane
+### Hooks — `blockable_either` — `hook_lead`, `hook_rear`
 
-### Less effective when
+- **Trajectory:** bent arm near 90°, horizontal arc around the guard from
+  outside the eyeline. The one punch shape either guard volume can intercept,
+  which is why it is authored `blockable_either`.
+- **Variants:** lead hook (speed; the mid-range staple), rear hook (more power
+  and commitment; longest arc in the generic set), check hook (pivot counter
+  against a stepping-in opponent), short/shovel hook (compact ~45° blend of
+  hook and uppercut, inside only), body hook (below).
+- **Effective targets:** temple and jaw hinge (rotational force disrupts the
+  vestibular system — balance, not just the chin), the liver via lead body hook
+  (below), floating ribs (mobility and breathing tax).
+- **Poor targets:** center of the chest (dense mass, no mechanical advantage),
+  the forehead.
+- **Risk:** high against anyone who steps inside the arc; wide versions thrown
+  from range are visible early and duck-under bait.
 
-- Repeated at one rhythm without variation
-- Thrown from hook range with no frame or exit
-- Sent directly into an established high-center guard
-- Overextended against a prepared slip-and-counter fighter
+### Uppercuts — `blockable_low` — `uppercut_lead`, `uppercut_rear`
 
-### Strong guard answers
+- **Trajectory:** near-vertical rise on or near the centerline — the
+  design-principle showcase (targets high, intercepted low).
+- **Variants:** rear uppercut (the standard; deepest commitment — highest
+  counter-vulnerability in the generic set), lead uppercut (rare; high launch
+  cost from most guards — from the shell it is skill-gated, not absent, per the
+  guard doc's reconciliation log), short/compact inside uppercut, body uppercut
+  to the solar plexus.
+- **Effective targets:** under the chin (`jaw_chin` — violent upward
+  displacement; sets up follow-on hooks), solar plexus between the elbows of a
+  standard guard.
+- **Poor targets:** the crown of a ducking head (hand-fracture territory), the
+  collarbone (a mis-range artifact with no concussive value).
+- **Risk:** highest in the set. From any real distance it is slow, telegraphed,
+  and leaves the thrower's own chin exposed for the full flight.
 
-- High guard catch
-- Long-guard interception
-- Active-hand parry
-- Rear-hand catch
-- Slip with responsible rear-hand protection
+### Overhand — `blockable_high` — `overhand_rear`
 
-### Guard structures the jab can challenge
+- **Trajectory:** looping over the top from outside the shoulder line,
+  descending diagonal — built to clear a guard rather than pass through it,
+  adding the thrower's bodyweight on the way down.
+- **Variants:** overhand right (the classic shorter-fighter answer to a taller
+  opponent's chin and to the long guard), overhand left (southpaws; surprise
+  counters).
+- **Effective targets:** behind the ear and the temple (equilibrium disruption
+  — spectacular knockdowns), the point of the jaw (downward trajectory
+  multiplies force with bodyweight).
+- **Poor targets:** the body — mechanically the wrong tool; slow, awkward, and
+  the thrower's head is fully exposed on the follow-through.
+- **Risk:** slow windup, forward weight commitment, badly exposed after the arc.
+- **Authoring gap: closed 2026-08-03.** This flag previously read that
+  `move.schema.json` listed `overhand` as a valid category with no `overhand_*`
+  entry in the generic set. `overhand_rear` was authored in commit `1675d27` as
+  a tuning hypothesis — 11 startup, 3 active, 21 recovery, mid band, 3.2
+  stamina, `blockable_high` — carrying the highest counter vulnerability in the
+  set, because the looping path telegraphs and the head travels forward with it.
+  The animation frame-lock refused the move until `anim_overhand_rear` landed at
+  matching ticks, which is that cross-file lock working as designed.
 
-- Low lead-hand guards
-- Loose shoulder-roll positions before the shoulder is set
-- Static guards when the jab is used to blind, occupy, or redirect rather than force damage
+### Body shots — `blockable_low` — `body_hook_lead`, `body_straight_rear` (+ body jab, body uppercut as variants)
 
----
+- **Cross-cutting category:** every punch above has a body variant. Structurally
+  load-bearing: no guard covers the head cluster and the torso at once, so body
+  investment pays against nearly every structure — and this must **emerge** from
+  zone coverage, never be hardcoded (see the guard doc's design principle).
+- **The liver shot:** a lead hook under the opponent's right elbow into the
+  right side of the torso. It ends fights through the autonomic nervous
+  response, not raw force — the one body punch with genuine single-shot
+  stoppage power, often as a delayed drop.
+- **Accumulation profile:** stamina drain, breath disruption, hands lowering
+  across rounds, and arm/`guard_integrity` damage on blocked volume — the
+  mechanism by which passive blocking eventually gets opened.
+- **Region-resolution note: ruled by Decision 0011.** The collision model's
+  torso hurtboxes (`torso_upper`, `torso_lower`) are declared `side: center`
+  while the eyes and arms are side-declared, and the liver's defining property
+  is its asymmetry. The torso is **not** side-split: the liver shot is a
+  stance-relative *contact-quality outcome* on `torso_lower`, qualified by which
+  side of the torso the swept path enters, not a region of its own. The
+  collision model already computes entry geometry and stance relationship, so
+  the asymmetry falls out of data that exists rather than out of two new
+  hurtboxes — and the eight-region model stays eight.
 
-## 2.2 Rear straight / cross
+### Low-percentage and showpiece punches
 
-**Path:** Linear rear-hand power strike through the center or an angle created by foot position.  
-**Typical angles:** Centerline, outside-angle cross, split-guard straight, straight to body.
-
-### Common legal targets
-
-- Jaw and chin
-- Nose and center face
-- Cheek
-- Sternum and solar plexus
-- Ribs when stance and angle permit
-
-### More effective when
-
-- Set up by the jab, feint, or lead-hand control
-- Thrown after gaining outside foot position in open-stance matchups
-- Timed against a returning jab
-- Delivered into an opponent moving toward it
-- Used after the guard has been displaced
-
-### Less effective when
-
-- Thrown naked from too far away
-- Repeated into a settled shoulder roll
-- Used at cramped inside range
-- Overcommitted against lateral movement
-
-### Strong guard answers
-
-- High-center guard
-- Rear-hand catch or parry
-- Shoulder roll when aligned correctly
-- Cross-arm structure
-- Step-back or outside slip
-
-### Guard structures the cross can challenge
-
-- Open or low guards
-- Long guards after the lead frame has been cleared
-- Guards displaced by a jab, hook, or hand trap
-
----
-
-## 2.3 Lead hook
-
-**Path:** Horizontal or slightly rising arc from the lead side.  
-**Typical angles:** Head hook, body hook, check hook, pivot hook, short inside hook.
-
-### Common legal targets
-
-- Jaw and cheek
-- Temple and side of head
-- Liver region from the orthodox lead side against an orthodox opponent
-- Ribs and side of torso
-- Guard arm when deliberately damaging or moving the shell
-
-### More effective when
-
-- The opponent is focused on centerline straights
-- Thrown after a jab or rear straight shifts the guard
-- Used as a check hook against forward pressure
-- Delivered from an outside angle
-- Mixed between head and body
-
-### Less effective when
-
-- Thrown from outside its range
-- Looped widely without setup
-- Sent repeatedly into a tight ear-muff guard
-- Used while square and unable to recover position
-
-### Strong guard answers
-
-- High-side glove and forearm
-- Ear-muff cover
-- Peek-a-boo shell
-- Cross-arm guard
-- Roll-under or step-away when timed
-
-### Guard structures the lead hook can challenge
-
-- Philly shell, especially around or above the lead shoulder
-- Long guard after entering past the extended arm
-- Tight-elbow body guard when directed high
+- **Bolo punch:** windmill wind-up; the lowest-percentage legitimate punch in
+  the sport, occasionally landing precisely because the trajectory is
+  unfamiliar. Natural Showmanship-category material.
+- **Wild haymaker:** unstructured, off-balance power swing; all risk, minimal
+  technique.
+- The correct home for both in Project Uppercut is the comedy and Showmanship
+  layer, priced honestly — visible commitment, real whiff punishment, never
+  secretly competitive.
 
 ---
 
-## 2.4 Rear hook
-
-**Path:** Horizontal rear-side arc, usually from mid or close range.  
-**Typical angles:** Rear head hook, rear body hook, hook after pivot or stance shift.
-
-### Common legal targets
-
-- Jaw and opposite cheek
-- Temple and side of head
-- Ribs and side of torso
-- Guard arm
-
-### More effective when
-
-- The opponent has rotated toward the rear side
-- A lead hook, jab, or body shot has shifted the guard
-- Used at close range after entering safely
-- Thrown during a stance-switch sequence with stable balance
-
-### Less effective when
-
-- Thrown from long range
-- Loaded visibly
-- Used while the fighter's feet are crossed or square
-- Repeated against a compact side-covering shell
-
-### Strong guard answers
-
-- High-side guard
-- Cross-arm guard
-- Ear-muff cover
-- Roll-under or angle exit
-
-### Guard structures the rear hook can challenge
-
-- Open guards
-- Long guards once the range has collapsed
-- Tight body guards when directed high
-
----
-
-## 2.5 Lead uppercut
-
-**Path:** Short rising arc from the lead side, usually close or inside.  
-**Typical angles:** Center uppercut, slight outside-angle uppercut, body-to-head uppercut.
-
-### Common legal targets
-
-- Jaw and chin
-- Center face at close range
-- Solar plexus or upper abdomen when aimed to the body
-
-### More effective when
-
-- The opponent uses a high shell with lifted elbows
-- The opponent leans forward or enters upright
-- Set up by body hooks, jabs, or a frame
-- Thrown inside a wide hook
-- Used after a slip creates a short center lane
-
-### Less effective when
-
-- Thrown from long range
-- Used against a compact guard with elbows and forearms protecting the center
-- Telegraphed by a deep dip
-- Thrown while the opponent is already exiting laterally
-
-### Strong guard answers
-
-- Dropped forearm
-- Tight-elbow or compact mid/low-center guard
-- Peek-a-boo structure with elbows connected
-- Step-back
-- Short framing hand or jab interruption before launch
-
-### Guard structures the uppercut can challenge
-
-- Loose high guard
-- Ear-muff guard held too high
-- Cross-arm guard when the center gap opens
-- Upright passive shell
-
-> **Modeling rule:** The head uppercut targets the jaw but is principally intercepted at the low or mid centerline because its path rises into the target.
-
----
-
-## 2.6 Rear uppercut
-
-**Path:** More powerful rising rear-hand arc, generally from close range.  
-**Typical angles:** Center rear uppercut, rear uppercut after slip, rear uppercut to body.
-
-### Common legal targets
-
-- Jaw and chin
-- Center face
-- Solar plexus and upper abdomen
-
-### More effective when
-
-- The opponent shells high or bends forward
-- Timed after a slip inside the jab or cross
-- Used after lead-hand framing or body work
-- The opponent's elbows separate during combinations
-
-### Less effective when
-
-- Launched from outside range
-- Overcommitted against a step-back
-- Used against tight centerline forearm and elbow structure
-- Thrown without protecting against the counter hook
-
-### Strong guard answers
-
-- Tight-elbow guard
-- Dropped forearm or compact center block
-- Step-back
-- Angle exit
-- Early jab or short hook interruption
-
-### Guard structures the rear uppercut can challenge
-
-- Loose high guard
-- Elevated ear-muff guard
-- Static cross-arm structure with an exposed center seam
-
----
-
-## 2.7 Overhand
-
-**Path:** Descending arc over an opponent's lead hand or guard line.  
-**Typical angles:** Rear overhand over the jab, overhand from outside angle, looping lead overhand.
-
-### Common legal targets
-
-- Temple and side of head
-- Jaw and cheek
-- Forehead when the opponent ducks or changes level
-
-### More effective when
-
-- Timed over a jab or extended long guard
-- Used against a low lead hand
-- Thrown from an outside angle
-- The opponent's head remains on the centerline
-
-### Less effective when
-
-- Thrown without setup
-- Used against a compact high-side guard
-- Repeated predictably
-- Attempted from crowded inside range
-
-### Strong guard answers
-
-- High-side guard
-- Ear-muff cover
-- Cross-arm guard
-- Step under, roll, or angle exit
-
-### Guard structures the overhand can challenge
-
-- Long guard
-- Low lead-hand guard
-- Shoulder roll when the arc clears the shoulder alignment
-
----
-
-## 2.8 Shovel hook
-
-**Path:** Diagonal rising arc between a hook and uppercut.  
-**Typical angles:** Lead shovel hook to liver or solar plexus, rear shovel hook to body, diagonal head shot at close range.
-
-### Common legal targets
-
-- Liver region
-- Solar plexus
-- Ribs
-- Jaw at close range when the line rises high enough
-
-### More effective when
-
-- Thrown under a high elbow
-- Mixed with head hooks or uppercuts
-- Used after the opponent braces for a straight
-- Delivered from a small outside angle
-
-### Less effective when
-
-- Thrown from too far away
-- Sent into a compact elbow shield
-- Repeated without head-level variation
-- Used while standing square with no exit
-
-### Strong guard answers
-
-- Tight-elbow body guard
-- Dropped elbow and forearm wedge
-- Pivot away from the striking side
-- Step-back when range allows
-
-### Guard structures the shovel hook can challenge
-
-- Loose high guard
-- Long guard with exposed ribs
-- Ear-muff shell with elevated elbows
-
----
-
-## 2.9 Body jab and body straight
-
-These are level variants of the jab and cross rather than separate punch families, but they require their own tactical treatment.
-
-### Common legal targets
-
-- Sternum
-- Solar plexus
-- Upper abdomen
-- Front-side ribs when the angle is legal
-
-### More effective when
-
-- The opponent holds a high static guard
-- Used to alter level and prepare head attacks
-- Timed during a reset or upright posture
-- Thrown with an exit so the head is not left exposed
-
-### Less effective when
-
-- The attacker bends excessively and loses vision
-- Repeated at one rhythm
-- Used from too close to recover safely
-- Directed below the legal belt line
-
-### Strong guard answers
-
-- Tight-elbow guard
-- Elbow drop
-- Active downward parry
-- Step-back or pivot
-
----
-
-# 3. Legal body-region effectiveness matrix
-
-The following is a game-design effectiveness guide, not a medical prediction table. Effectiveness is contextual and should be produced by contact quality, force, angle, movement, accumulated condition, and defensive state rather than a flat target multiplier alone.
-
-| Legal target region | Punches commonly effective | Punches commonly less efficient | Intended gameplay consequence |
-|---|---|---|---|
-| Jaw / chin | Straight, cross, hook, uppercut, shovel hook | Long body-focused shots, poorly ranged overhand | Balance disruption, knockdown risk, jaw condition |
-| Temple / side of head | Lead/rear hook, overhand, angle cross | Centerline body shots, short uppercut without angle | Head condition, tracking/composure pressure |
-| Nose / center face | Jab, straight, short uppercut | Wide hook from wrong range | Accuracy disruption, visible damage, head condition |
-| Forehead / upper guard line | Jab, straight, overhand when posture creates line | Uppercut from excessive range | Usually reduced clean effect; may damage attacking hand/guard in deeper simulation |
-| Cheek / side face | Hook, cross from angle, overhand | Body jab | Head condition, side-specific facial damage |
-| Sternum | Body jab, straight to body | Wide head hook | Posture and breathing pressure, body condition |
-| Solar plexus | Straight to body, rear uppercut to body, shovel hook | Long looping head punch | Stamina interruption, body condition, temporary recovery delay |
-| Liver-side body | Lead body hook or shovel hook from orthodox-vs-orthodox geometry; mirrored by stance relationship | Straight head jab | Strong body-condition and stamina consequence when clean |
-| Ribs / side torso | Body hooks, shovel hooks | Centerline uppercut without angle | Body condition, movement and breathing pressure |
-| Guard arms / forearms | Varied hooks and straights deliberately working the guard | Repeating one weak safe strike | Arm condition, guard integrity, positional pressure |
-
-## Target-model safeguards
-
-- No region produces an automatic knockout.
-- Chin or temple contact may create high consequence only when force, placement, movement, balance, awareness, accumulated condition, and defense support it.
-- Body targets should influence stamina and posture without becoming guaranteed stun buttons.
-- The liver-side designation must follow fighter orientation and stance, not a fixed screen-left rule.
-- Contact to guard arms is not a clean scoring punch to the target beneath it, but can create arm-condition and guard-integrity consequences.
-- Legal target logic must reject back-of-head, neck, spine, kidney, groin, below-belt, and downed-opponent contacts.
-
----
-
-# 4. Guard catalog
-
-## 4.1 Conventional high guard / basic shell
-
-**Structure:** Gloves high near cheeks and temples; forearms protect center; elbows provide partial body coverage.
-
-**Best against:**
-
-- Head jab
-- Rear straight / cross
-- Head hooks when the side glove and forearm are positioned correctly
-- Overhands when the shell remains compact
-
-**More vulnerable to:**
-
-- Body jab and body straight
-- Body hooks and shovel hooks when elbows rise
-- Uppercuts through a loose center
-- Angle changes that turn the shell
-
-**Tradeoffs:** Reliable and teachable; can become passive; absorbs arm and guard damage; may reduce vision.
-
----
-
-## 4.2 Peek-a-boo guard
-
-**Structure:** Compact high hands, tucked elbows, hidden chin, active slips, weaves, and explosive entries.
-
-**Best against:**
-
-- Jabs and crosses when combined with head movement
-- Hooks to head
-- Uppercuts when elbows remain connected
-- Short combinations at close range
-
-**More vulnerable to:**
-
-- Check hooks against predictable entries
-- Long body jabs
-- Angled body hooks when elbows lift
-- Opponents who force repeated entries and exits
-
-**Tradeoffs:** Strong compact coverage and counter entry; demanding on stamina, movement, timing, and CPU discipline.
-
----
-
-## 4.3 Shoulder roll / Philly shell
-
-**Structure:** Lead shoulder shields chin, rear hand covers opposite side, lead hand rests lower for parries and body coverage.
-
-**Best against:**
-
-- Rear straight / cross
-- Predictable jabs
-- Committed single centerline punches
-- Shots that can be rolled into glancing contact
-
-**More vulnerable to:**
-
-- Lead hook around the shoulder
-- Body combinations
-- Overhands clearing the shoulder line
-- Open-stance rear straights and changed angles
-- Layered combinations that prevent a single clean roll
-
-**Tradeoffs:** High counter readiness and efficiency; high Ringcraft requirement; orientation-sensitive rather than universally strong.
-
----
-
-## 4.4 Cross-arm guard
-
-**Structure:** Forearms cross before the face and upper torso to create a dense impact barrier.
-
-**Best against:**
-
-- Head hooks
-- Overhands
-- Straight head shots
-- Short flurries
-
-**More vulnerable to:**
-
-- Body hooks and shovel hooks
-- Uppercuts through an opened center seam
-- Sustained work to arms and guard integrity
-- Reduced visibility and slower immediate counters
-
-**Tradeoffs:** Strong absorption and durability expression; limits offense, visibility, and rapid counter selection.
-
----
-
-## 4.5 Long guard
-
-**Structure:** Lead arm extends to measure, frame, blind, occupy, or intercept while the rear hand protects.
-
-**Best against:**
-
-- Jabs
-- Straight-line entries
-- Rushes from outside range
-- Hooks launched from too far away
-
-**More vulnerable to:**
-
-- Overhands over the lead frame
-- Body attacks beneath the extended arm
-- Inside hooks after the frame is cleared
-- Timing attacks against the returning lead hand
-
-**Tradeoffs:** Excellent range management; deteriorates sharply if the opponent establishes inside position.
-
----
-
-## 4.6 Low lead-hand / bait guard
-
-**Structure:** Lead hand carried low for vision, rhythm, baiting, parrying, and counter launching.
-
-**Best against:**
-
-- Predictable jabs
-- Lunging single shots
-- Slow entries
-- Overcommitted straights that can be pulled or slipped
-
-**More vulnerable to:**
-
-- Fast jabs
-- Lead hooks
-- Overhands
-- Rapid layered combinations
-
-**Tradeoffs:** High counter potential and visual freedom; substantial exposure; should require timing, awareness, reflex, and composure rather than grant passive evasion.
-
----
-
-## 4.7 Tight-elbow / body guard
-
-**Structure:** Elbows connected to ribs and centerline; forearms positioned to intercept body attacks and rising punches.
-
-**Best against:**
-
-- Body hooks
-- Body jab and straight
-- Uppercuts intercepted on their rising path
-- Inside body combinations
-
-**More vulnerable to:**
-
-- High hooks
-- Overhands
-- Head jabs and straights when the hands settle too low
-- Angles that turn the compact structure
-
-**Tradeoffs:** Strong body and centerline protection; may sacrifice head coverage, mobility, and offensive freedom.
-
----
-
-## 4.8 Ear-muff / double-forearm cover
-
-**Structure:** Gloves and forearms press tightly around the sides and front of the head, commonly used to survive a burst.
-
-**Best against:**
-
-- Head hooks
-- Overhands
-- Wild head combinations
-- Emergency flurry survival
-
-**More vulnerable to:**
-
-- Body jab and straight
-- Body hooks
-- Uppercuts under an elevated cover
-- Ring-position loss and passive guard pressure
-
-**Tradeoffs:** Strong emergency head protection; low visibility and counter readiness; should not become an indefinite safe state.
-
----
-
-## 4.9 Forearm frame
-
-**Structure:** One or both forearms actively frame the opponent's shoulder, head line, or entry path rather than forming a static shell.
-
-**Best against:**
-
-- Inside hooks
-- Forward entries
-- Clinch attempts
-- Short flurries that require shoulder rotation
-
-**More vulnerable to:**
-
-- Body hooks beneath the frame
-- Overhands around it
-- Uppercuts underneath
-- Step-around attacks
-
-**Tradeoffs:** Strong space-management tool; not a universal block; position and referee tolerance matter.
-
----
-
-## 4.10 Active-hands / open guard
-
-**Structure:** Mobile hands parry, catch, touch, occupy, and disrupt rather than remaining fixed.
-
-**Best against:**
-
-- Jabs
-- Straights
-- Predictable single shots
-- Measured entries
-
-**More vulnerable to:**
-
-- Feints that draw false reactions
-- Hooks around centerline parries
-- Layered combinations
-- Body attacks during high hand activity
-
-**Tradeoffs:** Flexible and counter-ready; cognition-heavy; can fail dramatically against feints and volume.
-
----
-
-# 5. Punch-to-guard matchup matrix
-
-`Strong` means the guard naturally occupies or controls the punch's common path. `Conditional` means timing, compactness, angle, and stance determine the result. `Weak` means the punch naturally attacks an exposed lane, not that it automatically lands.
-
-| Incoming punch | Strong guard answers | Conditional answers | Guards commonly challenged |
-|---|---|---|---|
-| Head jab | High guard, long guard, active hands | Peek-a-boo; shoulder roll *only as skill-gated mitigation — see note* | Low lead-hand guard, loose open guard, shoulder roll |
-| Rear straight / cross | High guard, shoulder roll, cross-arm | Active hands, peek-a-boo | Low/open guard, displaced long guard |
-| Lead head hook | High-side guard, ear-muff, peek-a-boo | Cross-arm, roll-under | Shoulder roll, long guard after entry |
-| Rear head hook | High-side guard, ear-muff, cross-arm | Peek-a-boo, angle exit | Long guard at collapsed range, low guard |
-| Lead uppercut | Tight-elbow guard, dropped forearm, compact peek-a-boo | Cross-arm with closed center | Loose high guard, elevated ear-muff |
-| Rear uppercut | Tight-elbow guard, compact center forearms, step-back | Peek-a-boo, cross-arm | Loose high shell, static high cover |
-| Body jab / straight | Tight-elbow guard, downward parry | High guard with timely elbow drop | Ear-muff, high shell with floating elbows |
-| Lead body hook | Tight-elbow guard, compact peek-a-boo | Cross-arm when lowered correctly | Long guard, elevated high guard |
-| Rear body hook | Tight-elbow guard, compact body shell | Cross-arm, pivot exit | Long guard, low lead-hand stance with open rear ribs |
-| Overhand | High-side guard, ear-muff, cross-arm | Roll-under, angle exit | Long guard, low lead hand, misaligned shoulder roll |
-| Shovel hook | Tight-elbow guard, forearm wedge | Step-back, pivot | Loose high guard, long guard, elevated ear-muff |
-| Multi-angle flurry | Peek-a-boo, cross-arm, temporary ear-muff | High guard with active exits | Low guard, active hands overwhelmed by volume |
-
-<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 07:20 UTC | START intake note: shell/jab row aligned to canon ] -->
-
-> **Note on the shoulder roll versus the jab.** The head-jab row originally
-> listed the shoulder roll as a conditional answer. Canon puts it in the
-> challenged column in every table of `boxing_guard_matchups.md`, and has since
-> the doc lineage began: the shell carries its lead hand low, so the jab arrives
-> before the hand can. The defensible kernel — elite shell fighters mitigate
-> with a rear-hand parry and a shoulder check — is real, but it is *skill-gated
-> mitigation*, not structural coverage, which is the same shape canon already
-> uses for the shell's lead uppercut. Baseline stays weak; ringcraft narrows the
-> gap. The row now says both.
-
-<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 07:20 UTC | END intake note ] -->
-
----
-
-# 6. Guard-to-punch tactical summary
-
-| Defender's guard | Punches usually less efficient against it | Punches and setups commonly more effective against it |
-|---|---|---|
-| Conventional high guard | Naked head jab, straight into settled gloves, predictable head hook | Body jab, body straight, body hook, shovel hook, uppercut through loose center, angle changes |
-| Peek-a-boo | Predictable single jabs/crosses, unprepared head hooks | Check hook, long body jab, entry uppercut, lateral exits, feint-and-angle sequences |
-| Shoulder roll | Naked rear cross, predictable jab-cross, single centerline power | Lead hook, body work, overhand, open-stance rear straight, multi-angle combinations |
-| Cross-arm | Single head hook, slow overhand, simple straight | Body hooks, shovel hooks, uppercut through seam, sustained arm/guard work |
-| Long guard | Long straight launched on same line, outside hooks | Overhand, body entry, slip-inside hook, step-around attack |
-| Low lead hand | Slow lunging single shots it can bait | Fast jab, double jab, lead hook, overhand, layered combination |
-| Tight-elbow guard | Repeated body hooks, obvious body uppercuts | High jab, high hook, overhand, angle changes |
-| Ear-muff | Wild head hooks and overhands into cover | Body jab, body hook, uppercut under cover, ring-pressure sequences |
-| Forearm frame | Smothered short hooks thrown into the frame | Body hook, step-around hook, overhand around frame, uppercut underneath |
-| Active hands | Predictable single jab or cross | Feint-to-hook, layered combinations, body attacks, rhythm changes |
-
----
-
-# 7. CPU decision examples
-
-```yaml
-observation:
-  opponent_guard: conventional_high
-  recent_head_jabs_blocked: 4
-  opponent_elbows: elevated
-  range: mid
-candidate_adjustments:
-  - increase: body_jab
-  - increase: lead_body_hook
-  - increase: feint_to_uppercut
-  - decrease: naked_head_jab
-reason: high shell protects head center but exposes body and rising centerline when loose
-```
-
-```yaml
-observation:
-  opponent_guard: long_guard
-  outside_entries_stopped: 3
-  opponent_lead_arm_extended: true
-candidate_adjustments:
-  - increase: overhand_over_frame
-  - increase: slip_inside_body_hook
-  - increase: step_around_lead_side
-  - decrease: long_straight_same_line
-reason: extended frame controls linear entry but exposes over, under, and inside routes
-```
-
-```yaml
-observation:
-  opponent_guard: tight_elbow
-  body_hooks_blocked: 5
-  head_side_coverage: reduced
-candidate_adjustments:
-  - increase: lead_head_hook
-  - increase: overhand
-  - increase: high_jab_to_angle
-  - decrease: repeated_body_hook
-reason: compact body protection concedes some high-line access
-```
-
-CPU logic must use observable guard posture, recent outcomes, range, stance, and pattern evidence. It must not receive hidden knowledge that a human player could not infer.
-
----
-
-# 8. Training Mode applications
-
-Recommended modules:
-
-1. **Target versus intercept plane** — stop an uppercut low even though it targets the jaw.
-2. **Opening a high shell** — use level changes and body work rather than repeating head shots.
-3. **Beating the long guard** — attack over, under, or around the frame.
-4. **Shoulder-roll orientation** — understand why stance relationship and angle matter.
-5. **Guard transitions** — move between high, tight-elbow, active-hands, and emergency cover without changing the unified combat rules.
-6. **Punch selection by range** — prevent long-range uppercuts and outside hooks from behaving like magnetic attacks.
-7. **Combination layering** — use one punch to move the guard and the next to attack the exposed lane.
-8. **Defense is not immunity** — demonstrate arm condition, guard fatigue, position loss, and counter opportunities.
-
----
-
-# 9. Validation requirements
-
-The validator should reject or flag:
-
-- a head uppercut whose only intercept plane is `high_center`;
-- a body hook with no side-body trajectory or legal target;
-- an overhand classified as a purely linear strike;
-- a legal strike targeting back of head, neck, spine, kidney, groin, or below belt;
-- a guard that provides strong coverage against every punch family;
-- a punch with no startup, active contact, recovery, range, stamina, guard interaction, or counter exposure;
-- a guard matchup expressed as guaranteed success rather than contextual effectiveness;
-- a fixed left/right liver target that ignores stance and orientation;
-- blocked glove/forearm contact scored as clean contact to the protected target;
-- punch effectiveness determined by target region alone without trajectory and intercept-plane logic.
-
-Recommended invariant:
-
-> **No punch is universally effective, no guard is universally complete, and every authored advantage creates an observable lane, cost, or counter opportunity.**
-
----
-
-# 10. Sources and scope notes
-
-This document distinguishes the historical Queensberry framework from modern detailed competition rules. The original Queensberry code established gloved stand-up boxing, timed rounds, knockdown counts, and prohibitions on wrestling. Modern commission and amateur rulebooks define detailed fouls and legal conduct.
-
-Primary and official references consulted:
-
-- USA Boxing, **2026 USA Boxing Rule Book** and official rulebook page: https://www.usaboxing.org/usa-boxing-rulebook
-- Ohio Administrative Code, **Rule 3773-2-02**, adopting Association of Boxing Commissions uniform championship rules and listing modern boxing fouls: https://codes.ohio.gov/ohio-administrative-code/rule-3773-2-02
-
-Historical reference:
-
-- Public-domain text of the **Marquess of Queensberry Rules**: https://en.wikisource.org/wiki/Marquess_of_Queensberry_rules
-
-The punch-versus-guard effectiveness tables are Project Uppercut design guidance grounded in common boxing mechanics. They must be validated through boxing-expert review, animation/collision testing, CPU simulation, player testing, and telemetry before numerical tuning is treated as final.
+## Target-region effectiveness (summary)
+
+| Region (condition-model id where one exists) | Best tools | Why | Poor tools |
+| --- | --- | --- | --- |
+| `jaw_chin` | cross, hooks, overhand, rear uppercut | rotational and upward shock — top single-shot KO potential | jab (snap, not stoppage) |
+| `head` — temple / behind the ear | hooks, overhand | arrive outside the eyeline; equilibrium disruption | frontal straight punches |
+| `head` — nose | jab, cross | waters the eyes; disorientation | wide arcs |
+| `eye_left` / `eye_right` | jab accumulation, clean hooks | cuts and swelling come from repetition, not raw power | single power shots |
+| `head` — forehead / crown | none | thickest bone; the puncher's hand is the likelier casualty | everything — a landing to avoid |
+| `torso_upper` — solar plexus | body straight, body uppercut, body jab | breath disruption between the elbows | overhand |
+| `torso_lower` — liver, right side (see resolution note) | lead body hook | autonomic shutdown; delayed drops | anything center-mass |
+| torso — floating ribs | body hooks | mobility and breathing tax | straight center shots |
+| `arm_left` / `arm_right` + `guard_integrity` | any blocked volume | passive blocking pays a real, accumulating price | n/a — secondary target by nature |
+
+## Canonical region mapping (Decision 0011)
+
+The anatomical vocabulary above is finer-grained than `data/condition_regions.json`,
+which declares eight strikeable regions, and the collision validator rejects any
+move targeting a region with no hurtbox. Decision 0011 rules that this vocabulary
+stays **design prose** and maps down; it does not become new regions or hurtboxes.
+
+| Prose term | Canonical region |
+| --- | --- |
+| temple, cheek, nose, forehead, behind the ear, crown | `head` |
+| point of the chin, jaw hinge | `jaw_chin` |
+| eyes | `eye_left` / `eye_right` |
+| sternum, solar plexus | `torso_upper` |
+| liver, floating ribs, ribs | `torso_lower` |
+| guard arm, blocked volume | `arm_left` / `arm_right` (+ `guard_integrity`) |
+| collarbone | none — a mistarget outcome, not a region |
+
+These prose names must not enter move data. `target_regions` in
+`data/moves/generic_sandbox_moves.json` takes canonical ids only.
+
+## Legal targets and fouls
+
+**Legal:** front and sides of the head; the torso above the belt line.
+**Fouls regardless of contact quality:** back of the head or neck (rabbit
+punch), kidneys, spine, anything below the belt.
+
+System hooks, both already real:
+
+1. The Rule 22 collision validator rejects any offensive move targeting a
+   region with no hurtbox — foul regions stay un-authored in the generic set by
+   design, so a foul cannot exist as an accidental data entry.
+2. If deliberate fouls ever become mechanics (comedy or heel identity), they
+   route through observable referee evidence and the seven officiating
+   profiles — never hidden RNG, never scorecard knowledge (Rule 3).
+
+## Matchups: pointers, not copies
+
+Both matchup tables — best punches against each guard, best guards against each
+punch — live **only** in `docs/design/boxing_guard_matchups.md`. Any punch-side
+text touching them must respect that file's standing reconciliation-log
+rulings:
+
+1. **Cross-arm vs uppercut is conditional** on bar height: a low, aligned
+   forearm bar intercepts the chin-line uppercut; high-riding or split arms are
+   opened by it. Absolute claims in either direction are wrong.
+2. **Long guard vs overhand:** the overhand over the extended arm is that
+   guard's signature weakness, not something it smothers.
+3. **Shell vs overhand is conditional** on roll timing and shoulder alignment:
+   a timed roll deflects it; a static or misaligned shell is arced over.
+4. **Shell vs jab:** canon lists the shell among the *weaker* jab responses
+   (lead hand down). The rear-hand parry and shoulder catch are real but
+   skill-priced nuances, not a structural strength.
+
+## CPU and Training Mode hooks (condensed)
+
+CPU reasoning stays observable-evidence-only; the canonical worked examples
+live in the guard doc. Training Mode inherits this file's per-target logic
+directly — "why the jab," "find the liver," "when the uppercut" are lessons
+that already exist as data above, which is Rule 2 working as intended: boxing
+knowledge that is functional, not decorative.
+
+## Everything here is conditional
+
+No matchup in this file is automatic. Range, timing, stance, posture, setup,
+movement, fatigue, contact quality, and Ringcraft modulate every claim, and
+every number remains a tuning hypothesis until a validated specification or
+test promotes it (Rule 18).
+
+## Provenance and conflict handling
+
+Condensed 2026-08-03 from the 813-line PR #3 merge (reported commit `524df30`)
+and its two source passes, checked against the guard doc as amended through
+Decision 0010 and the 06:31 UTC canon-integration update.
+
+**Removed:** the duplicated ten-guard catalog and both duplicated matchup
+tables (now pointers), plus restated collision-truth material owned elsewhere.
+**Preserved:** per-target effectiveness detail, the foul boundary, punch
+variants, validator hooks, and the overhand authoring gap.
+**Corrected rather than averaged**, per the standing reconciliation log: one
+source pass claimed the cross-arm guard makes uppercuts "impossible" (ruled
+conditional on bar state) and that the long guard smothers overhands (ruled the
+opposite — its signature weakness). The same pass's shell-parries-jabs claim is
+recorded above as a skill nuance, not a table change. If the merged 813-line
+version carried any of those three claims as written, this rewrite supersedes
+them; they were already ruled on before PR #3 landed.
+
+<!-- Claude Fable 5 (claude-fable-5) - 2026-08-03 07:19 UTC - boxing-punches-guards-and-target-matchups condensed rewrite end -->

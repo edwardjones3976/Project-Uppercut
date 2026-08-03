@@ -202,7 +202,7 @@ evidence and accepted decisions, so the plan reads against current truth instead
 - **Phase 0 is complete.** The quality gate passed on repository evidence on 2026-08-02
   (`docs/phase0/phase0_status.md`, Decision 0007). §1's "Phase 0 in progress" described the pre-gate
   state at the moment v0.3 was written.
-- **A test suite and toolchain now exist.** Schemas, contracts, validators, and fixtures — 262 tests
+- **A test suite and toolchain now exist.** Schemas, contracts, validators, and fixtures — 284 tests
   green in GitHub Actions on every push (T0.4 live). §1's "no test suite exists yet" is superseded.
 - **An Unreal project now exists.** `sandbox/UppercutSandbox.uproject` on Unreal Engine 5.8.1
   (CL 56057345), pinned in `docs/phase0/technical_baseline.md` (T0.3 done). Still true, still
@@ -214,17 +214,24 @@ evidence and accepted decisions, so the plan reads against current truth instead
   hold byte-identical same-seed evidence with different-seed divergence
   (`docs/phase1a/determinism_probe_results.md`). The Rule 22 C++ trigger did **not** fire; it stays
   armed for scale, not correctness.
-- **Phase 1A steps 1–6 are defined** (combat states, movement/facing, camera, animation states,
-  collision truth, basic punches) with validators, tests, and semantics docs —
-  `docs/phase1a/phase1a_status.md`. Step 7 (guard and evasion) is next in the fixed order.
+- **Phase 1A steps 1–7 are defined** (combat states, movement/facing, camera, animation states,
+  collision truth, basic punches, guard and evasion) with validators, tests, and semantics docs —
+  `docs/phase1a/phase1a_status.md`. Step 8 is next in the fixed order, but definitions now lead
+  in-engine slices seven to one, and the 1A gate is an engine gate. That imbalance is the quarter's
+  real schedule risk, ahead of anything in §7.
 - **§9's four pending decisions have been ruled.** Decision 0006 adopted the §3 objectives, the §5
   schedule, and contribution tagging (items 1 and 3 — tagging is now project law, codified in
   `CONTRIBUTION_TAGGING.md`); Decision 0008 set team governance (item 2); Decision 0007's D-9 ruled
-  referee schema depth for Phase 0 (item 4 / T1.4). Decisions now run 0001–0010.
+  referee schema depth for Phase 0 (item 4 / T1.4). Decisions now run 0001–0011.
 - **The pinned "10 guards vs. 2 guard volumes" drift is closed on mechanism**, not on wording:
   Decision 0010 makes a guard posture modulate the coverage extents of the two declared collision
   volumes, so the collision pipeline stays the sole authority and ten named guards need neither ten
-  volumes nor ten branches. The authored posture set remains ROADMAP step 7 work.
+  volumes nor ten branches. Step 7 authored all ten postures against that mechanism, so the drift is
+  now closed in data as well as in principle.
+- **Decision 0011 rules the target-region taxonomy.** The finer anatomical vocabulary in the punch
+  design reference stays design prose and maps down to the eight canonical strikeable regions; no new
+  hurtboxes. The liver shot becomes a stance-relative contact-quality outcome on `torso_lower` rather
+  than a region of its own — the same reasoning that kept ten guards inside two volumes.
 
 Live status is tracked in `docs/phase0/phase0_status.md` and `docs/phase1a/phase1a_status.md`. This
 plan remains what it declares itself to be: a calendar forecast subordinate to gates and canon.

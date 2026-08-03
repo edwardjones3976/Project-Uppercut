@@ -1,0 +1,120 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 07:36 UTC",
+    "end": "2026-08-03 07:36 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/guard_evasion_model.schema.json",
+  "title": "Guard and Evasion Model",
+  "description": "ROADMAP Phase 1A step 7. The ten named guards as authored postures modulating the two collision guard volumes (Decision 0010), plus evasion as an active choice ranked above covering. Engine-neutral; definitions only (Rule 18).",
+  "type": "object",
+  "required": ["schema_version", "tuning_status", "authority", "postures", "evasions", "evasion_economy", "guard_integrity", "prohibitions", "invariants"],
+  "additionalProperties": false,
+  "properties": {
+    "contribution": { "type": "object" },
+    "$comment": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "tuning_status": { "enum": ["hypothesis", "validated"] },
+    "authority": {
+      "type": "object",
+      "required": ["resolves_contact", "supplies_coverage_extents", "posture_identity_read_by_pipeline"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "resolves_contact": { "const": false, "description": "Rule 13: the collision pipeline is the sole authority on whether an attempt was blocked." },
+        "supplies_coverage_extents": { "const": true },
+        "posture_identity_read_by_pipeline": { "const": false, "description": "Decision 0010: a posture is geometry, never a branch." },
+        "matchup_reference": { "type": "string" }
+      }
+    },
+    "postures": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["id", "display", "extents", "stamina_per_tick", "mobility_multiplier", "visibility", "counter_readiness", "offense_cheap", "offense_expensive", "alignment_states"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "display": { "type": "string", "minLength": 1 },
+          "extents": {
+            "type": "object",
+            "minProperties": 2,
+            "additionalProperties": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+            "description": "Decision 0010: coverage extent per collision guard volume. Bounded by that volume's own modulation range."
+          },
+          "stamina_per_tick": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+          "mobility_multiplier": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+          "visibility": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+          "counter_readiness": { "type": "number", "minimum": 0, "maximum": 1 },
+          "offense_cheap": { "type": "array", "items": { "type": "string" } },
+          "offense_expensive": { "type": "array", "items": { "type": "string" } },
+          "alignment_states": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z0-9_]+$" } },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "evasions": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "move_id", "vacates", "active_ticks", "beaten_by"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "kind": { "enum": ["active_window", "positional"] },
+          "move_id": { "type": "string" },
+          "vacates": { "type": "array", "items": { "type": "string" } },
+          "active_ticks": { "type": "integer", "minimum": 0 },
+          "beaten_by": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "Rule 4: every defensive answer has an answer." },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "evasion_economy": {
+      "type": "object",
+      "required": ["outranks_guard", "mistime_penalty_ticks"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "outranks_guard": { "const": true, "description": "Rule 13: the active defensive choice earns more than the passive one." },
+        "reward_source": { "type": "string" },
+        "mistime_penalty_ticks": { "type": "integer", "exclusiveMinimum": 0, "description": "A free evasion would make covering pointless." },
+        "notes": { "type": "string" }
+      }
+    },
+    "guard_integrity": {
+      "type": "object",
+      "required": ["degrades_from", "degrades_from_repetition_alone", "restores_on", "opened_state"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "degrades_from": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "degrades_from_repetition_alone": { "const": false, "description": "Rule 4 / Rule 14: predictable single-action spam does not earn a guard break." },
+        "restores_on": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "opened_state": { "type": "string", "minLength": 1 },
+        "notes": { "type": "string" }
+      }
+    },
+    "prohibitions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "rule", "statement"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "rule": { "type": "string" },
+          "statement": { "type": "string", "minLength": 1 },
+          "enforced_by": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,190 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 07:36 UTC",
+    "end": "2026-08-03 07:36 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$comment": "ROADMAP Phase 1A step 7 - guard and evasion. This is where Decision 0010 stops being architecture: the ten named guards of docs/design/boxing_guard_matchups.md land as authored postures that modulate the coverage extents of the two collision volumes, and evasion lands as an active choice that outranks covering. Engine-neutral definitions only; no implementation is claimed (Rule 18). Every number is a tuning hypothesis. Semantics: docs/phase1a/guard_and_evasion.md.",
+  "schema_version": "0.1.0-draft",
+  "tuning_status": "hypothesis",
+  "authority": {
+    "$comment": "Rule 13. Nothing here decides whether an attack was blocked - the collision pipeline does. This file decides what shape a fighter is in when it asks.",
+    "resolves_contact": false,
+    "supplies_coverage_extents": true,
+    "posture_identity_read_by_pipeline": false,
+    "matchup_reference": "docs/design/boxing_guard_matchups.md"
+  },
+  "postures": [
+    {
+      "id": "high_guard",
+      "display": "High guard / basic shell",
+      "extents": { "guard_high": 0.95, "guard_body": 0.55 },
+      "stamina_per_tick": 0.05,
+      "mobility_multiplier": 0.9,
+      "visibility": 0.7,
+      "counter_readiness": 0.4,
+      "offense_cheap": ["jab", "cross"],
+      "offense_expensive": ["uppercut", "body_shot"],
+      "alignment_states": ["settled", "loose"],
+      "notes": "The staple. Covers the head cluster well and sells the body - the trade that makes body investment pay (Rule 4 counterplay against passive blocking)."
+    },
+    {
+      "id": "peek_a_boo",
+      "display": "Peek-a-boo",
+      "extents": { "guard_high": 0.9, "guard_body": 0.75 },
+      "stamina_per_tick": 0.12,
+      "mobility_multiplier": 1.0,
+      "visibility": 0.75,
+      "counter_readiness": 0.8,
+      "offense_cheap": ["hook", "uppercut"],
+      "offense_expensive": ["jab", "cross"],
+      "alignment_states": ["moving", "static"],
+      "notes": "The best all-round close coverage in the set, priced in stamina - it collapses when conditioning fades, which is the intended failure mode rather than a nerf."
+    },
+    {
+      "id": "philly_shell",
+      "display": "Philly shell / shoulder roll",
+      "extents": { "guard_high": 0.7, "guard_body": 0.6 },
+      "stamina_per_tick": 0.04,
+      "mobility_multiplier": 1.0,
+      "visibility": 0.9,
+      "counter_readiness": 0.95,
+      "offense_cheap": ["cross", "hook"],
+      "offense_expensive": ["uppercut"],
+      "alignment_states": ["roll_timed_aligned", "roll_late_or_misaligned"],
+      "notes": "Highest counter readiness, lowest structural coverage. The lead hand is down: the jab is a baseline weakness that ringcraft narrows but never closes (guard doc reconciliation item 4)."
+    },
+    {
+      "id": "cross_arm",
+      "display": "Cross-arm guard",
+      "extents": { "guard_high": 0.95, "guard_body": 0.7 },
+      "stamina_per_tick": 0.07,
+      "mobility_multiplier": 0.8,
+      "visibility": 0.45,
+      "counter_readiness": 0.25,
+      "offense_cheap": ["hook", "overhand"],
+      "offense_expensive": ["jab", "cross"],
+      "alignment_states": ["bar_low_aligned", "bar_high_or_split"],
+      "notes": "High absorption, low counter speed, poor vision. Its uppercut coverage is conditional on bar alignment - reconciliation item 1, mechanized by Decision 0010."
+    },
+    {
+      "id": "long_guard",
+      "display": "Long guard",
+      "extents": { "guard_high": 0.8, "guard_body": 0.45 },
+      "stamina_per_tick": 0.06,
+      "mobility_multiplier": 0.95,
+      "visibility": 0.85,
+      "counter_readiness": 0.6,
+      "offense_cheap": ["jab", "cross"],
+      "offense_expensive": ["hook", "uppercut"],
+      "alignment_states": ["framed", "collapsed"],
+      "notes": "Distance control. The overhand looping over the extended arm is its signature vulnerability - not something it smothers (guard doc, ruled)."
+    },
+    {
+      "id": "low_lead",
+      "display": "Low lead hand / bait guard",
+      "extents": { "guard_high": 0.45, "guard_body": 0.5 },
+      "stamina_per_tick": 0.03,
+      "mobility_multiplier": 1.0,
+      "visibility": 1.0,
+      "counter_readiness": 0.9,
+      "offense_cheap": ["jab", "hook"],
+      "offense_expensive": [],
+      "alignment_states": ["reading", "beaten"],
+      "notes": "Nothing here is structurally protected; the value is vision and baiting. The structure that ages worst as reflex attributes decay."
+    },
+    {
+      "id": "tight_elbow",
+      "display": "Tight elbow / body guard",
+      "extents": { "guard_high": 0.55, "guard_body": 0.95 },
+      "stamina_per_tick": 0.05,
+      "mobility_multiplier": 0.85,
+      "visibility": 0.7,
+      "counter_readiness": 0.5,
+      "offense_cheap": ["uppercut", "body_shot"],
+      "offense_expensive": ["jab", "cross"],
+      "alignment_states": ["sealed", "opened"],
+      "notes": "The mirror of the high guard, and the correct intercept structure for chin-target uppercuts because it bars the rising path."
+    },
+    {
+      "id": "ear_muff",
+      "display": "Double forearm / ear-muff cover",
+      "extents": { "guard_high": 1.0, "guard_body": 0.4 },
+      "stamina_per_tick": 0.09,
+      "mobility_multiplier": 0.6,
+      "visibility": 0.3,
+      "counter_readiness": 0.1,
+      "offense_cheap": [],
+      "offense_expensive": ["jab", "cross", "hook", "uppercut", "overhand", "body_shot"],
+      "alignment_states": ["clamped"],
+      "notes": "A survival posture, not a platform. Maximum head coverage bought with the body, the ring, vision and all offense - it must never be an indefinitely safe state (Rule 4)."
+    },
+    {
+      "id": "forearm_frame",
+      "display": "High elbow / forearm frame",
+      "extents": { "guard_high": 0.7, "guard_body": 0.5 },
+      "stamina_per_tick": 0.08,
+      "mobility_multiplier": 0.9,
+      "visibility": 0.8,
+      "counter_readiness": 0.7,
+      "offense_cheap": ["hook", "uppercut"],
+      "offense_expensive": ["cross", "overhand"],
+      "alignment_states": ["frame_engaged", "frame_bypassed"],
+      "notes": "An inside control tool rather than a pure block: it disrupts entry paths and buys exit angles."
+    },
+    {
+      "id": "active_hands",
+      "display": "Open guard / active hands",
+      "extents": { "guard_high": 0.6, "guard_body": 0.5 },
+      "stamina_per_tick": 0.07,
+      "mobility_multiplier": 1.0,
+      "visibility": 0.95,
+      "counter_readiness": 0.85,
+      "offense_cheap": ["jab", "cross"],
+      "offense_expensive": ["overhand"],
+      "alignment_states": ["reading", "overloaded"],
+      "notes": "Strong against predictable singles, beaten by feints and layered volume - too many threats to parry at once."
+    }
+  ],
+  "evasions": [
+    { "id": "slip_lead", "kind": "active_window", "move_id": "slip_lead", "vacates": ["head", "jaw_chin"], "active_ticks": 5, "beaten_by": ["feint_then_commit", "body_shot"], "notes": "Vacates the head lane without ceding range - the cheapest way to make a straight punch pay whiff cost." },
+    { "id": "roll_under", "kind": "active_window", "move_id": "roll_under", "vacates": ["head", "jaw_chin"], "active_ticks": 6, "beaten_by": ["uppercut", "body_shot"], "notes": "Lowers level under an arc; the uppercut is the punishment because it rises into where the head is going." },
+    { "id": "step_out", "kind": "positional", "move_id": "step_out", "vacates": [], "active_ticks": 0, "beaten_by": ["ring_cutting", "step_in"], "notes": "Range denial rather than evasion: it removes the fighter from reach instead of vacating a lane, and scores nothing. Repeated without offense it reads as empty avoidance (Rule 21 Long Drain)." },
+    { "id": "pivot_lead", "kind": "positional", "move_id": "pivot_lead", "vacates": [], "active_ticks": 0, "beaten_by": ["ring_cutting"], "notes": "Changes the angle rather than the distance; the primary corner escape and the reason ring cutting is a skill." }
+  ],
+  "evasion_economy": {
+    "$comment": "Rule 13 tier order made operational. The collision pipeline already ranks active_evasion above guard_intercept; this is why that ordering is correct rather than arbitrary.",
+    "outranks_guard": true,
+    "reward_source": "data/punch_model.json outcome_recovery",
+    "mistime_penalty_ticks": 6,
+    "notes": "A committed evasion that misses its window leaves the defender in recovery with no structure up - the price of choosing the active answer. Slipping is better than blocking when it works and worse when it does not, which is what makes it a decision."
+  },
+  "guard_integrity": {
+    "$comment": "Rule 14. Blocking reduces clean damage without erasing consequence, and the erosion must come from intelligent varied pressure rather than from repetition alone (Rule 4).",
+    "degrades_from": ["absorbed_force", "arm_condition", "sustained_body_pressure"],
+    "degrades_from_repetition_alone": false,
+    "restores_on": ["disengage", "between_rounds_corner"],
+    "opened_state": "posture drops to its weaker alignment state until restored",
+    "notes": "A broken guard is not a stun: it moves the posture to its weak alignment state, which the collision model reads as reduced coverage extents. Nothing is disabled and no input is eaten."
+  },
+  "prohibitions": [
+    "Resolve contact in this file; the collision pipeline is the sole authority (Rule 13).",
+    "Branch any behaviour on a posture's identity rather than on the coverage extents it produces (Decision 0010).",
+    "Grant a posture that covers every lane, or one that covers none - every guard is a trade.",
+    "Open a guard through predictable single-action spam rather than intelligent varied pressure (Rule 14).",
+    "Let a survival posture remain indefinitely safe or freely offensive (Rule 4).",
+    "Rank passive covering above active evasion in reward (Rule 13)."
+  ],
+  "invariants": [
+    { "id": "every_guard_is_a_trade", "rule": "Rule 4", "statement": "No posture covers both volumes at full extent, and none covers neither; every posture sells one lane to buy another.", "enforced_by": "tools/uppercut_validate/guard.py::check_postures" },
+    { "id": "extents_within_volume_bounds", "rule": "Decision 0010", "statement": "Every posture extent names a declared guard volume and sits inside that volume's modulation range in the collision model.", "enforced_by": "tools/uppercut_validate/guard.py::check_extent_agreement" },
+    { "id": "posture_alignment_states_declared", "rule": "Decision 0010", "statement": "Every posture declares at least one alignment state, and the two postures whose conditional coverage canon reconciles - cross-arm and Philly shell - declare exactly the state ids the collision model's worked examples use.", "enforced_by": "tools/uppercut_validate/guard.py::check_alignment_states" },
+    { "id": "survival_posture_is_priced", "rule": "Rule 4", "statement": "A posture with no cheap offense must pay for it in mobility, vision or stamina; maximum coverage is never free.", "enforced_by": "tools/uppercut_validate/guard.py::check_postures" },
+    { "id": "evasion_outranks_guard", "rule": "Rule 13", "statement": "Active evasion is rewarded above passive covering and carries a real mistime penalty, matching the collision pipeline's stage order and the punch model's recovery differential.", "enforced_by": "tools/uppercut_validate/guard.py::check_evasion_economy" },
+    { "id": "evasion_moves_exist", "rule": "Rule 22", "statement": "Every evasion maps to a move-table entry; active-window evasions carry active_ticks equal to the move table exactly and vacate at least one hurtbox-backed region, while positional answers vacate nothing because they remove the fighter from reach rather than clearing a lane.", "enforced_by": "tools/uppercut_validate/guard.py::check_evasion_moves" },
+    { "id": "guard_break_is_earned", "rule": "Rule 14", "statement": "Guard integrity degrades from absorbed force and varied pressure, never from repetition count alone, and an opened guard reduces coverage rather than disabling the fighter.", "enforced_by": "tools/uppercut_validate/guard.py::check_guard_integrity" },
+    { "id": "collision_stays_authoritative", "rule": "Rule 13", "statement": "This file resolves no contact and the pipeline never reads a posture identity.", "enforced_by": "tools/uppercut_validate/guard.py::check_authority" }
+  ]
+}
