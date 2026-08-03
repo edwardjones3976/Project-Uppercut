@@ -18,15 +18,17 @@ Preproduction closed 2026-08-02 with the Phase 0 quality gate passed on reposito
 binding rules and decisions 0001–0010, the validation toolchain (schemas, contracts, validators,
 fixtures, 242 tests in CI), Phase 1A definitions for ROADMAP steps 1–5 — combat states,
 movement/facing, camera behavior, animation states, and collision truth
-([phase1a_status](docs/phase1a/phase1a_status.md)) — a boxing-canon combat reference
-([guard and style matchups](docs/design/boxing_guard_matchups.md)), and a verified Unreal Engine
-5.8.1 Blueprint sandbox (`sandbox/UppercutSandbox.uproject`, headless editor check: zero errors, zero
-warnings; pinned baseline in [technical_baseline](docs/phase0/technical_baseline.md)). Deterministic
-fixed-tick resimulation (Decision 0002) is validated at three levels — engine runtime, Blueprint actor
-tick, and the canonical state machine executing in the Blueprint VM — byte-identical across same-seed
-processes and seed-sensitive ([evidence](docs/phase1a/determinism_probe_results.md)); the C++ trigger
-stays armed for scale, not correctness. **No playable boxing match or completed gameplay
-implementation is claimed yet** (Rule 18). Next in the fixed order: ROADMAP step 6 — basic punches.
+([phase1a_status](docs/phase1a/phase1a_status.md)) — boxing-canon combat references for
+[guard and style matchups](docs/design/boxing_guard_matchups.md) and
+[punches, targets, angles, and guard interception](docs/design/boxing-punches-guards-and-target-matchups.md),
+and a verified Unreal Engine 5.8.1 Blueprint sandbox (`sandbox/UppercutSandbox.uproject`, headless
+editor check: zero errors, zero warnings; pinned baseline in
+[technical_baseline](docs/phase0/technical_baseline.md)). Deterministic fixed-tick resimulation
+(Decision 0002) is validated at three levels — engine runtime, Blueprint actor tick, and the canonical
+state machine executing in the Blueprint VM — byte-identical across same-seed processes and
+seed-sensitive ([evidence](docs/phase1a/determinism_probe_results.md)); the C++ trigger stays armed
+for scale, not correctness. **No playable boxing match or completed gameplay implementation is
+claimed yet** (Rule 18). Next in the fixed order: ROADMAP step 6 — basic punches.
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 06:12 UTC | edit: status sync ] -->
 
 ## Core direction
@@ -83,6 +85,7 @@ Every phase must pass a defined quality gate before the next phase begins.
 - [Phase 0 gate status](docs/phase0/phase0_status.md) and [pinned technical baseline](docs/phase0/technical_baseline.md)
 - [Phase 1A status](docs/phase1a/phase1a_status.md), [determinism evidence](docs/phase1a/determinism_probe_results.md), and [engine setup runbook](docs/phase1a/engine_setup_runbook.md)
 - [Design reference — boxing guard and style matchups](docs/design/boxing_guard_matchups.md)
+- [Design reference — boxing punches, target zones, angles, and guard matchups](docs/design/boxing-punches-guards-and-target-matchups.md)
 - [Contribution tagging convention](CONTRIBUTION_TAGGING.md)
 
 ## Technical foundation
