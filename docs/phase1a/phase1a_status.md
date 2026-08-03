@@ -8,7 +8,7 @@ data plus validator plus tests exist in the repository; it never means engine im
 
 | # | ROADMAP step | Status | Evidence |
 |---|---|---|---|
-| 1 | Combat-state definitions | **defined** | `data/combat_states.json`, `schemas/combat_state_machine.schema.json`, `tools/uppercut_validate/combat_states.py`, `tests/test_combat_states.py` |
+| 1 | Combat-state definitions | **defined + first engine slice** | canon files as before; `sandbox/Content/StateWalk/` executes the machine in the Blueprint VM, byte-reproducibly (`determinism_probe_results.md` Phase C) |
 | 2 | Movement and facing | **defined** | `data/movement_model.json`, `schemas/movement_model.schema.json`, `tools/uppercut_validate/movement.py`, `tests/test_movement.py` |
 | 3 | Camera behavior | not started | - |
 | 4 | Animation states | not started | - |
@@ -39,6 +39,12 @@ also passed** the same day: five ticking BP actors, byte-identical 10,000-marker
 independent `-game` processes, seed-sensitive. Blueprint assets were authored **headlessly** via
 editor Python (Route A; no GUI needed). Rule 22's C++ trigger stays armed for scale and for the
 one unmeasured case (float accumulation - see the recorded probe defect), not fired for correctness.
+Phase C (2026-08-03) then closed that case: float accumulation is deterministic, the dead-accumulator
+root cause was a mistyped variable from `get_basic_type_by_name` (recorded), and the canonical
+fighter_action machine now executes in the Blueprint VM byte-reproducibly. The trigger is armed for
+scale only. Per Director instruction, the next-hardest item - collision truth (step 5) - is
+explicitly deferred, behind steps 3-4 in the binding order.
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 02:55 UTC | edit: Phase C ] -->
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 01:28 UTC | edit: Phase B result ] -->
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 22:16 UTC | edit: step 2 defined, runbook added ] -->
 

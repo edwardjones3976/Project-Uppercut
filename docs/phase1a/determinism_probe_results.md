@@ -141,3 +141,64 @@ recorded there: passing `-abslog=` a path the process cannot open suppresses **a
 the editor appears to hang silently.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 01:28 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 02:55 UTC | START ] -->
+
+## Phase C - The Canonical Machine in the Blueprint VM, and the Float Question Closed
+
+**Both remaining claims now have byte-level evidence.** The canonical `fighter_action` machine from
+`data/combat_states.json` executes inside the Blueprint VM under `-game`, and Blueprint float
+accumulation is deterministic across processes. Executed 2026-08-03 on UE 5.8.1 (CL 56057345).
+
+| Run | Seed | Markers | SHA-256 |
+|---|---|---|---|
+| walkA1 | 56057345 | 6,000 | `56B676FA6F1CA53B36E43E6D4E5E1A1E8DA0E8E564854BCEB19A4E126F486035` |
+| walkA2 | 56057345 | 6,000 | `56B676FA6F1CA53B36E43E6D4E5E1A1E8DA0E8E564854BCEB19A4E126F486035` |
+| walkB  | 777      | 6,000 | `A78C1D8E55DBFC42379078E13A44DF51FADF667ED73BD521564E52DEEA129E75` |
+
+### The test article: a first engine slice of canon
+
+`/Game/StateWalk/BP_StateWalker` (generator: `tools/engine/bp_generate_state_walker.py`) carries the
+non-provisioned fighter_action transition table - 12 states, 59 flattened transitions, wildcards
+expanded by the same semantics the validators enforce - as flat arrays on the class defaults, written
+from `data/combat_states.json` at authoring time. Per tick, entirely engine-side: draw a transition
+from the current state's outgoing set (seeded member RandomStream), accumulate
+`Acc += r + Sin(Acc)` in genuine floating point, emit
+`W|actor|tick|nextState|floor(Acc*65536)|floor(r*65536)`. Three instances in
+`/Game/StateWalk/L_StateWalk`, 2,000 ticks. The Acc column is live and path-dependent: **5,742
+distinct quantized values across 6,000 markers**, reproduced byte-for-byte across independent
+processes. This is not yet combat (no durations, guards, or availability semantics - states and
+transition topology only), but it is the first time canon executes in the engine rather than beside
+it.
+
+### The dead-accumulator root cause, found and named
+
+The Phase B defect was NOT miswired connections. Graph autopsy (`tools/engine/bp_acc_autopsy.py`)
+showed every intended link present - but bridged by engine-inserted conversion nodes, because
+**`BlueprintEditorLibrary.get_basic_type_by_name("double")` does not yield a floating-point variable
+type in 5.8**. The variable it produced was integer-category; the engine silently wrapped the double
+math in int-truncation bridges, so `Acc = trunc(Acc + r)` stayed 0 forever, in both Phase B and the
+first walker build. Three defenses now exist in the generator, each of which would have caught it
+alone: **(1)** variable types are stolen from real engine pins (`get_pin_type` on a temp node's
+ReturnValue) instead of name lookup - with this, the entire 60-node graph wires with **zero**
+conversion nodes; **(2)** the accumulation chain uses *strict* wiring where any inserted conversion
+node fails the build; **(3)** the evidence extraction asserts the Acc column is non-constant. The
+node-handle disciplines from earlier iterations (delta resolution with class filters, absorb-on-
+autocast, both-side connection verification) are all retained in the generator.
+
+### Standing for Decision 0002
+
+Blueprint-first is now evidenced on all measured axes at sandbox scale: actor tick ordering,
+engine-side RNG streams, float accumulation, and canonical state-machine execution - each
+byte-reproducible across processes and seed-sensitive. Rule 22's C++ trigger remains armed **for
+scale only**.
+
+### Item 2, deferred by Director instruction (2026-08-03)
+
+The second-most-difficult open item is **collision truth** (ROADMAP step 5): authoritative hitbox /
+hurtbox / guard-region geometry, seven-class contact resolution, "a visible miss is never a clean
+hit," under the same determinism harness. It is deliberately saved for later and additionally sits
+behind steps 3 (camera) and 4 (animation states) in the ROADMAP's binding order. Nothing about it is
+started or claimed.
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 02:55 UTC | END ] -->
