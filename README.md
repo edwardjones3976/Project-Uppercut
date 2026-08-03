@@ -15,12 +15,19 @@ Project Uppercut is the working title for an original modern arcade-boxing game 
 
 Preproduction closed 2026-08-02 with the Phase 0 quality gate passed on repository evidence
 ([phase0_status](docs/phase0/phase0_status.md)). The repository carries the canonical operating notes,
-binding rules and decisions, the validation toolchain (schemas, contracts, validators, fixtures, 142
-tests in CI), Phase 1A definitions for combat states and movement/facing, and a verified Unreal Engine
+binding rules and decisions 0001–0009, the validation toolchain (schemas, contracts, validators,
+fixtures, 228 tests in CI), Phase 1A definitions for ROADMAP steps 1–5 — combat states,
+movement/facing, camera behavior, animation states, and collision truth
+([phase1a_status](docs/phase1a/phase1a_status.md)) — a boxing-canon combat reference
+([guard and style matchups](docs/design/boxing_guard_matchups.md)), and a verified Unreal Engine
 5.8.1 Blueprint sandbox (`sandbox/UppercutSandbox.uproject`, headless editor check: zero errors, zero
-warnings). **No playable boxing match or completed gameplay implementation is claimed yet** (Rule 18).
-The next in-engine task is deterministic fixed-tick resimulation validation (Decision 0002).
-<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 23:40 UTC | edit: status sync ] -->
+warnings; pinned baseline in [technical_baseline](docs/phase0/technical_baseline.md)). Deterministic
+fixed-tick resimulation (Decision 0002) is validated at three levels — engine runtime, Blueprint actor
+tick, and the canonical state machine executing in the Blueprint VM — byte-identical across same-seed
+processes and seed-sensitive ([evidence](docs/phase1a/determinism_probe_results.md)); the C++ trigger
+stays armed for scale, not correctness. **No playable boxing match or completed gameplay
+implementation is claimed yet** (Rule 18). Next in the fixed order: ROADMAP step 6 — basic punches.
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 06:12 UTC | edit: status sync ] -->
 
 ## Core direction
 
@@ -68,7 +75,15 @@ Every phase must pass a defined quality gate before the next phase begins.
 - [Decision 0003 — Game feel, development, and matchmaking](docs/decisions/0003-game-feel-training-and-competitive-matchmaking.md)
 - [Decision 0004 — Style viability and polarity stress testing](docs/decisions/0004-style-viability-and-polar-opposite-stress-testing.md)
 - [Decision 0005 — Execution-plan authority and filtered intake](docs/decisions/0005-execution-plan-authority-and-filtered-intake.md)
+- [Decision 0006 — Contribution tagging, schedule and objectives adopted](docs/decisions/0006-contribution-tagging-and-schedule-adoption.md)
+- [Decision 0007 — Phase 0 gate rulings](docs/decisions/0007-phase0-gate-rulings.md)
+- [Decision 0008 — Team governance](docs/decisions/0008-team-governance.md)
+- [Decision 0009 — Director standing authorization](docs/decisions/0009-director-standing-authorization.md)
+- [Phase 0 gate status](docs/phase0/phase0_status.md) and [pinned technical baseline](docs/phase0/technical_baseline.md)
+- [Phase 1A status](docs/phase1a/phase1a_status.md), [determinism evidence](docs/phase1a/determinism_probe_results.md), and [engine setup runbook](docs/phase1a/engine_setup_runbook.md)
+- [Design reference — boxing guard and style matchups](docs/design/boxing_guard_matchups.md)
+- [Contribution tagging convention](CONTRIBUTION_TAGGING.md)
 
 ## Technical foundation
 
-The accepted default production baseline is Unreal Engine with Blueprints for early prototyping, Python for tools and analysis, C++ for later performance-critical or architecture-heavy systems, GitHub for version control, and Blender plus properly licensed assets for content production. Each choice remains subject to validation in the technical sandbox, and no implementation is claimed until repository evidence exists.
+The accepted default production baseline is Unreal Engine with Blueprints for early prototyping, Python for tools and analysis, C++ for later performance-critical or architecture-heavy systems, GitHub for version control, and Blender plus properly licensed assets for content production. The engine baseline is pinned — Unreal Engine 5.8.1 (CL 56057345), recorded with the rest of the toolchain in [technical_baseline](docs/phase0/technical_baseline.md) — and each remaining choice stays subject to validation in the technical sandbox, with no implementation claimed until repository evidence exists.
