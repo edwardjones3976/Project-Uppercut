@@ -106,6 +106,18 @@ and mutation-proven tests. After: every style sits inside 30-70% on both indepen
 move at 41% against the 60% gate, determinism byte-identical throughout. Full account:
 `docs/phase1a/exploit_hunt.md`, "The balance pass".
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 10:56 UTC | START/END ] -->
+
+**Those balance figures are superseded.** They were correct when measured and the paragraph
+above is left as written, but the units correction later the same day changed what they were
+measured against: work rate fell from 138 punches per fighter per round to 31, which made the
+old `pressure_threshold` of 1.50 unreachable and forced a re-sweep to 0.57. Current, all-pairs,
+eight seeds, two independent bases: technician 50/60, counterpuncher 45/60, power_threat 45/50,
+rusher 45/42, showman 45/32, drainer 32/**22**. Result states 32% stoppage / 58% decision / 9%
+draws; top landed move 37% against the 60% gate; determinism byte-identical. **The 30-70% band
+no longer holds** - the drainer is below the floor on one base, so style balance is an open
+item again rather than a closed one. Viability still passes, which is the gate Rule 21 actually
+sets. Full account: `docs/phase1a/exploit_hunt.md`, "Superseded".
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 14:44 UTC | START/END ] -->
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 09:52 UTC | edit: steps 11-12, evidence rig ] -->
 
 **The bout structure now executes in the engine (Phase F).** Phases B through E each proved

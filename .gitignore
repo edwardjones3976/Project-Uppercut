@@ -21,3 +21,15 @@ sandbox/*.sln
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 05:38 UTC | edit: keep transfer artifacts out of canon ]
 # Patch files are transfer artifacts, not repository content.
 *.patch
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 14:52 UTC | edit: stray editor artifacts ]
+# An interactive editor session on 2026-08-03 created a default "Untitled" level and its
+# World Partition sidecars - 143 files that no phase references and nothing loads. Scoped
+# to Untitled deliberately: __ExternalActors__ and __ExternalObjects__ are where a real
+# World Partition level would keep its actors, so ignoring those directories wholesale
+# would silently stop tracking a future level's content. Delete the files if you want
+# them gone; this only stops them appearing as untracked noise on every status.
+sandbox/Content/Untitled.umap
+sandbox/Content/Untitled_HLOD0_Instancing.uasset
+sandbox/Content/__ExternalActors__/Untitled/
+sandbox/Content/__ExternalObjects__/Untitled/
