@@ -61,6 +61,18 @@ class Fighter:
     last_gain_source: str = ""
     gain_repeats: int = 0
     last_gain_tick: int = 0
+    # Chaining (punch_model.chaining), declared at step 6 and inert until
+    # 2026-08-03: a link is a punch that starts inside the previous punch's late
+    # recovery. Combinations exist because recovery overlaps the next windup,
+    # which is also why 'combinations' is a crowd source nobody could earn.
+    last_hand: str = ""
+    last_move_category: str = ""
+    link_open_until: int = 0
+    combo_length: int = 0
+    # Rule 19 evidence: an input degraded by exhaustion is still an input. This
+    # counts throws made below the low-stamina threshold, so a check can prove
+    # the gate degrades rather than blocks.
+    degraded_throws: int = 0
 
     def alive(self) -> bool:
         return self.knockdowns < canon.condition()["knockdown"]["max_per_bout"]
@@ -100,6 +112,7 @@ class Bout:
         self._axis = float(self._track["axis_length_ru"])
         self._ropes = float(self._track["back_to_ropes_ru"])
         self._min_sep = float(mvd["separation"]["min_center_distance_ru"])
+        self._count_ticks = cm["knockdown"]["count_ticks_per_number"]
         mid = self._axis / 2.0
         self.pos = [mid - 0.45, mid + 0.45]
         self.distance = self.pos[1] - self.pos[0]
@@ -210,30 +223,43 @@ class Bout:
 
         i = self.fighters.index(f)
         toward = 1 if i == 0 else -1          # +x is B's side of the track
-        base = 0.09
+        # The authored stride for the boxing-steps mode, rather than a constant
+        # the engine invented beside it (movement_model.locomotion.modes).
+        base = next(m["stride_length_ru"] for m in canon.movement()["locomotion"]["modes"]
+                    if m["posture_mode"] == "boxing_steps")
         mul = {"in": self._dirmul["advance_stride_multiplier"],
                "out": self._dirmul["retreat_stride_multiplier"],
                "lateral": self._dirmul["lateral_stride_multiplier"]}[direction]
+        # A guard is a body structure, and a tight one does not move as freely
+        # (posture mobility_multiplier, declared at step 7 and inert until now).
+        mul *= self._posture(f)["mobility_multiplier"]
         cm = canon.condition()
         if f.stamina / cm["stamina"]["max"] < cm["stamina"]["exhausted_threshold_fraction"]:
             mul *= self._dirmul["exhausted_stride_multiplier"]
 
         payload = {"direction": direction}
+        on_ropes = min(self.pos[i], self._axis - self.pos[i]) <= self._ropes
         if direction == "lateral":
             # Circling costs the step and changes the angle, not the separation.
-            # On the ropes it is the one thing still fully available (Rule 4).
+            # On the ropes it is the one thing still fully available - and the
+            # multiplier that says so is read rather than assumed, because a
+            # constant of 1.0 written in the engine is not the same promise as
+            # a 1.0 the data can be inspected for.
+            if on_ropes:
+                mul *= self._track["rope_lateral_multiplier"]
             payload["lateral"] = True
         else:
             sign = toward if direction == "in" else -toward
+            # The ropes: a backward step into them buys what the track says it
+            # buys, which is nothing. Authored as rope_retreat_multiplier and
+            # previously enforced by a positional clamp that happened to agree
+            # with it - the same behaviour, but unfalsifiable, and it would not
+            # have changed if the number had.
+            if on_ropes and direction == "out":
+                mul *= self._track["rope_retreat_multiplier"]
+                payload["rope_blocked"] = True
             want = base * mul * sign
-            new = self.pos[i] + want
-            # The ropes: a backward step into them buys nothing. The input is
-            # accepted and paid for; it simply does not move you.
-            lo, hi = 0.0, self._axis
-            if new < lo or new > hi:
-                new = min(max(new, lo), hi)
-                if direction == "out":
-                    payload["rope_blocked"] = True
+            new = min(max(self.pos[i] + want, 0.0), self._axis)
             self.pos[i] = new
             # Bodies do not overlap (movement_model separation.min_center_distance_ru).
             if self.pos[1] - self.pos[0] < self._min_sep:
@@ -303,6 +329,13 @@ class Bout:
         r_evade = self.rng.random()
         r_guard = self.rng.random()
         align = self.rng.random()
+        # Exhaustion lands worse (punch_model.stamina_gate): the alignment
+        # penalty is subtracted here, before the quality bands read it, so a
+        # tired fighter's punches grade lower without any of them being refused.
+        _, align_penalty, degraded = self._fatigue_degradation(atk)
+        align = max(0.0, align - align_penalty)
+        if degraded:
+            atk.degraded_throws += 1
 
         # Rule 12 range gate, ahead of the pipeline: a punch thrown from the wrong
         # band travels its full arc into empty air. No magnetic correction, and no
@@ -363,16 +396,65 @@ class Bout:
     def _guard_integrity(self, f: Fighter) -> float:
         """Arms impair guard_integrity (condition_model.impairment): linear from
         1.0 at fresh arms to the authored floor at full arm condition."""
-        imp = canon.condition()["impairment"]
-        avg = (f.condition.get("arm_left", 0.0) + f.condition.get("arm_right", 0.0)) / 2.0
+        cm = canon.condition()
+        imp = cm["impairment"]
+        cap = {d["region"]: d["capacity"] for d in cm["damage_regions"]}
+        avg = (f.condition.get("arm_left", 0.0) / cap["arm_left"]
+               + f.condition.get("arm_right", 0.0) / cap["arm_right"]) / 2.0
         floor = imp["guard_extent_multiplier_at_full_arms"]
-        return 1.0 - (1.0 - floor) * (avg / 100.0)
+        return 1.0 - (1.0 - floor) * avg
 
     def _torso_fatigue(self, f: Fighter) -> float:
         """Torso condition as a fraction 0..1, the body-work meter both stamina
         impairments read."""
-        return (f.condition.get("torso_upper", 0.0)
-                + f.condition.get("torso_lower", 0.0)) / 200.0
+        cap = {d["region"]: d["capacity"] for d in canon.condition()["damage_regions"]}
+        return ((f.condition.get("torso_upper", 0.0) / cap["torso_upper"]
+                 + f.condition.get("torso_lower", 0.0) / cap["torso_lower"]) / 2.0)
+
+    # ---- the posture as a trade (guard_evasion_model.posture_economy) --------
+    def _posture(self, f: Fighter) -> dict:
+        return {p["id"]: p for p in canon.guard_evasion()["postures"]}[f.posture]
+
+    def _offense_price(self, f: Fighter, move: dict) -> tuple:
+        """What this punch costs from inside THIS guard, in stamina and startup.
+
+        The core combat rule states that a guard 'changes what offense is
+        available from inside it'. Every posture has named offense_cheap and
+        offense_expensive by move CATEGORY since step 7 and nothing read either,
+        so every punch cost the same from every structure. Pricing by category
+        rather than by move id is deliberate: it is where the elbows are and
+        where the weight sits that makes an uppercut expensive out of a
+        cross-arm guard, and that is geometry rather than a tax.
+        """
+        pe = canon.guard_evasion()["posture_economy"]
+        p = self._posture(f)
+        cat = move.get("category", "")
+        if cat in p.get("offense_cheap", []):
+            return pe["offense_cheap_stamina_multiplier"], 1.0
+        if cat in p.get("offense_expensive", []):
+            return (pe["offense_expensive_stamina_multiplier"],
+                    pe["offense_expensive_startup_multiplier"])
+        return 1.0, 1.0
+
+    def _fatigue_degradation(self, f: Fighter) -> tuple:
+        """punch_model.stamina_gate: below the low-stamina threshold a punch
+        arrives later and worse aligned. It always arrives.
+
+        Both coefficients were authored at step 6 and read by nothing, and the
+        POLICY was refusing to throw below the exhausted threshold - which is an
+        input being eaten, exactly what `input_ever_ignored: false` forbids. The
+        gate belongs here, as degradation, not there as a refusal.
+        """
+        cm = canon.condition()["stamina"]
+        sg = canon.punch_model()["stamina_gate"]
+        frac = f.stamina / cm["max"]
+        lo, hi = cm["exhausted_threshold_fraction"], cm["low_threshold_fraction"]
+        if frac >= hi:
+            return 1.0, 0.0, False
+        t = 1.0 if frac <= lo else (hi - frac) / (hi - lo)
+        return (1.0 + (sg["low_stamina_startup_multiplier_max"] - 1.0) * t,
+                sg["low_stamina_alignment_penalty_max"] * t,
+                True)
 
     def _apply(self, atk: Fighter, dfn: Fighter, move: dict, cls: str,
                align: float, decision_seq: int, extent: float = 0.0,
@@ -393,9 +475,41 @@ class Bout:
         hand = move.get("hand", "lead")
         armmul = self._arm_multiplier(atk, hand)
         af = self._mech("arm_fatigue")
-        atk.stamina = max(0.0, atk.stamina - move["stamina_cost"] * armmul * a_sta)
-        atk.committed = int((move["recovery_frames"] * rec["recovery_multiplier"] * a_rec)
-                            + move["startup_frames"] * (armmul - 1.0))
+
+        # What this punch costs from inside this guard, and what exhaustion adds
+        # to its startup. Both were authored long before anything read them.
+        st_mul, start_mul = self._offense_price(atk, move)
+        fatigue_start, _, _ = self._fatigue_degradation(atk)
+
+        # Chaining (punch_model.chaining): a link is a punch begun inside the
+        # previous punch's late recovery. Opposite-hand links are free because
+        # the other hand was already loaded; the same hand pays retraction, and
+        # the same POWER hand pays a weight reset. No free cancels - the window
+        # opens partway through recovery and never during active contact.
+        ch = canon.punch_model()["chaining"]
+        linked = self.tick <= atk.link_open_until
+        if linked:
+            if hand != atk.last_hand:
+                start_mul *= ch["opposite_hand_link_startup_multiplier"]
+            elif move.get("category") in ("cross", "hook", "uppercut", "overhand"):
+                start_mul *= ch["power_repeat_same_hand_startup_multiplier"]
+            else:
+                start_mul *= ch["same_hand_link_startup_multiplier"]
+            atk.combo_length += 1
+        else:
+            atk.combo_length = 1
+
+        atk.stamina = max(0.0, atk.stamina
+                          - move["stamina_cost"] * armmul * a_sta * st_mul)
+        startup = move["startup_frames"] * start_mul * fatigue_start
+        recovery = move["recovery_frames"] * rec["recovery_multiplier"] * a_rec
+        atk.committed = int(recovery + move["startup_frames"] * (armmul - 1.0)
+                            + (startup - move["startup_frames"]))
+        # The next link may begin once recovery is far enough along.
+        atk.link_open_until = self.tick + atk.committed + int(
+            recovery * (1.0 - ch["link_earliest_recovery_fraction"]))
+        atk.last_hand = hand
+        atk.last_move_category = move.get("category", "")
         atk.thrown += 1
         atk.arm_work[hand] = atk.arm_work.get(hand, 0.0) + af["per_throw_same_arm"]
 
@@ -434,7 +548,8 @@ class Bout:
             force = bands[cls]["delivered_force_fraction"] * self._impact(move) * a_imp
             region = move["target_regions"][0]
             if region in dfn.condition:
-                dfn.condition[region] = min(100.0, dfn.condition[region] + force * 6.0)
+                cap = {d["region"]: d["capacity"] for d in cm["damage_regions"]}[region]
+                dfn.condition[region] = min(cap, dfn.condition[region] + force * 6.0)
             payload["region"] = region
             payload["force"] = round(force, 4)
             atk.landed += 1
@@ -448,10 +563,15 @@ class Bout:
             # pressure opens a guard that never drops - the passive blocker's
             # answer arrives through boxing rather than a rule (Rule 4).
             imp = cm["impairment"]
+            # No engine-side multiplier on top of the authored fraction. An
+            # earlier version tripled it here, which pegged both arms at full
+            # condition by the second round of any busy fight and turned the
+            # guard off entirely - a number the data could not be inspected for.
             absorbed = self._impact(move) * a_imp * imp["arm_damage_fraction_of_blocked_force"]
+            caps = {d["region"]: d["capacity"] for d in cm["damage_regions"]}
             for arm in ("arm_left", "arm_right"):
                 if arm in dfn.condition:
-                    dfn.condition[arm] = min(100.0, dfn.condition[arm] + absorbed * 3.0)
+                    dfn.condition[arm] = min(caps[arm], dfn.condition[arm] + absorbed)
         out_seq = self.emit("punch_outcome", atk.name, dfn.name, payload, [thrown_seq])
 
         self._crowd_gain(atk, dfn, move, cls, out_seq)
@@ -490,17 +610,33 @@ class Bout:
             earner, src, key = dfn, "evasions", "dodge"
         else:
             earner = atk
-            src = "counters" if dfn.committed > 0 else "clean_offense"
+            # 'combinations' is the second-richest source in the crowd model and
+            # was unreachable until chaining executed - a punch landed inside a
+            # link is what the crowd is actually cheering.
+            if dfn.committed > 0:
+                src = "counters"
+            elif atk.combo_length > 1:
+                src = "combinations"
+            else:
+                src = "clean_offense"
             key = move["id"]
 
-        base = next((g["base_gain"] for g in cr["gain_sources"] if g["id"] == src), 0.0)
+        source = next((g for g in cr["gain_sources"] if g["id"] == src), None)
+        if source is None:
+            return
+        base = source["base_gain"]
         if key == earner.last_gain_source:
             earner.gain_repeats += 1
         else:
             earner.gain_repeats = 0
         earner.last_gain_source = key
-        mult = max(cr["novelty"]["floor_multiplier"],
-                   cr["novelty"]["repeat_multiplier"] ** max(0, earner.gain_repeats))
+        # novelty_gated is authored per source and was ignored: every source
+        # decayed. A source the crowd model exempts must actually be exempt, or
+        # the flag is decoration.
+        mult = 1.0
+        if source.get("novelty_gated", True):
+            mult = max(cr["novelty"]["floor_multiplier"],
+                       cr["novelty"]["repeat_multiplier"] ** max(0, earner.gain_repeats))
         gain = base * mult
         earner.crowd = min(cr["bar"]["max"], earner.crowd + gain)
         earner.last_gain_tick = self.tick
@@ -509,6 +645,29 @@ class Bout:
                   [out_seq])
         if earner.crowd >= cr["bar"]["max"]:
             self.emit("crowd_full", earner.name, "", {}, [out_seq])
+
+    # ---- the fighter_action machine, finally consulted --------------------
+    def _action_state(self, f: Fighter) -> str:
+        """Which fighter_action state this fighter is in, derived from state the
+        engine already tracks. combat_states.json has declared an availability
+        block per state - can_punch, can_guard, can_move, can_evade - since step
+        1, and nothing ever read it: legality came from a bare `committed > 0`
+        counter, so the machine was a document rather than a rule."""
+        if self.stopped:
+            return "stopped"
+        if f.knockdowns and f.committed > self._count_ticks:
+            return "knocked_down"
+        if f.committed > 0:
+            return "move_recovery"
+        if self.clinched:
+            return "clinch"
+        return "idle"
+
+    def _may(self, f: Fighter, capability: str) -> bool:
+        states = {s["id"]: s for s in
+                  canon.combat_states()["machines"]["fighter_action"]["states"]}
+        av = states[self._action_state(f)].get("availability")
+        return True if av is None else bool(av.get(capability, False))
 
     def _mech(self, mid: str) -> dict:
         for m in canon.punch_model()["repetition_economy"]["mechanisms"]:
@@ -580,7 +739,8 @@ class Bout:
         balance = pm["caught_committed_multiplier"] if dfn.committed > 0 \
             else pm["balanced_multiplier"]
         guard = 1.0 + pm["unguarded_lane_bonus"] * (1.0 - max(0.0, min(1.0, extent)))
-        pressure = force * (0.35 + accumulated) * (1.4 - stamina_frac) * balance * guard
+        pressure = (force * (pm["undamaged_baseline"] + accumulated)
+                    * (1.4 - stamina_frac) * balance * guard)
         if pressure < kdm["pressure_threshold"] \
                 or move["target_regions"][0] not in ("jaw_chin", "head"):
             return
@@ -670,6 +830,12 @@ class Bout:
                 regen_mult = 1.0 - (1.0 - imp["stamina_regen_multiplier_at_full_torso"]) * torso
                 f.stamina = min(cm["stamina"]["max"],
                                 f.stamina + cm["stamina"]["regen_per_tick_idle"] * regen_mult)
+                # Holding the guard costs (guard_evasion_model posture
+                # stamina_per_tick, declared at step 7 and read by nothing until
+                # now). Charged only while not committed - you are not holding a
+                # guard mid-punch, you are punching. This is the third clause of
+                # the core combat rule: a guard costs resources to hold.
+                f.stamina = max(0.0, f.stamina - self._posture(f)["stamina_per_tick"])
                 # Arm fatigue drains while the arm is not working. A fighter who
                 # mixes hands sheds it as fast as they build it, which is why
                 # this taxes a loop and not a workrate.
@@ -707,7 +873,16 @@ class Bout:
                                  {"chosen_action": action,
                                   "confidence": 0.5,
                                   "observed_keys": sorted(obs)})
+                # Legality comes from the fighter_action machine's availability
+                # block, not from a bare committed counter. A refused action is
+                # emitted, never silently dropped: Rule 19 is about the input
+                # being heard, not about it always succeeding.
                 if action in ("step_in", "step_out", "step_lateral"):
+                    if not self._may(f, "can_move"):
+                        self.emit("cpu_decision", f.name, "",
+                                  {"chosen_action": action, "refused_by_state":
+                                   self._action_state(f)}, [dseq])
+                        continue
                     self.step(f, {"step_in": "in", "step_out": "out",
                                   "step_lateral": "lateral"}[action])
                     continue
@@ -741,6 +916,11 @@ class Bout:
                         break
                     continue
                 if action not in punches:
+                    continue
+                if not self._may(f, "can_punch"):
+                    self.emit("cpu_decision", f.name, "",
+                              {"chosen_action": action, "refused_by_state":
+                               self._action_state(f)}, [dseq])
                     continue
                 self.resolve(f, opp, punches[action], dseq)
                 if self.stopped:

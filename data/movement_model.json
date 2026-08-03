@@ -249,5 +249,40 @@
       "statement": "Separation is bounded by the ring: no sequence of legal steps opens distance forever. With the back on the ropes a retreating step buys no ground, while lateral movement stays fully available at full rate.",
       "enforced_by": "tools/uppercut_validate/movement.py::check_ring_track"
     }
-  ]
+  ],
+  "reference_model_coverage": {
+    "$comment": "What this file declares that the reference simulator does not yet execute. Enforced by tools/uppercut_validate/coverage.py: a mechanical key must be read by the bout or appear here. The list is debt on the record, not a suppression list - three separate passes over this repository each found a major inert mechanism by accident before it existed.",
+    "reason": "Facing, pivots, stance mirroring, threat compression and per-mode acceleration belong to a two-dimensional engine implementation; the reference model resolves a single axis and says so. The ring exists as a bound, not as geometry.",
+    "not_yet_expressed": [
+      "acceleration_frames",
+      "arcs",
+      "back_exposed_threshold_deg",
+      "band_change_emits",
+      "center_deg",
+      "compressed_mode",
+      "corner_proximity_m",
+      "deceleration_frames",
+      "emits",
+      "exhausted_applies_to",
+      "facing",
+      "half_width_deg",
+      "max_frame_displacement_ru",
+      "observable_inputs",
+      "punches_permitted",
+      "range_unit",
+      "reference_reach_span_m",
+      "release_bands",
+      "resolution",
+      "ring_unit",
+      "rope_proximity_m",
+      "side_m",
+      "spatial_units",
+      "stamina_cost_per_ru",
+      "stance_mirroring",
+      "threat_bands",
+      "threat_compression",
+      "turn_rate_deg_per_frame",
+      "weight_transfer_visible"
+    ]
+  }
 }

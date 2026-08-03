@@ -14,13 +14,14 @@
     "$comment": "The resource that makes patient boxing a strategy rather than a stall. Step 6 defined per-punch cost and left the pool open; this is the pool.",
     "max": 100.0,
     "start_fraction": 1.0,
-    "regen_per_tick_idle": 0.09,
-    "regen_per_tick_moving": 0.04,
+    "regen_per_tick_idle": 0.004,
+    "regen_per_tick_moving": 0.0018,
     "regen_per_tick_throwing": 0.0,
     "between_rounds_recovery_fraction": 0.35,
     "low_threshold_fraction": 0.25,
     "exhausted_threshold_fraction": 0.08,
-    "notes": "Regeneration is never faster while working than while resting, and throwing pays for itself in full. The between-rounds fraction is what makes the corner matter and what makes a fast finish a real tactical choice."
+    "notes": "Regeneration is never faster while working than while resting, and throwing pays for itself in full. The between-rounds fraction is what makes the corner matter and what makes a fast finish a real tactical choice.",
+    "units_note": "Units correction, 2026-08-03. These were authored as per-TICK rates carrying per-SECOND magnitudes: idle regeneration at 0.09/tick refilled 972 stamina in a 180-second round against a pool of 100, so the pool refilled roughly ten times per round and the jab was effectively free. Nothing caught it for two steps because the CPU policy refused to throw below the exhausted threshold, which capped volume by eating the input - so the stamina economy was never the thing limiting output and its numbers were never under test. Removing that refusal (it violates punch_model.stamina_gate.input_ever_ignored) exposed the scale error immediately at 138 punches per fighter per round. Rates are now genuinely per-tick: a fighter resting through a full round recovers a little under half the pool, and a busy round costs more than that."
   },
   "damage_regions": [
     {
@@ -107,14 +108,15 @@
       "chin_state",
       "guard_state"
     ],
-    "pressure_threshold": 1.5,
-    "pressure_threshold_note": "The line the combined inputs above must cross for a knockdown. It lives here rather than inside a simulator because it decides how often fights end early, which is a design statement, not an implementation detail. Set 2026-08-03 by sweeping it across a 60-bout all-pairs run of the six stress profiles at three rounds of three minutes: 1.30 stopped 78% of bouts, 1.45 stopped 55%, 1.50 stopped 45%, 1.60 stopped 15% and 1.90 stopped none. 1.50 was chosen because both result paths stay busy - a stoppage is a live threat in every bout and the cards still decide the majority. The value is a hypothesis; the requirement that neither path go dead is not.",
+    "pressure_threshold": 0.57,
+    "pressure_threshold_note": "The line the combined inputs above must cross for a knockdown. It lives here rather than inside a simulator because it decides how often fights end early, which is a design statement, not an implementation detail. Re-swept 2026-08-03 after the stamina units correction: work rate fell from 138 punches per fighter per round to a boxing-plausible figure, which cut the number of clean head shots per bout by roughly four times and made the previous 1.50 unreachable - a threshold is only meaningful against the volume it was measured at. At the corrected volume: 0.40 stops 85% of bouts, 0.48 stops 50%, 0.55 stops 30%, 0.70 stops none. 0.57 keeps both result paths busy. The value is a hypothesis; the requirement that neither path go dead is not.",
     "pressure_modifiers": {
-      "$comment": "Two of the inputs listed above - balance and guard_state - were declared and then never used, which left delivered force, accumulated condition and stamina as the only terms. All three are bounded and all three move slowly, so pressure had a hard ceiling just above 1.0 and no tail: a threshold of 0.95 stopped two bouts in three and a threshold of 1.05 stopped none at all. A design number with a cliff that sharp is not tunable. These modifiers are the missing terms, and they are state, not dice - Rule 14's ban is on a flat random roll attached to a punch, not on the fight mattering.",
+      "$comment": "Two of the inputs listed above - balance and guard_state - were declared and then never used, which left delivered force, accumulated condition and stamina as the only terms. All three are bounded and all three move slowly, so pressure had a hard ceiling just above 1.0 and no tail: a threshold of 0.95 stopped two bouts in three and a threshold of 1.05 stopped none at all. A design number with a cliff that sharp is not tunable. These modifiers are the missing terms, and they are state, not dice - Rule 14's ban is on a flat random roll attached to a punch, not on the fight mattering. undamaged_baseline was a bare 0.35 written into the simulator rather than authored here: the floor of the accumulated-condition term, and therefore the single number deciding whether a clean heavy shot can end a fight before damage has built up. At 0.35 no first-round knockout was reachable at ANY threshold, which is a missing outcome rather than a tuning opinion - the same defect as an unreachable result state, one layer down.",
       "caught_committed_multiplier": 1.25,
       "balanced_multiplier": 1.0,
       "unguarded_lane_bonus": 0.35,
-      "notes": "caught_committed is the counter: a fighter dropped while inside his own recovery was caught doing something, which is how most real knockdowns happen and why commitment is the currency this whole model is priced in. unguarded_lane reads the coverage extent the collision pipeline already computed for the target lane, so a shot through an open lane lands heavier than the same shot into a covering arm - the guard keeps mattering after interception fails. Retuned 1.55 to 1.25 on 2026-08-03 when guard_evasion committed_defense went live: openness while committed is now priced at contact (reduced evasion and guard produce more clean classes), so the old multiplier double-counted the same fact at the knockdown layer and turned the sweep into 90 percent stoppages."
+      "notes": "caught_committed is the counter: a fighter dropped while inside his own recovery was caught doing something, which is how most real knockdowns happen and why commitment is the currency this whole model is priced in. unguarded_lane reads the coverage extent the collision pipeline already computed for the target lane, so a shot through an open lane lands heavier than the same shot into a covering arm - the guard keeps mattering after interception fails. Retuned 1.55 to 1.25 on 2026-08-03 when guard_evasion committed_defense went live: openness while committed is now priced at contact (reduced evasion and guard produce more clean classes), so the old multiplier double-counted the same fact at the knockdown layer and turned the sweep into 90 percent stoppages.",
+      "undamaged_baseline": 0.55
     },
     "decision_path_must_survive": true,
     "count_ticks_per_number": 60,
@@ -253,5 +255,30 @@
       "chin_state"
     ],
     "notes": "All multipliers interpolate linearly from 1.0 at zero condition to the stated value at full capacity, reading the mean of the relevant regions. Blocking is not free: a blocked punch delivers a fraction of its force into the guarding arms, which is how sustained pressure opens a guard that never drops - the passive blocker's answer arrives through boxing rather than a rule (Rule 4). balance and chin_state remain expressed only through the knockdown pressure terms; they are listed here so nobody mistakes partial for done."
+  },
+  "reference_model_coverage": {
+    "$comment": "What this file declares that the reference simulator does not yet execute. Enforced by tools/uppercut_validate/coverage.py: a mechanical key must be read by the bout or appear here. The list is debt on the record, not a suppression list - three separate passes over this repository each found a major inert mechanism by accident before it existed.",
+    "reason": "Eye and composure impairment, the doctor-check and corner-stoppage paths, and the count's rise window are declared and unbuilt. Named here rather than left to look implemented.",
+    "not_yet_expressed": [
+      "attribute",
+      "chin",
+      "count_to",
+      "decision_path_must_survive",
+      "early_stoppage_possible_at_max",
+      "expressed",
+      "flat_random_roll_per_punch",
+      "impairs",
+      "inputs",
+      "knockdown_relevant",
+      "max_resistance_confers_immunity",
+      "no_generic_health_pool",
+      "regen_per_tick_moving",
+      "regen_per_tick_throwing",
+      "rise_window_ticks",
+      "scales",
+      "start_fraction",
+      "stoppage_conditions",
+      "trigger"
+    ]
   }
 }

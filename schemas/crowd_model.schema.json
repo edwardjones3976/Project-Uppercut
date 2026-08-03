@@ -11,25 +11,73 @@
   "title": "Crowd Bar Model",
   "description": "ROADMAP Phase 1A step 11: the Crowd Bar as an earned resource with novelty and risk gating. Rule 12. Engine-neutral; definitions only (Rule 18).",
   "type": "object",
-  "required": ["schema_version", "tuning_status", "bar", "gain_sources", "novelty", "risk_gate", "full_bar", "authority", "prohibitions", "invariants"],
+  "required": [
+    "schema_version",
+    "tuning_status",
+    "bar",
+    "gain_sources",
+    "novelty",
+    "risk_gate",
+    "full_bar",
+    "authority",
+    "prohibitions",
+    "invariants"
+  ],
   "additionalProperties": false,
   "properties": {
-    "contribution": { "type": "object" },
-    "$comment": { "type": "string" },
-    "schema_version": { "type": "string" },
-    "tuning_status": { "enum": ["hypothesis", "validated"] },
+    "contribution": {
+      "type": "object"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "tuning_status": {
+      "enum": [
+        "hypothesis",
+        "validated"
+      ]
+    },
     "bar": {
       "type": "object",
-      "required": ["max", "start", "decay_per_tick_idle", "decay_grace_ticks"],
+      "required": [
+        "max",
+        "start",
+        "decay_per_tick_idle",
+        "decay_grace_ticks"
+      ],
       "additionalProperties": false,
       "properties": {
-        "max": { "type": "number", "exclusiveMinimum": 0 },
-        "start": { "type": "number", "minimum": 0 },
-        "decay_per_tick_idle": { "type": "number", "exclusiveMinimum": 0 },
-        "decay_grace_ticks": { "type": "integer", "exclusiveMinimum": 0 },
-        "carries_between_rounds": { "type": "boolean" },
-        "resets_on_full_spend": { "type": "boolean" },
-        "notes": { "type": "string" }
+        "max": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "start": {
+          "type": "number",
+          "minimum": 0
+        },
+        "decay_per_tick_idle": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "decay_grace_ticks": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "carries_between_rounds": {
+          "type": "boolean"
+        },
+        "resets_on_full_spend": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "units_note": {
+          "type": "string"
+        }
       }
     },
     "gain_sources": {
@@ -37,79 +85,219 @@
       "minItems": 5,
       "items": {
         "type": "object",
-        "required": ["id", "base_gain", "requires_risk", "novelty_gated"],
+        "required": [
+          "id",
+          "base_gain",
+          "requires_risk",
+          "novelty_gated"
+        ],
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
-          "base_gain": { "type": "number", "exclusiveMinimum": 0 },
-          "requires_risk": { "type": "boolean" },
-          "novelty_gated": { "type": "boolean" }
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "base_gain": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "requires_risk": {
+            "type": "boolean"
+          },
+          "novelty_gated": {
+            "type": "boolean"
+          }
         }
       }
     },
     "novelty": {
       "type": "object",
-      "required": ["repeat_multiplier", "floor_multiplier", "window_ticks"],
+      "required": [
+        "repeat_multiplier",
+        "floor_multiplier",
+        "window_ticks"
+      ],
       "additionalProperties": false,
       "properties": {
-        "$comment": { "type": "string" },
-        "repeat_multiplier": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
-        "floor_multiplier": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "description": "Rule 4: strictly above zero. Legitimate repetition still earns." },
-        "window_ticks": { "type": "integer", "exclusiveMinimum": 0 },
-        "resets_on_different_action": { "type": "boolean" },
-        "notes": { "type": "string" }
+        "$comment": {
+          "type": "string"
+        },
+        "repeat_multiplier": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "floor_multiplier": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1,
+          "description": "Rule 4: strictly above zero. Legitimate repetition still earns."
+        },
+        "window_ticks": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "resets_on_different_action": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
       }
     },
     "risk_gate": {
       "type": "object",
-      "required": ["requires_counter_exposure", "zero_gain_when_unopposed"],
+      "required": [
+        "requires_counter_exposure",
+        "zero_gain_when_unopposed"
+      ],
       "additionalProperties": false,
       "properties": {
-        "$comment": { "type": "string" },
-        "requires_counter_exposure": { "const": true },
-        "zero_gain_when_unopposed": { "const": true, "description": "Rule 12: farming a target that cannot answer earns nothing." },
-        "notes": { "type": "string" }
+        "$comment": {
+          "type": "string"
+        },
+        "requires_counter_exposure": {
+          "const": true
+        },
+        "zero_gain_when_unopposed": {
+          "const": true,
+          "description": "Rule 12: farming a target that cannot answer earns nothing."
+        },
+        "notes": {
+          "type": "string"
+        }
       }
     },
     "full_bar": {
       "type": "object",
-      "required": ["choice", "exclusive", "spend_empties_bar"],
+      "required": [
+        "choice",
+        "exclusive",
+        "spend_empties_bar"
+      ],
       "additionalProperties": false,
       "properties": {
-        "choice": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "enum": ["ultimate", "full_crowd_trait"] } },
-        "exclusive": { "const": true, "description": "Rule 12: never both from one bar." },
-        "spend_empties_bar": { "const": true },
-        "expires_after_ticks": { "type": "integer", "exclusiveMinimum": 0 },
-        "notes": { "type": "string" }
+        "choice": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "enum": [
+              "ultimate",
+              "full_crowd_trait"
+            ]
+          }
+        },
+        "exclusive": {
+          "const": true,
+          "description": "Rule 12: never both from one bar."
+        },
+        "spend_empties_bar": {
+          "const": true
+        },
+        "expires_after_ticks": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "notes": {
+          "type": "string"
+        }
       }
     },
     "authority": {
       "type": "object",
-      "required": ["reads_official_scores", "alters_official_scores", "alters_judging_criteria", "alters_contact_truth", "alters_condition_truth", "alters_stamina_truth", "grants_generic_multipliers"],
+      "required": [
+        "reads_official_scores",
+        "alters_official_scores",
+        "alters_judging_criteria",
+        "alters_contact_truth",
+        "alters_condition_truth",
+        "alters_stamina_truth",
+        "grants_generic_multipliers"
+      ],
       "additionalProperties": false,
       "properties": {
-        "reads_official_scores": { "const": false },
-        "alters_official_scores": { "const": false },
-        "alters_judging_criteria": { "const": false },
-        "alters_contact_truth": { "const": false },
-        "alters_condition_truth": { "const": false },
-        "alters_stamina_truth": { "const": false },
-        "grants_generic_multipliers": { "const": false }
+        "reads_official_scores": {
+          "const": false
+        },
+        "alters_official_scores": {
+          "const": false
+        },
+        "alters_judging_criteria": {
+          "const": false
+        },
+        "alters_contact_truth": {
+          "const": false
+        },
+        "alters_condition_truth": {
+          "const": false
+        },
+        "alters_stamina_truth": {
+          "const": false
+        },
+        "grants_generic_multipliers": {
+          "const": false
+        }
       }
     },
-    "prohibitions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "prohibitions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
     "invariants": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["id", "rule", "statement"],
+        "required": [
+          "id",
+          "rule",
+          "statement"
+        ],
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
-          "rule": { "type": "string" },
-          "statement": { "type": "string", "minLength": 1 },
-          "enforced_by": { "type": "string" }
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "rule": {
+            "type": "string"
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "enforced_by": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "reference_model_coverage": {
+      "type": "object",
+      "required": [
+        "reason",
+        "not_yet_expressed"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 40,
+          "description": "Why these are not executed yet. A registry entry without a reason is a suppression list."
+        },
+        "not_yet_expressed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
         }
       }
     }

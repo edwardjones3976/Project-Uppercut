@@ -96,8 +96,8 @@
     "insufficient_stamina_outcome": "throw_permitted_at_degraded_quality",
     "input_ever_ignored": false,
     "low_stamina_startup_multiplier_max": 1.35,
-    "low_stamina_alignment_penalty_max": 0.25,
-    "notes": "The punch still leaves. It arrives later and worse aligned, which the collision model's quality bands then read - so exhaustion is visible as sloppier boxing rather than as a dead input."
+    "low_stamina_alignment_penalty_max": 0.1,
+    "notes": "The punch still leaves. It arrives later and worse aligned, which the collision model's quality bands then read - so exhaustion is visible as sloppier boxing rather than as a dead input. The alignment penalty is capped below the width of the top quality band (clean starts at 0.85, so the band is 0.15 wide): at the old 0.25 a fighter under the low-stamina threshold could not land a clean punch at all, because the penalty exceeded the entire band. An outcome class made unreachable by a state is the same defect as an unblockable move, seen from the other side."
   },
   "repetition_economy": {
     "$comment": "Rule 4, and the hardest law in this file. Repetition that stays unanswered stays legitimate. Nothing here fires on a repeat count: every mechanism fires on an observable consequence the opponent could have caused or prevented, so a punished spammer was punished by boxing rather than by bookkeeping.",
@@ -244,5 +244,31 @@
       "statement": "A punch's delivered impact is derived from what it costs to throw, never authored beside that cost. No punch can be cheap, fast and heavy at the same time.",
       "enforced_by": "tools/uppercut_validate/punches.py::check_delivered_impact"
     }
-  ]
+  ],
+  "reference_model_coverage": {
+    "$comment": "What this file declares that the reference simulator does not yet execute. Enforced by tools/uppercut_validate/coverage.py: a mechanical key must be read by the bout or appear here. The list is debt on the record, not a suppression list - three separate passes over this repository each found a major inert mechanism by accident before it existed.",
+    "reason": "Input buffering and the cancel prohibitions are responsiveness laws the validator holds against the data - the reference bout has no input layer to buffer. Chaining and the repetition economy do execute.",
+    "not_yet_expressed": [
+      "active_interruptible_by",
+      "affects",
+      "applies_to",
+      "auto_advance_on_throw",
+      "band_source",
+      "commitment",
+      "cost_source",
+      "derived_from",
+      "free_cancel_permitted",
+      "input_buffer_ticks",
+      "input_ever_ignored",
+      "insufficient_stamina_outcome",
+      "normalization",
+      "outside_band_outcome",
+      "range_gate",
+      "recovery_interruptible_by",
+      "resets_on",
+      "startup_interruptible_by",
+      "thrower_cancelable_phases",
+      "why_this_was_added"
+    ]
+  }
 }

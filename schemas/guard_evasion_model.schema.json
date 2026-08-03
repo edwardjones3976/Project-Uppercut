@@ -18,6 +18,7 @@
     "evasions",
     "guard_integrity",
     "invariants",
+    "posture_economy",
     "postures",
     "prohibitions",
     "schema_version",
@@ -362,6 +363,83 @@
         },
         "notes": {
           "type": "string"
+        }
+      }
+    },
+    "posture_economy": {
+      "type": "object",
+      "required": [
+        "hold_cost_applies_when",
+        "offense_cheap_stamina_multiplier",
+        "offense_expensive_stamina_multiplier",
+        "offense_expensive_startup_multiplier",
+        "mobility_applies_to"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "hold_cost_applies_when": {
+          "const": "not_committed"
+        },
+        "offense_cheap_stamina_multiplier": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1,
+          "description": "Below 1, or the posture's own preferred punches cost the same as the ones it fights against and offense_cheap means nothing."
+        },
+        "offense_expensive_stamina_multiplier": {
+          "type": "number",
+          "exclusiveMinimum": 1
+        },
+        "offense_expensive_startup_multiplier": {
+          "type": "number",
+          "exclusiveMinimum": 1,
+          "description": "Rule 13: the extra motion is visible, which is what keeps the expensive punch counterable rather than merely costly."
+        },
+        "mobility_applies_to": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "advance",
+              "retreat",
+              "lateral"
+            ]
+          }
+        },
+        "notes": {
+          "type": "string"
+        },
+        "units_note": {
+          "type": "string"
+        }
+      }
+    },
+    "reference_model_coverage": {
+      "type": "object",
+      "required": [
+        "reason",
+        "not_yet_expressed"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 40,
+          "description": "Why these are not executed yet. A registry entry without a reason is a suppression list."
+        },
+        "not_yet_expressed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
         }
       }
     }

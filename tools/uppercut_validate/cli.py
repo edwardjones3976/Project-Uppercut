@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from . import (ability, animation, attributes, budget, camera, clock, collision,
-               combat_states, condition, contracts, cpu, crowd, event, guard, movement,
+               combat_states, condition, contracts, coverage, cpu, crowd, event, guard, movement,
                punches, replay, schema_check, score_isolation)
 
 REPO = Path(__file__).resolve().parents[2]
@@ -231,6 +231,24 @@ def cmd_clock() -> int:
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 10:40 UTC | END edit ]
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 11:40 UTC | START edit ]
+def cmd_coverage() -> int:
+    """Canon the reference simulator does not execute (the inert-mechanism class)."""
+    docs = coverage.load()
+    failures = 0
+    for name, fn in coverage.ALL_CHECKS:
+        errs = fn(docs)
+        print(f"{'PASS' if not errs else 'FAIL'}  {name}")
+        for e in errs:
+            print(f"        {e}")
+        failures += len(errs)
+    debt = sum(len(coverage.unexpressed_registry(d)) for d in docs.values())
+    print(f"INFO  {len(docs)} simulated canon files; {debt} declared keys registered as not yet "
+          f"expressed, each with a reason in-file (Rule 18: the gap is on the record)")
+    return failures
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 11:40 UTC | END edit ]
+
+
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 09:28 UTC | START edit: Phase 1A steps 11-12 ]
 def cmd_crowd() -> int:
     """ROADMAP Phase 1A step 11: Crowd Bar architecture."""
@@ -437,6 +455,8 @@ def main(argv: list) -> int:
         print("== Phase 1A ability architecture =="); total += cmd_ability(); print()
     if cmd in ("all", "event"):
         print("== Event presentation =="); total += cmd_event(); print()
+    if cmd in ("all", "coverage"):
+        print("== Reference-model coverage =="); total += cmd_coverage(); print()
     if cmd in ("all", "clock"):
         print("== Authoritative clock =="); total += cmd_clock(); print()
     print(f"RESULT: {'OK' if total == 0 else str(total) + ' FAILURE(S)'}")

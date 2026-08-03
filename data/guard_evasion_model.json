@@ -24,7 +24,7 @@
         "guard_high": 0.95,
         "guard_body": 0.55
       },
-      "stamina_per_tick": 0.05,
+      "stamina_per_tick": 0.001,
       "mobility_multiplier": 0.9,
       "visibility": 0.7,
       "counter_readiness": 0.4,
@@ -49,7 +49,7 @@
         "guard_high": 0.9,
         "guard_body": 0.75
       },
-      "stamina_per_tick": 0.12,
+      "stamina_per_tick": 0.0024,
       "mobility_multiplier": 1.0,
       "visibility": 0.75,
       "counter_readiness": 0.8,
@@ -74,7 +74,7 @@
         "guard_high": 0.7,
         "guard_body": 0.6
       },
-      "stamina_per_tick": 0.04,
+      "stamina_per_tick": 0.0008,
       "mobility_multiplier": 1.0,
       "visibility": 0.9,
       "counter_readiness": 0.95,
@@ -98,7 +98,7 @@
         "guard_high": 0.95,
         "guard_body": 0.7
       },
-      "stamina_per_tick": 0.07,
+      "stamina_per_tick": 0.0014,
       "mobility_multiplier": 0.8,
       "visibility": 0.45,
       "counter_readiness": 0.25,
@@ -123,7 +123,7 @@
         "guard_high": 0.8,
         "guard_body": 0.45
       },
-      "stamina_per_tick": 0.06,
+      "stamina_per_tick": 0.0012,
       "mobility_multiplier": 0.95,
       "visibility": 0.85,
       "counter_readiness": 0.6,
@@ -148,7 +148,7 @@
         "guard_high": 0.45,
         "guard_body": 0.5
       },
-      "stamina_per_tick": 0.03,
+      "stamina_per_tick": 0.0006,
       "mobility_multiplier": 1.0,
       "visibility": 1.0,
       "counter_readiness": 0.9,
@@ -170,7 +170,7 @@
         "guard_high": 0.55,
         "guard_body": 0.95
       },
-      "stamina_per_tick": 0.05,
+      "stamina_per_tick": 0.001,
       "mobility_multiplier": 0.85,
       "visibility": 0.7,
       "counter_readiness": 0.5,
@@ -195,7 +195,7 @@
         "guard_high": 1.0,
         "guard_body": 0.4
       },
-      "stamina_per_tick": 0.09,
+      "stamina_per_tick": 0.0018,
       "mobility_multiplier": 0.6,
       "visibility": 0.3,
       "counter_readiness": 0.1,
@@ -220,7 +220,7 @@
         "guard_high": 0.7,
         "guard_body": 0.5
       },
-      "stamina_per_tick": 0.08,
+      "stamina_per_tick": 0.0016,
       "mobility_multiplier": 0.9,
       "visibility": 0.8,
       "counter_readiness": 0.7,
@@ -245,7 +245,7 @@
         "guard_high": 0.6,
         "guard_body": 0.5
       },
-      "stamina_per_tick": 0.07,
+      "stamina_per_tick": 0.0014,
       "mobility_multiplier": 1.0,
       "visibility": 0.95,
       "counter_readiness": 0.85,
@@ -410,5 +410,48 @@
     "evasion_multiplier_while_committed": 0.4,
     "guard_extent_multiplier_while_committed": 0.6,
     "notes": "Both strictly inside (0,1) by validator law. At zero, commitment would be a guaranteed hit - a stun-lock by geometry, which Rule 11 forbids. At one, the window is inert and the counterpuncher's win condition is unreachable, which a 40-bout sweep demonstrated: adding counter-hunting policies WITHOUT this penalty produced more volume, not more counters, and the counterpuncher fell from 50% to 25%."
+  },
+  "posture_economy": {
+    "$comment": "The coefficients that make a posture a trade rather than a label. Every posture has declared stamina_per_tick, mobility_multiplier and offense_cheap/offense_expensive since step 7, and the reference model read none of them: guards cost nothing to hold, slowed nobody down, and permitted every punch at the same price. That is the project's core combat rule - a guard is a body structure that protects some lanes while exposing others, changes what offense is available from inside it, and costs resources to hold - with two of its three clauses inert.",
+    "hold_cost_applies_when": "not_committed",
+    "offense_cheap_stamina_multiplier": 0.85,
+    "offense_expensive_stamina_multiplier": 1.45,
+    "offense_expensive_startup_multiplier": 1.25,
+    "mobility_applies_to": [
+      "advance",
+      "retreat",
+      "lateral"
+    ],
+    "notes": "Cheap and expensive are named per posture by move CATEGORY, not by move id, so the structure - where the elbows are, where the weight sits - is what prices the punch. Throwing an uppercut from inside a cross-arm guard costs more because the arm has to come out of the bar first; that is geometry, not a tax. The expensive multiplier prices startup as well as stamina because the extra motion is visible, which is what keeps it counterable (Rule 13). Holding costs nothing while committed - you are not holding the guard mid-punch, you are punching.",
+    "units_note": "Posture hold costs were rescaled by the same 2026-08-03 units correction (condition_model.stamina.units_note): peek-a-boo cost 1,296 stamina per round against a pool of 100. The spread between postures is preserved exactly - what changed is the decimal point, not the design. A tight high-work guard now costs roughly a quarter of the pool across a round and the loosest costs a fifteenth, which is what makes holding one a decision."
+  },
+  "reference_model_coverage": {
+    "$comment": "What this file declares that the reference simulator does not yet execute. Enforced by tools/uppercut_validate/coverage.py: a mechanical key must be read by the bout or appear here. The list is debt on the record, not a suppression list - three separate passes over this repository each found a major inert mechanism by accident before it existed.",
+    "reason": "Evasion moves resolve through the collision pipeline's evasion stage rather than as authored active windows, and guard-integrity restoration on disengage is unbuilt. Posture alignment states are read by the collision model, not from here.",
+    "not_yet_expressed": [
+      "active_ticks",
+      "alignment_states",
+      "beaten_by",
+      "degrades_from",
+      "degrades_from_repetition_alone",
+      "evasion_economy",
+      "guard_body",
+      "guard_high",
+      "guard_integrity",
+      "hold_cost_applies_when",
+      "kind",
+      "matchup_reference",
+      "mistime_penalty_ticks",
+      "mobility_applies_to",
+      "move_id",
+      "opened_state",
+      "outranks_guard",
+      "posture_identity_read_by_pipeline",
+      "resolves_contact",
+      "restores_on",
+      "reward_source",
+      "supplies_coverage_extents",
+      "vacates"
+    ]
   }
 }

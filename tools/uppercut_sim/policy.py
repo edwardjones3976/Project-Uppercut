@@ -19,7 +19,12 @@ from . import canon
 # Derived from each profile's declared win_condition and risk_condition.
 BIAS = {
     "rusher":         (0.80, "high_guard",   0.35, 0.80),
-    "drainer":        (0.42, "tight_elbow",  0.55, 0.30),
+    # Raised 0.42 -> 0.50 on 2026-08-03: the drainer's aggression and its pacing
+    # multiplier were stacking, so its round-one output was 0.42 x 0.65 = 0.27,
+    # the lowest in the field by a distance, and the cards read effective
+    # offence. Pacing is meant to distribute a fighter's work across the bout,
+    # not to make them throw a third as much as everyone else.
+    "drainer":        (0.50, "tight_elbow",  0.55, 0.30),
     "technician":     (0.55, "high_guard",   0.85, 0.45),
     "counterpuncher": (0.35, "philly_shell", 0.60, 0.35),
     "showman":        (0.62, "low_lead",     0.90, 0.85),
@@ -46,7 +51,7 @@ COUNTER_DRIVE = {
 # drainer's win_condition is recovery, rhythm and "ring control that punishes
 # waste" - conserve early, cash late against a body-worked, arm-heavy opponent.
 PACING = {
-    "drainer": (0.65, 1.55),
+    "drainer": (0.80, 1.45),
 }
 
 # Share of offence aimed downstairs. Bodywork is named in the drainer's and the
@@ -60,6 +65,19 @@ DEFAULT_BODY_SHARE = 0.25
 POWER = ("cross_rear", "hook_rear", "uppercut_rear", "overhand_rear")
 QUICK = ("jab_lead", "hook_lead", "uppercut_lead")
 BODY = ("body_hook_lead", "body_straight_rear")
+
+# Attempts per second at aggression 1.0 and full stamina. An aggression value is
+# a RATE, not a per-decision coin flip: the CPU model authors a four-tick
+# decision interval, so an unscaled 0.8 meant twelve attempted punches a second
+# and a fighter throwing 138 in a round. Anchoring to seconds also means the
+# decision interval can change without silently rewriting every workrate - the
+# thing it is allowed to change is reaction, not output.
+THROW_RATE_CEILING_PER_SECOND = 1.15
+TICKS_PER_SECOND = 60
+
+
+def _per_decision(interval_ticks: int) -> float:
+    return THROW_RATE_CEILING_PER_SECOND * interval_ticks / TICKS_PER_SECOND
 
 
 def bias_for(profile: str):
@@ -106,9 +124,15 @@ def decide(profile: str, obs: dict, rng) -> str | None:
 
     # Rule 4: a tired fighter throws less. This reads the fighter's OWN stamina,
     # which is not privileged information about anyone else.
+    #
+    # What it no longer does is REFUSE. An earlier version returned None below
+    # the exhausted threshold, which is an input being eaten - the exact thing
+    # punch_model.stamina_gate's `input_ever_ignored: false` forbids, enforced
+    # by a validator, and violated here in the one place the validator could not
+    # see. Exhaustion now degrades the punch inside the engine (later startup,
+    # worse alignment) and a spent fighter simply throws less often, which is
+    # what being tired looks like from the outside.
     stamina = obs["own_stamina_fraction"]
-    if stamina < 0.08:
-        return None
 
     # The full-bar conversion. Every fighter has the mechanism (Rule 12); the
     # showman is simply built around how fast it refills the bar.
@@ -125,13 +149,27 @@ def decide(profile: str, obs: dict, rng) -> str | None:
         t = (max(1, obs.get("round", 1)) - 1) / (total - 1)
         pace = early + (late - early) * t
 
-    # The counter window: the opponent is visibly inside their own commitment
-    # - mid-punch, mid-step or mid-count, all observable events. Profiles hunt
-    # it exactly as hard as their canon says they do. The counter pool is every
-    # in-band punch that arrives fast enough to beat the window - not just the
-    # jab, or every counter in the building is the same punch and the style
-    # sweep grows a dominant loop (which is exactly what its first version did:
-    # jab_lead at 63% of all landed offence).
+    # Pacing first, always. A spent fighter throws far less, and the curve is
+    # steep rather than floored: the old shape was `0.35 + 0.65 * stamina`,
+    # which let an empty fighter still throw at a third of its fresh rate - a
+    # floor that never showed because the policy refused outright below the
+    # exhausted threshold. Removing that refusal (it was eating inputs, which
+    # the punch model forbids) exposed it immediately at 1,181 punches in a
+    # three-round bout. The rate never reaches zero, so nothing is locked out.
+    throw_chance = (aggression * pace * (0.06 + 0.94 * stamina ** 1.5)
+                    * _per_decision(canon.cpu()["reaction"]["decision_interval_ticks"]))
+    if rng.random() > throw_chance:
+        return None
+
+    # THEN the counter window. This branch used to sit above the pacing roll and
+    # returned a punch directly, so a fighter with nothing left still countered
+    # every opening it saw - pacing applied to everything except the most
+    # frequent decision in the bout. Whether you throw is pacing; what you throw
+    # is the read. The opponent being visibly inside their own commitment is an
+    # observable event, and profiles hunt it exactly as hard as their canon says.
+    # The pool is every in-band punch fast enough to beat the window, not just
+    # the jab - a jab-only pool put jab_lead at 63% of all landed offence and
+    # tripped the dominant-loop gate.
     if obs.get("opponent_committed_ticks", 0) > 0 \
             and rng.random() < COUNTER_DRIVE.get(profile, 0.3):
         in_band = [m for m in punches.values() if m["range_band"] == band]
@@ -141,10 +179,6 @@ def decide(profile: str, obs: dict, rng) -> str | None:
                            if m["startup_frames"] <= fastest + 4]
             if window_pool:
                 return window_pool[rng.randrange(len(window_pool))]
-
-    throw_chance = aggression * pace * (0.35 + 0.65 * stamina)
-    if rng.random() > throw_chance:
-        return None
 
     # Variety bias: a high-variety profile avoids repeating its last move, which
     # is also what keeps its crowd novelty multiplier alive.

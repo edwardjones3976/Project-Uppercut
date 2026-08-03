@@ -412,6 +412,31 @@
           "type": "string"
         }
       }
+    },
+    "reference_model_coverage": {
+      "type": "object",
+      "required": [
+        "reason",
+        "not_yet_expressed"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 40,
+          "description": "Why these are not executed yet. A registry entry without a reason is a suppression list."
+        },
+        "not_yet_expressed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
     }
   }
 }

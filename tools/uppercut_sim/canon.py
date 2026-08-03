@@ -60,6 +60,10 @@ def ability() -> dict:
     return _load("ability_model.json")
 
 
+def combat_states() -> dict:
+    return _load("combat_states.json")
+
+
 def stress_profile(name: str) -> dict:
     return json.loads((DATA / "stress_profiles" / f"{name}.json").read_text(encoding="utf-8"))
 

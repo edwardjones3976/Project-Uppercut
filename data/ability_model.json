@@ -143,5 +143,38 @@
       "notes": "recovery_multiplier is at least 1 by validator law: an Ultimate may never be SAFER than the punch it rides, or the bar would buy risk reduction, which is what every prohibition in this file exists to prevent. The bar empties on the swing, hit or miss - crowd_model.bar.resets_on_full_spend - because the crowd paid for the attempt, not the outcome."
     },
     "full_crowd_trait_note": "Instruments use the Ultimate only. The Trait half of the Rule 12 XOR is fighter-defining and belongs to authored fighters, not stress instruments; it stays unimplemented here and is named so nobody reads absence as decision."
+  },
+  "reference_model_coverage": {
+    "$comment": "What this file declares that the reference simulator does not yet execute. Enforced by tools/uppercut_validate/coverage.py: a mechanical key must be read by the bout or appear here. The list is debt on the record, not a suppression list - three separate passes over this repository each found a major inert mechanism by accident before it existed.",
+    "reason": "Specials and the Full-Crowd Trait are unbuilt in the reference model; only the instrument Ultimate executes. The activation, exclusivity and counterplay blocks are structural laws the validators enforce against the DATA rather than behaviour the bout performs, and they stay that way until abilities are authored per fighter.",
+    "not_yet_expressed": [
+      "ability_classes",
+      "activation",
+      "both_from_one_bar",
+      "bypasses_commitment",
+      "bypasses_range",
+      "bypasses_recovery",
+      "bypasses_resource_cost",
+      "bypasses_startup",
+      "bypasses_stun",
+      "bypasses_whiff_punishment",
+      "cost_fraction",
+      "counterable",
+      "counterplay_requirements",
+      "emits",
+      "exclusivity",
+      "full_bar_choice",
+      "grants_invulnerability",
+      "min_recovery_frames",
+      "min_startup_frames",
+      "must_define",
+      "per_fighter",
+      "recognition_is_remappable",
+      "recognition_is_trainable",
+      "requires_explicit_confirmation",
+      "resource",
+      "spends",
+      "whiff_is_punishable"
+    ]
   }
 }
