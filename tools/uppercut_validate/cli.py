@@ -1,12 +1,12 @@
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | START ]
-"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget|states|movement|camera]"""
+"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget|states|movement|camera|collision]"""
 from __future__ import annotations
 import json
 import sys
 from pathlib import Path
 
-from . import (attributes, budget, camera, combat_states, contracts, movement,
-               schema_check, score_isolation)
+from . import (attributes, budget, camera, collision, combat_states, contracts,
+               movement, schema_check, score_isolation)
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -194,6 +194,25 @@ def cmd_camera() -> int:
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:03 UTC | END edit ]
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:13 UTC | START edit: Phase 1A step 5 ]
+def cmd_collision() -> int:
+    """ROADMAP Phase 1A step 5: collision truth laws."""
+    doc = collision.load()
+    failures = 0
+    for name, fn in collision.ALL_CHECKS:
+        errs = fn(doc)
+        print(f"{'PASS' if not errs else 'FAIL'}  {name}")
+        for e in errs:
+            print(f"        {e}")
+        failures += len(errs)
+    v = doc["volumes"]
+    print(f"INFO  {len(v['hitboxes'])} hitboxes, {len(v['hurtboxes'])} region-mapped hurtboxes, "
+          f"{len(v['guard_volumes'])} guard volumes; {len(doc['resolution_pipeline'])}-stage total "
+          f"pipeline over all seven contact classes (Rule 18: definitions only)")
+    return failures
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:13 UTC | END edit ]
+
+
 def main(argv: list) -> int:
     cmd = argv[1] if len(argv) > 1 else "all"
     total = 0
@@ -213,6 +232,8 @@ def main(argv: list) -> int:
         print("== Phase 1A movement and facing =="); total += cmd_movement(); print()
     if cmd in ("all", "camera"):
         print("== Phase 1A camera behaviour =="); total += cmd_camera(); print()
+    if cmd in ("all", "collision"):
+        print("== Phase 1A collision truth =="); total += cmd_collision(); print()
     print(f"RESULT: {'OK' if total == 0 else str(total) + ' FAILURE(S)'}")
     return 1 if total else 0
 

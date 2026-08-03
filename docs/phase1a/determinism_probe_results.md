@@ -201,4 +201,10 @@ hit," under the same determinism harness. It is deliberately saved for later and
 behind steps 3 (camera) and 4 (animation states) in the ROADMAP's binding order. Nothing about it is
 started or claimed.
 
+> **Superseded 2026-08-03.** The Director called collision truth forward. Step 3 was completed
+> first; step 5 is now **defined** (`docs/phase1a/collision_truth.md`) ahead of step 4, which
+> remains not started and remains an implementation-level prerequisite. Definitions only - the
+> determinism legs described above still apply to it when it reaches the engine.
+> <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:13 UTC | edit: deferral lifted ] -->
+
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 02:55 UTC | END ] -->

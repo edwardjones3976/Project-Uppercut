@@ -1,0 +1,158 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 04:13 UTC",
+    "end": "2026-08-03 04:13 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/collision_model.schema.json",
+  "title": "Collision Model",
+  "description": "ROADMAP Phase 1A step 5: authoritative collision truth - hitboxes, hurtboxes, guard regions, and the total ordered pipeline that resolves every attack into exactly one of the seven contact classes. Engine-neutral (Rule 22 / Decision 0002). Definitions only; no engine implementation is claimed (Rule 18).",
+  "type": "object",
+  "required": ["schema_version", "tuning_status", "determinism", "volumes", "guard_interception", "resolution_pipeline", "quality_bands", "closing_velocity", "prohibitions", "invariants"],
+  "additionalProperties": false,
+  "properties": {
+    "contribution": { "type": "object" },
+    "$comment": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "tuning_status": { "enum": ["hypothesis", "validated"] },
+    "determinism": {
+      "type": "object",
+      "required": ["swept_volumes", "simultaneity", "pair_ordering", "timing_source"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "swept_volumes": { "const": true, "description": "Rule 13: contact is tested along the continuous path between ticks. Discrete sampling would let a fast punch tunnel through a hurtbox - a visible hit classified as a miss." },
+        "simultaneity": { "const": "pre_tick_snapshot", "description": "All attacks on a tick resolve against the same pre-tick state, so a trade is symmetric and neither fighter's landing silently cancels the other's." },
+        "pair_ordering": { "const": "ascending_actor_index_then_move_id", "description": "A fixed evaluation order; unordered iteration would make the authoritative log depend on container layout." },
+        "timing_source": { "const": "authoritative_tick" }
+      }
+    },
+    "volumes": {
+      "type": "object",
+      "required": ["hitboxes", "hurtboxes", "guard_volumes"],
+      "additionalProperties": false,
+      "properties": {
+        "hitboxes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/hitbox" } },
+        "hurtboxes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/hurtbox" } },
+        "guard_volumes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/guard_volume" } }
+      }
+    },
+    "guard_interception": {
+      "type": "object",
+      "description": "Which guard VOLUMES intercept each move.schema.json guard_interaction value. This is deliberately about the punch's path, not its target region: an uppercut lands on the jaw but travels upward, so a dropped forearm stops it and a high guard does not.",
+      "required": ["blockable_high", "blockable_low", "blockable_either"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "blockable_high": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "blockable_low": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "blockable_either": { "type": "array", "minItems": 2, "items": { "type": "string" } }
+      }
+    },
+    "resolution_pipeline": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["order", "id", "question", "verdict_if_true", "on_false"],
+        "additionalProperties": false,
+        "properties": {
+          "order": { "type": "integer", "minimum": 0 },
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "question": { "type": "string", "minLength": 1 },
+          "verdict_if_true": {
+            "description": "A single contact class, or the quality-band dispatch marker.",
+            "enum": ["clean", "solid", "grazed", "brushed", "blocked", "dodged", "whiffed", "dispatch_quality_bands"]
+          },
+          "on_false": { "type": "string", "description": "Next stage id, or 'terminal'." },
+          "reads": { "type": "array", "items": { "type": "string" } },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "quality_bands": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["class", "min_alignment", "max_alignment", "delivered_force_fraction"],
+        "additionalProperties": false,
+        "properties": {
+          "class": { "enum": ["clean", "solid", "grazed", "brushed"] },
+          "min_alignment": { "type": "number", "minimum": 0, "maximum": 1 },
+          "max_alignment": { "type": "number", "minimum": 0, "maximum": 1 },
+          "delivered_force_fraction": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "closing_velocity": {
+      "type": "object",
+      "required": ["into_punch_max_multiplier", "away_from_punch_min_multiplier", "neutral_multiplier"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "into_punch_max_multiplier": { "type": "number", "exclusiveMinimum": 1 },
+        "away_from_punch_min_multiplier": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
+        "neutral_multiplier": { "const": 1.0 }
+      }
+    },
+    "prohibitions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "rule", "statement"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "rule": { "type": "string" },
+          "statement": { "type": "string", "minLength": 1 },
+          "enforced_by": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "hitbox": {
+      "type": "object",
+      "required": ["id", "attached_to", "active_source"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "attached_to": { "enum": ["lead_glove", "rear_glove", "lead_forearm", "rear_forearm", "body"] },
+        "active_source": { "const": "move_active_frames", "description": "Rule 22: a hitbox is live exactly during its move's authored active window - never inflated, never extended." },
+        "notes": { "type": "string" }
+      }
+    },
+    "hurtbox": {
+      "type": "object",
+      "required": ["id", "condition_region", "height_class"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "condition_region": { "type": "string", "description": "Key into data/condition_regions.json (Rule 14). Damage lands on a region, never on a generic pool." },
+        "height_class": { "enum": ["high", "low"] },
+        "side": { "enum": ["left", "right", "center"] },
+        "notes": { "type": "string" }
+      }
+    },
+    "guard_volume": {
+      "type": "object",
+      "required": ["id", "height_class", "covers_regions", "absorbs_into"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "height_class": { "enum": ["high", "low"] },
+        "covers_regions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "absorbs_into": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "Rule 14: blocking reduces clean damage but does not erase consequence - absorbed force accumulates into arms and guard structure." },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}
