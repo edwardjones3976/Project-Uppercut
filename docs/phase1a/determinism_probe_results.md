@@ -281,3 +281,70 @@ fighter, a punch landing, or a match — no gameplay is claimed (Rule 18). The R
 stays unfired and armed for scale.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 08:16 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 08:30 UTC | START ] -->
+
+## Phase E — the collision resolution pipeline in the Blueprint VM — PASS
+
+The layer where a wrong answer is invisible without a harness. The pipeline is a total ordered
+function: every attempt resolves to exactly one of seven contact classes, stage 0 is **inverted**
+(its verdict fires when the sweep found nothing), and active evasion is ranked deliberately above
+guard interception. Each of those could be subtly wrong in an implementation and still look
+plausible frame to frame.
+
+`BP_PipelineWalker` (`sandbox/Content/PipeWalk/`), three ticking actors, 2000 ticks each. Four draws
+per tick stand in for the pipeline's inputs, and the verdict is computed branchlessly because
+exactly one case is true:
+
+    cls = 6*whiffed + 5*dodged + 4*blocked + landed*(3 - quality_count)
+
+Class indices are the canonical order of `data/contact_classes.json`, and the generator refuses to
+build if that file is reordered or if the pipeline's stage verdicts change — the Blueprint's
+arithmetic encodes those positions, so silent canon drift would silently change what it means.
+
+### Legs
+
+| Leg | Seed | Markers | SHA-256 |
+|---|---|---|---|
+| A1 | 56057345 | 6000 | `18DB5B9FBCCA867C655B825D328CC27362B064E0356836E760970F00BA411EBE` |
+| A2 | 56057345 | 6000 | `18DB5B9FBCCA867C655B825D328CC27362B064E0356836E760970F00BA411EBE` |
+| B1 | 99991 | 6000 | `B20F1EF9FD1CEAD7D1FDED35CE068F0DB02D29882052F5397F01A22352A5E886` |
+| A3 | 56057345 (regenerated) | 6000 | `18DB5B9FBCCA867C655B825D328CC27362B064E0356836E760970F00BA411EBE` |
+
+Same-seed byte-identical across independent processes and across a full asset regeneration;
+different seed diverges.
+
+### Canon conformance — the substantive result
+
+Every marker carries its four pipeline inputs alongside the verdict, precisely so the verdict can be
+**re-derived** rather than merely hashed. `tools/engine/analyze_pipeline_walker.py` recomputes the
+canonical pipeline from `collision_model.json` and `contact_classes.json` and compares row by row.
+
+| Check | A1 | B1 |
+|---|---|---|
+| Contact classes reached | **7 of 7** | **7 of 7** |
+| Verdict mismatches vs canon | **0** | **0** |
+| Visible misses classified as landed (Rule 13) | **0** | **0** |
+| Rows where guard outranked an active evasion (Rule 13 tier order) | **0** | **0** |
+
+Class distribution in A1: whiffed 859, dodged 1034, blocked 1399, brushed 935, grazed 703,
+solid 668, clean 402.
+
+Criterion A.5 asks that the pipeline be total and every class reachable. That has been enforced by
+the validator against the data since step 5 landed; it is now also **demonstrated in the engine**,
+with all seven classes actually produced by a running Blueprint rather than argued from a table.
+
+### What this does and does not establish
+
+Three of the four stages are exercised by proxy: the draws stand in for sweep overlap, evasion
+windows and guard interception rather than being produced by real swept volumes against real
+hurtboxes. What is proven is that the **ordering, the inversion, the tier ranking and the class
+arithmetic** execute correctly and reproducibly in the Blueprint VM. Real geometry feeding those
+inputs is the next layer, and no gameplay is claimed (Rule 18).
+
+One tooling note: the promotable `Subtract_IntInt` node refuses `set_pin_value` on its **A** pin
+while accepting it on **B**. The constant is now fed from a `MakeLiteralInt` node instead. This is
+the same family as the earlier promotable-DOUBLE literal defect and is recorded in
+`tools/engine/bp_authoring.py`, which now carries the shared authoring discipline.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 08:30 UTC | END ] -->

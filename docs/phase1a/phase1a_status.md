@@ -12,7 +12,7 @@ data plus validator plus tests exist in the repository; it never means engine im
 | 2 | Movement and facing | **defined + engine slice** | canon files as before; `sandbox/Content/RangeWalk/` resolves range bands with hysteresis in the Blueprint VM, byte-reproducibly and with zero hysteresis violations (`determinism_probe_results.md` Phase D) |
 | 3 | Camera behavior | **defined** | `data/camera_model.json`, `schemas/camera_model.schema.json`, `tools/uppercut_validate/camera.py`, `tests/test_camera.py`, `docs/phase1a/camera_behavior.md` |
 | 4 | Animation states | **defined** | `data/animation_model.json`, `schemas/animation_model.schema.json`, `tools/uppercut_validate/animation.py`, `tests/test_animation.py`, `docs/phase1a/animation_states.md` |
-| 5 | Hitboxes, hurtboxes, guard regions, collision truth | **defined + partial engine slice** (taken ahead of step 4 by Director instruction) | canon files as before; the quality-band dispatch executes in the Blueprint VM with zero mismatches against canon over 12,000 markers (`determinism_probe_results.md` Phase D). The resolution pipeline itself has no slice yet |
+| 5 | Hitboxes, hurtboxes, guard regions, collision truth | **defined + engine slice** (taken ahead of step 4 by Director instruction) | canon files as before; the quality dispatch (Phase D) and the full four-stage resolution pipeline (Phase E) execute in the Blueprint VM - all seven contact classes reached, zero verdict mismatches against canon over 12,000 rows, zero Rule 13 violations. Stage inputs are still proxied rather than real swept geometry |
 | 6 | Basic punches | **defined** | `data/punch_model.json`, `schemas/punch_model.schema.json`, `tools/uppercut_validate/punches.py`, `tests/test_punches.py`, `docs/phase1a/basic_punches.md`; the move table supplies each punch, this supplies what throwing one costs |
 | 7 | Guard and evasion | **defined** | `data/guard_evasion_model.json`, `schemas/guard_evasion_model.schema.json`, `tools/uppercut_validate/guard.py`, `tests/test_guard.py`, `docs/phase1a/guard_and_evasion.md`; all ten named guards authored as postures over the two collision volumes, closing Decision 0010's step-7 promise |
 | 8 | Stamina, health, condition, knockdowns, recovery | not started | condition regions defined (`data/condition_regions.json`) |
@@ -51,7 +51,7 @@ explicitly deferred, behind steps 3-4 in the binding order.
 ## Quality gate
 
 The Phase 1A quality gate is defined in `ROADMAP.md`. Nothing in it is claimed. Current honest
-position: steps 1-7 defined and validated, with engine slices for steps 1, 2 and (partially) 5;
+position: steps 1-7 defined and validated, with engine slices for steps 1, 2 and 5;
 steps 8-10 not started; steps 11-12 provisioned only. 284 tests.
 
 **Structural risk, and the first payment against it (Rule 18).** Definitions had outrun the engine
@@ -59,13 +59,18 @@ seven to one: steps 1-7 defined, one engine slice. The Phase 1A gate does not as
 it asks for complete CPU-vs-CPU matches, and every further definition step widened a gap only
 in-engine work closes.
 
-Phase D pays the first instalment. Step 2's range-band resolution **with hysteresis** and step 5's
-quality-band dispatch now execute in the Blueprint VM, byte-reproducibly across independent
-processes, with zero hysteresis violations and zero quality mismatches against canon over 12,000
-markers. Three of seven defined steps now have engine presence rather than one. The honest remaining
-gap is steps 3, 4, 6 and 7, plus the collision resolution pipeline itself - the quality dispatch is
-its last stage, not the whole of it.
-<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 08:18 UTC | edit: Phase D engine slice ] -->
+Phases D and E pay the first instalments. Step 2's range-band resolution **with hysteresis** and
+step 5's full four-stage collision pipeline now execute in the Blueprint VM, byte-reproducibly
+across independent processes and across full asset regeneration. Zero hysteresis violations, zero
+verdict mismatches against canon, all seven contact classes reached in-engine, and zero Rule 13
+violations - no visible miss classified as landed, and no case where guard outranked an active
+evasion.
+
+Three of seven defined steps now have engine presence rather than one. The honest remaining gap:
+steps 3, 4, 6 and 7 have no slice, and the pipeline's stage inputs are still proxied draws rather
+than real swept geometry against real hurtboxes. What is proven is the ordering, the inverted sweep
+stage, the tier ranking and the class arithmetic - not yet the geometry that feeds them.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 08:31 UTC | edit: Phase E engine slice ] -->
 
 **Step 6 note.** The move table already carried all nine per-attack properties ROADMAP line 51
 requires, so step 6 did not restate them. It defines what *throwing* costs: commitment with no
