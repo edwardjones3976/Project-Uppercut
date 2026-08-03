@@ -1,0 +1,51 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 10:33 UTC",
+    "end": "2026-08-03 10:33 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$comment": "The authoritative fight clock (Rule 8 / Rule 9). schemas/clock_settings.schema.json has existed since Phase 0 with nothing behind it, and 'accelerated-clock synchronization' is one of the ROADMAP's eleven required automated checks - one of the three that could not run because there was no clock to test. This defines it: one clock, read by everything, with the Accelerated Clock changing only the mapping between displayed and real time and never the tick that the simulation runs on. Engine-neutral definitions only (Rule 18). Semantics: docs/phase1a/authoritative_clock.md.",
+  "schema_version": "0.1.0-draft",
+  "tuning_status": "hypothesis",
+  "authority": {
+    "single_clock": true,
+    "read_by": ["simulation", "judging", "referee", "corner", "commentary", "crowd",
+                "broadcast", "camera", "replay", "statistics"],
+    "tick_rate_hz": 60,
+    "wall_clock_drives_simulation": false,
+    "menus_pause_between_round_break": false,
+    "notes": "Rule 9: every system reads one clock. A second clock anywhere is how a corner ends up on a different schedule from the referee."
+  },
+  "accelerated_clock": {
+    "$comment": "Rule 8, exactly as stated: ON displays 3:00 over 1:45 of real time. It is a presentation mapping, not a simulation speed change.",
+    "on_display_seconds": 180,
+    "on_real_seconds": 105,
+    "affects_simulation_tick_rate": false,
+    "affects_authored_frame_data": false,
+    "affects_stamina_per_tick": false,
+    "affects_knockdown_count_clock": false,
+    "notes": "The count clock is deliberately exempt: a knockdown count is a safety instrument and runs on real seconds whatever the display says."
+  },
+  "round_lengths_seconds": [60, 120, 180],
+  "free_form_round_length_permitted": false,
+  "between_rounds_break_seconds": 30,
+  "segments": ["entrance", "round", "break", "count", "doctor_check", "post_fight"],
+  "prohibitions": [
+    "Run a second clock anywhere in the simulation or presentation (Rule 9).",
+    "Let the Accelerated Clock change the simulation tick rate, authored frame data, stamina per tick or the knockdown count clock (Rule 8).",
+    "Permit free-form round lengths outside the authored set (Rule 8).",
+    "Let menus pause the between-rounds break (Rule 8).",
+    "Let wall-clock time drive the authoritative simulation (Criterion E.19)."
+  ],
+  "invariants": [
+    { "id": "one_clock_only", "rule": "Rule 9", "statement": "A single authoritative clock is read by simulation, judging, officiating, corners, presentation and replay alike.", "enforced_by": "tools/uppercut_validate/clock.py::check_authority" },
+    { "id": "acceleration_is_display_only", "rule": "Rule 8", "statement": "The Accelerated Clock changes the mapping between displayed and real time and nothing else - not the tick rate, not frame data, not stamina, not the count.", "enforced_by": "tools/uppercut_validate/clock.py::check_acceleration" },
+    { "id": "acceleration_ratio_is_canonical", "rule": "Rule 8", "statement": "Accelerated display is 3:00 over 1:45 of real time, the ratio PROJECT_RULES states.", "enforced_by": "tools/uppercut_validate/clock.py::check_acceleration" },
+    { "id": "round_lengths_are_authored", "rule": "Rule 8", "statement": "Rounds are one, two or three minutes; free-form lengths are prohibited.", "enforced_by": "tools/uppercut_validate/clock.py::check_rounds" },
+    { "id": "break_is_thirty_real_seconds", "rule": "Rule 8", "statement": "The between-rounds break is thirty real seconds and menus do not pause it, matching the condition model.", "enforced_by": "tools/uppercut_validate/clock.py::check_rounds" },
+    { "id": "count_clock_runs_on_real_seconds", "rule": "Rule 16", "statement": "The knockdown count is exempt from acceleration; a safety instrument does not speed up because the display does.", "enforced_by": "tools/uppercut_validate/clock.py::check_acceleration" },
+    { "id": "wall_clock_is_not_authoritative", "rule": "Criterion E.19", "statement": "Wall-clock time never drives the simulation.", "enforced_by": "tools/uppercut_validate/clock.py::check_authority" }
+  ]
+}

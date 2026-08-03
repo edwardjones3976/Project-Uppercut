@@ -1,0 +1,106 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 10:26 UTC",
+    "end": "2026-08-03 10:26 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/event_model.schema.json",
+  "title": "Event Presentation Model",
+  "description": "Implements section 13 of docs/design/event_presentation_reference.md. Presentation is loud and may not reach the fight. Engine-neutral; definitions only (Rule 18).",
+  "type": "object",
+  "required": ["schema_version", "tuning_status", "required_officials", "event_classes", "venue_requirements", "authority", "provenance_required_for", "evidence_visibility", "prohibitions", "invariants"],
+  "additionalProperties": false,
+  "properties": {
+    "contribution": { "type": "object" },
+    "$comment": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "tuning_status": { "enum": ["hypothesis", "validated"] },
+    "required_officials": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["role", "min", "authority"],
+        "additionalProperties": false,
+        "properties": {
+          "role": { "type": "string", "pattern": "^[a-z_]+$" },
+          "min": { "type": "integer", "exclusiveMinimum": 0 },
+          "authority": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "event_classes": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["id", "prestige", "requires_championship_metadata", "commentary_crew"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "prestige": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "requires_championship_metadata": { "type": "boolean" },
+          "commentary_crew": { "type": "integer", "minimum": 2, "maximum": 3 }
+        }
+      }
+    },
+    "venue_requirements": {
+      "type": "object",
+      "required": ["separated_fighter_routes", "emergency_access_route", "ring_size_is_real_space", "ring_size_as_hidden_stat_modifier"],
+      "additionalProperties": false,
+      "properties": {
+        "separated_fighter_routes": { "const": true },
+        "emergency_access_route": { "const": true },
+        "ring_size_is_real_space": { "const": true },
+        "ring_size_as_hidden_stat_modifier": { "const": false },
+        "notes": { "type": "string" }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "required": ["prestige_alters_combat", "prestige_alters_attributes", "crowd_presentation_reads_scores", "crowd_presentation_alters_scores", "broadcast_has_privileged_knowledge", "broadcast_has_future_knowledge", "dynamic_incidents_alter_outcomes", "presentation_may_obscure_evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "prestige_alters_combat": { "const": false },
+        "prestige_alters_attributes": { "const": false },
+        "crowd_presentation_reads_scores": { "const": false },
+        "crowd_presentation_alters_scores": { "const": false },
+        "broadcast_has_privileged_knowledge": { "const": false },
+        "broadcast_has_future_knowledge": { "const": false },
+        "dynamic_incidents_alter_outcomes": { "const": false },
+        "presentation_may_obscure_evidence": { "const": false }
+      }
+    },
+    "provenance_required_for": { "type": "array", "minItems": 3, "items": { "type": "string" } },
+    "evidence_visibility": {
+      "type": "object",
+      "required": ["must_remain_visible"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "must_remain_visible": { "type": "array", "minItems": 4, "items": { "type": "string" } },
+        "notes": { "type": "string" }
+      }
+    },
+    "prohibitions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "rule", "statement"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "rule": { "type": "string" },
+          "statement": { "type": "string", "minLength": 1 },
+          "enforced_by": { "type": "string" }
+        }
+      }
+    }
+  }
+}

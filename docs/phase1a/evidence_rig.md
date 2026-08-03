@@ -32,10 +32,11 @@ rather than validated.
 ## The eight required checks that could honestly be built
 
 The ROADMAP lists eleven required automated checks. Until now exactly one existed — the attribute
-fixtures — because the other ten need something to run. Eight now run:
+fixtures — because the other ten need something to run. Nine now run:
 
 | Check | What it asserts |
 |---|---|
+| Accelerated-clock synchronization | One clock at 60Hz read by every named system; acceleration is a display mapping that reaches neither the tick rate, the frame data, the stamina economy, nor the knockdown count |
 | Score-access denial | Judge events are sealed, no observable payload leaks card data, and the Observation handed to a policy contains no path to the cards |
 | Determinism and seeded replay | Same seed reproduces the log byte for byte; different seeds diverge |
 | Repetition versus spam | Novelty decays with repetition **and** never reaches zero |
@@ -51,9 +52,9 @@ canon. Long Drain fails if the patient instrument throws nothing, because that i
 rather than stamina control. A check that only forbids can be satisfied by a simulation where
 nothing happens, so most of these assert that something *can* happen too.
 
-Three remain unbuilt and are named rather than quietly skipped: accelerated-clock synchronization,
-style-viability and dominant-loop detection at scale, and the full repetition abuse list (safe-animation
-abuse, stun loops, clinch abuse, excessive running, passive blocking).
+Two remain unbuilt and are named rather than quietly skipped: style-viability and dominant-loop
+detection at scale, and the full repetition abuse list (safe-animation abuse, stun loops, clinch
+abuse, excessive running, passive blocking).
 
 ## Balance instruments
 

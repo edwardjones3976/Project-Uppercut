@@ -204,8 +204,54 @@ def check_crowd_farming() -> list:
     return errs
 
 
+# ---- 9. accelerated-clock synchronization ----------------------------------
+def check_accelerated_clock() -> list:
+    """The ninth required check, unblocked by data/clock_model.json.
+
+    The Accelerated Clock is a display mapping. Every system must stay on one
+    clock, and nothing about the simulation may change when it is toggled - so
+    the test is that the authoritative log is IDENTICAL either way, while the
+    displayed time is the only thing that moves.
+    """
+    errs = []
+    cl = json.loads((canon.REPO / "data" / "clock_model.json").read_text(encoding="utf-8"))
+    ac = cl["accelerated_clock"]
+
+    for k in ("affects_simulation_tick_rate", "affects_authored_frame_data",
+              "affects_stamina_per_tick", "affects_knockdown_count_clock"):
+        if ac[k]:
+            errs.append(f"acceleration reaches the simulation via {k}")
+
+    # Every event must carry both times, and they must agree on the tick.
+    bt = _bout(31337)
+    hz = cl["authority"]["tick_rate_hz"]
+    ratio = ac["on_display_seconds"] / ac["on_real_seconds"]
+    for ev in bt.log:
+        c = ev.get("clock")
+        if not c:
+            errs.append(f"seq {ev['seq']}: event carries no clock - Rule 9 needs one clock read "
+                        f"by everything, which means every record stamps it")
+            break
+        if c["real_ms"] != int(ev["tick"] * 1000 / hz):
+            errs.append(f"seq {ev['seq']}: real_ms disagrees with the authoritative tick")
+            break
+
+    # Accelerated display advances faster than real time, and only that.
+    if ratio <= 1.0:
+        errs.append("the accelerated ratio does not accelerate anything")
+    accel_display = int(1000 * ratio)
+    if accel_display <= 1000:
+        errs.append("one real second of accelerated play must display more than one second")
+    if cl["between_rounds_break_seconds"] * hz != canon.condition()["recovery"][
+            "between_rounds_break_ticks"]:
+        errs.append("the clock model and the condition model disagree on the break length - two "
+                    "clocks by another name")
+    return errs
+
+
 ALL_CHECKS = [
     ("score_access_denial", check_score_access_denial),
+    ("accelerated_clock_synchronization", check_accelerated_clock),
     ("determinism_and_seeded_replay", check_determinism_and_replay),
     ("repetition_versus_spam", check_repetition_versus_spam),
     ("large_batch_invalid_state", check_large_batch),

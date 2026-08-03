@@ -1,13 +1,13 @@
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | START ]
-"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget|states|movement|camera|animation|collision|punches|guard|condition|cpu|replay|crowd|ability]"""
+"""Command line entry point: python -m tools.uppercut_validate.cli [all|fighters|isolation|budget|states|movement|camera|animation|collision|punches|guard|condition|cpu|replay|crowd|ability|event|clock]"""
 from __future__ import annotations
 import json
 import sys
 from pathlib import Path
 
-from . import (ability, animation, attributes, budget, camera, collision, combat_states,
-               condition, contracts, cpu, crowd, guard, movement, punches, replay,
-               schema_check, score_isolation)
+from . import (ability, animation, attributes, budget, camera, clock, collision,
+               combat_states, condition, contracts, cpu, crowd, event, guard, movement,
+               punches, replay, schema_check, score_isolation)
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -193,6 +193,42 @@ def cmd_camera() -> int:
           f"from the determinism hash (Rule 18: definitions only)")
     return failures
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 04:03 UTC | END edit ]
+
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 10:40 UTC | START edit: event and clock ]
+def cmd_event() -> int:
+    """Event presentation: section 13 of the event reference, implemented."""
+    doc = event.load()
+    failures = 0
+    for name, fn in event.ALL_CHECKS:
+        errs = fn(doc)
+        print(f"{'PASS' if not errs else 'FAIL'}  {name}")
+        for e in errs:
+            print(f"        {e}")
+        failures += len(errs)
+    print(f"INFO  {len(doc['required_officials'])} required officials, "
+          f"{len(doc['event_classes'])} event classes; prestige, broadcast, crowd and venue all "
+          f"hold zero authority over the fight (Rule 18: definitions only)")
+    return failures
+
+
+def cmd_clock() -> int:
+    """The authoritative clock (Rule 8 / Rule 9)."""
+    doc = clock.load()
+    failures = 0
+    for name, fn in clock.ALL_CHECKS:
+        errs = fn(doc)
+        print(f"{'PASS' if not errs else 'FAIL'}  {name}")
+        for e in errs:
+            print(f"        {e}")
+        failures += len(errs)
+    ac = doc["accelerated_clock"]
+    print(f"INFO  one clock at {doc['authority']['tick_rate_hz']}Hz read by "
+          f"{len(doc['authority']['read_by'])} systems; accelerated display "
+          f"{ac['on_display_seconds']}s over {ac['on_real_seconds']}s real, reaching neither the "
+          f"tick rate nor the count clock (Rule 18: definitions only)")
+    return failures
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 10:40 UTC | END edit ]
 
 
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 09:28 UTC | START edit: Phase 1A steps 11-12 ]
@@ -399,6 +435,10 @@ def main(argv: list) -> int:
         print("== Phase 1A Crowd Bar =="); total += cmd_crowd(); print()
     if cmd in ("all", "ability"):
         print("== Phase 1A ability architecture =="); total += cmd_ability(); print()
+    if cmd in ("all", "event"):
+        print("== Event presentation =="); total += cmd_event(); print()
+    if cmd in ("all", "clock"):
+        print("== Authoritative clock =="); total += cmd_clock(); print()
     print(f"RESULT: {'OK' if total == 0 else str(total) + ' FAILURE(S)'}")
     return 1 if total else 0
 

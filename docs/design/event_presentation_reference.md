@@ -467,7 +467,7 @@ Premium entrance options:
 - rivalry-specific staging;
 - championship ceremony.
 
-Entrances should express original fighter personality and Ready 2 Rumble-style theatrical energy without copying protected presentation.
+Entrances should express original fighter personality and classic-arcade-boxing theatrical energy without copying protected presentation.
 
 ## 9.3 Themed entertainment
 
@@ -671,6 +671,31 @@ Recommended invariant:
 > **Every event must be operationally believable, visually readable, mechanically truthful, and modular enough to scale from a small club card to a global spectacle without changing the underlying boxing system.**
 
 ---
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 10:24 UTC | START intake: Rule 1 substitution and canon cross-lock. The OpenAI author's START/END tags are untouched; one phrase in 9.2 is substituted and the reason is recorded here. ] -->
+
+> **Rule 1 substitution (9.2).** The entrance guidance originally reached for a
+> named commercial property as its style shorthand. Rule 1 governs shipped
+> identity, and this document is close enough to shipped presentation that the
+> name should not travel with it - the same call was made against the GitHub
+> repository description earlier today, and consistency matters more than the
+> convenience of the shorthand. The phrase now reads "classic-arcade-boxing
+> theatrical energy", which is the vocabulary `PROJECT_NOTES.md` already uses for
+> exactly this idea. The author's caveat about not copying protected
+> presentation was correct and is retained.
+>
+> **Canon cross-lock.** Section 13's validation requirements are now implemented
+> rather than aspirational: `data/event_model.json`,
+> `tools/uppercut_validate/event.py` and `tests/test_event.py` enforce required
+> officials, prestige that cannot reach combat, broadcast without privileged or
+> hidden-state knowledge, ring size as real space rather than a hidden stat, and
+> presentation that cannot obscure authoritative evidence. Section 5's medical
+> and stoppage chain agrees with `data/condition_model.json`, which already
+> requires every stoppage to name an authority and an observable trigger and
+> forbids any of them reading the scorecards. Where this document and a `data/`
+> file ever disagree, the data file wins.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 10:24 UTC | END intake ] -->
 
 # 14. Scope intentionally excluded
 

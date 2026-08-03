@@ -312,7 +312,7 @@ Reusable tools and licensed assets may accelerate development. Every asset requi
 Project Uppercut’s characters, mechanics, tuning, branding, writing, finished presentation, and project-specific code remain original.
 
 Current repository status: preproduction closed with the Phase 0 quality gate passed on repository
-evidence; the validation toolchain (381 tests in CI) and Phase 1A definitions for all twelve ROADMAP
+evidence; the validation toolchain (402 tests in CI) and Phase 1A definitions for all twelve ROADMAP
 steps (combat states, movement/facing, camera, animation states, collision truth, basic
 punches, guard and evasion, condition and recovery, CPU decision-making, logging and replay) are in
 place; a verified

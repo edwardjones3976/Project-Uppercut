@@ -52,16 +52,26 @@ explicitly deferred, behind steps 3-4 in the binding order.
 
 The Phase 1A quality gate is defined in `ROADMAP.md`. Nothing in it is claimed. Current honest
 position: **all twelve Phase 1A steps defined and validated**, with engine slices for steps 1, 2
-and 5, and a Python reference simulator running complete CPU-vs-CPU bouts. 381 tests.
+and 5, and a Python reference simulator running complete CPU-vs-CPU bouts. 402 tests.
+
+**Event presentation and the authoritative clock are defined** (`data/event_model.json`,
+`data/clock_model.json`, `docs/phase1a/event_and_clock.md`). The event model implements section 13
+of the merged event presentation reference, which asked for validators and had none: prestige,
+broadcast, crowd and venue now hold provably zero authority over the fight, and evidence cannot be
+obscured by spectacle. The clock model unblocked the ninth required check - the Accelerated Clock
+is a display mapping that may not reach the tick rate, frame data, stamina, or the knockdown count,
+which is a safety instrument rather than a pacing option.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 10:46 UTC | edit: event, clock, ninth check ] -->
 
 **The evidence rig exists (WS5).** `tools/uppercut_sim/` executes the canonical models end to end -
 decisions, collision pipeline, condition, crowd, knockdowns, stoppages, sealed cards - and eight of
-the ROADMAP's eleven required automated checks now run against it: score-access denial, determinism
-and seeded replay, repetition-versus-spam, large-batch invalid-state and deadlock, knockdown and
-stoppage and result states, First Bell Firestorm, Long Drain, and Crowd-farming prohibition. A
-90-bout stress-profile round robin found no dominant extreme and no absent counterplay.
-Three checks remain unbuilt and are named rather than skipped: accelerated-clock synchronization,
-style-viability and dominant-loop detection at scale, and the full repetition abuse list.
+the ROADMAP's eleven required automated checks now run against it: score-access denial,
+accelerated-clock synchronization, determinism and seeded replay, repetition-versus-spam,
+large-batch invalid-state and deadlock, knockdown and stoppage and result states, First Bell
+Firestorm, Long Drain, and Crowd-farming prohibition. A 90-bout stress-profile round robin found no
+dominant extreme and no absent counterplay.
+Two checks remain unbuilt and are named rather than skipped: style-viability and dominant-loop
+detection at scale, and the full repetition abuse list.
 Unreal remains authoritative (Decision 0002); the reference model is an instrument, not a result.
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 09:52 UTC | edit: steps 11-12, evidence rig ] -->
 

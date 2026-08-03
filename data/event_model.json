@@ -1,0 +1,73 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 10:26 UTC",
+    "end": "2026-08-03 10:26 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$comment": "Event presentation model. Implements section 13 of docs/design/event_presentation_reference.md - that document asked for validators and this is them. The load-bearing idea: an event is presentation and structure, and presentation may never reach the fight. Prestige, broadcast, crowd and venue all sit outside the simulation's authority, exactly as the camera does. Engine-neutral definitions only (Rule 18). Semantics: docs/phase1a/event_presentation.md.",
+  "schema_version": "0.1.0-draft",
+  "tuning_status": "hypothesis",
+  "required_officials": [
+    { "role": "referee", "min": 1, "authority": "in_ring_enforcement_and_stoppage" },
+    { "role": "judge", "min": 3, "authority": "sealed_scoring" },
+    { "role": "timekeeper", "min": 1, "authority": "authoritative_clock" },
+    { "role": "ringside_physician", "min": 1, "authority": "medical_stoppage" }
+  ],
+  "event_classes": [
+    { "id": "club_night", "prestige": 1, "requires_championship_metadata": false, "commentary_crew": 2 },
+    { "id": "regional_showcase", "prestige": 2, "requires_championship_metadata": false, "commentary_crew": 2 },
+    { "id": "championship_night", "prestige": 4, "requires_championship_metadata": true, "commentary_crew": 3 },
+    { "id": "international_spectacle", "prestige": 5, "requires_championship_metadata": true, "commentary_crew": 3 },
+    { "id": "exclusive_invitation", "prestige": 4, "requires_championship_metadata": false, "commentary_crew": 3 },
+    { "id": "comedy_showcase", "prestige": 2, "requires_championship_metadata": false, "commentary_crew": 2 }
+  ],
+  "venue_requirements": {
+    "separated_fighter_routes": true,
+    "emergency_access_route": true,
+    "ring_size_is_real_space": true,
+    "ring_size_as_hidden_stat_modifier": false,
+    "notes": "A smaller ring changes the fight because there is less room to move, which the Elastic Footwork model already reads. Implementing it as a hidden stat would be the same category of error as a rubber-band multiplier."
+  },
+  "authority": {
+    "$comment": "The whole point of this file. Presentation is loud and may not touch the fight.",
+    "prestige_alters_combat": false,
+    "prestige_alters_attributes": false,
+    "crowd_presentation_reads_scores": false,
+    "crowd_presentation_alters_scores": false,
+    "broadcast_has_privileged_knowledge": false,
+    "broadcast_has_future_knowledge": false,
+    "dynamic_incidents_alter_outcomes": false,
+    "presentation_may_obscure_evidence": false
+  },
+  "provenance_required_for": [
+    "celebrity_appearance", "sponsor_content", "licensed_music", "licensed_footage", "brand_placement"
+  ],
+  "evidence_visibility": {
+    "$comment": "ROADMAP gate readability item, at the event layer. A spectator must be able to see the things a fight is decided by.",
+    "must_remain_visible": ["contact_classification", "knockdown", "foul", "stoppage_reason", "count"],
+    "notes": "Section 13 of the reference asks that presentation never obscure authoritative contact, knockdowns, fouls or stoppage evidence. Spectacle that hides the decisive moment has failed at the one job the presentation layer has."
+  },
+  "prohibitions": [
+    "Run an event without a referee, three judges, a timekeeper and a ringside physician.",
+    "Let event prestige change combat, attributes, damage or any simulation value (Rule 12).",
+    "Let crowd presentation read or alter official scores (Rule 3).",
+    "Give broadcast systems privileged, hidden or future knowledge (Rule 3).",
+    "Let a dynamic incident silently modify a fight outcome.",
+    "Implement ring size as a hidden fighter stat modifier rather than as actual space.",
+    "Let presentation obscure authoritative contact, knockdowns, fouls or stoppage evidence.",
+    "Ship celebrity, sponsor or licensed content without recorded provenance (Rule 1)."
+  ],
+  "invariants": [
+    { "id": "officials_are_required", "rule": "Rule 16", "statement": "Every event declares a referee, three judges, a timekeeper and a ringside physician, each with a named authority.", "enforced_by": "tools/uppercut_validate/event.py::check_officials" },
+    { "id": "prestige_never_reaches_the_fight", "rule": "Rule 12", "statement": "Event prestige alters no combat value and no attribute; it is presentation and stakes only.", "enforced_by": "tools/uppercut_validate/event.py::check_authority" },
+    { "id": "broadcast_knows_nothing_privileged", "rule": "Rule 3", "statement": "Broadcast and crowd presentation hold no privileged, hidden or future knowledge and cannot read or alter official scores.", "enforced_by": "tools/uppercut_validate/event.py::check_authority" },
+    { "id": "incidents_do_not_decide_fights", "rule": "Rule 13", "statement": "No dynamic event incident silently modifies a fight outcome.", "enforced_by": "tools/uppercut_validate/event.py::check_authority" },
+    { "id": "ring_size_is_geometry", "rule": "Rule 12", "statement": "Ring size is real space read by footwork, never a hidden stat modifier.", "enforced_by": "tools/uppercut_validate/event.py::check_venue" },
+    { "id": "championship_metadata_required", "rule": "Rule 22", "statement": "Any event class carrying championship stakes declares championship presentation metadata.", "enforced_by": "tools/uppercut_validate/event.py::check_event_classes" },
+    { "id": "commentary_crew_scales_and_stays_legal", "rule": "Rule 17", "statement": "Commentary crew size scales with event importance and stays inside the canonical bounds.", "enforced_by": "tools/uppercut_validate/event.py::check_event_classes" },
+    { "id": "evidence_stays_visible", "rule": "ROADMAP Phase 1A gate", "statement": "Contact classification, knockdowns, fouls, counts and stoppage reasons remain visible; presentation may not obscure them.", "enforced_by": "tools/uppercut_validate/event.py::check_evidence" },
+    { "id": "licensed_content_has_provenance", "rule": "Rule 1", "statement": "Celebrity, sponsor, music, footage and brand content each require recorded provenance before shipping.", "enforced_by": "tools/uppercut_validate/event.py::check_provenance" }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 10:33 UTC",
+    "end": "2026-08-03 10:33 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/clock_model.schema.json",
+  "title": "Authoritative Clock Model",
+  "description": "Rule 8 and Rule 9: one clock read by everything, with the Accelerated Clock as a display mapping only. Engine-neutral; definitions only (Rule 18).",
+  "type": "object",
+  "required": ["schema_version", "tuning_status", "authority", "accelerated_clock", "round_lengths_seconds", "free_form_round_length_permitted", "between_rounds_break_seconds", "segments", "prohibitions", "invariants"],
+  "additionalProperties": false,
+  "properties": {
+    "contribution": { "type": "object" },
+    "$comment": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "tuning_status": { "enum": ["hypothesis", "validated"] },
+    "authority": {
+      "type": "object",
+      "required": ["single_clock", "read_by", "tick_rate_hz", "wall_clock_drives_simulation", "menus_pause_between_round_break"],
+      "additionalProperties": false,
+      "properties": {
+        "single_clock": { "const": true },
+        "read_by": { "type": "array", "minItems": 5, "items": { "type": "string" } },
+        "tick_rate_hz": { "const": 60 },
+        "wall_clock_drives_simulation": { "const": false },
+        "menus_pause_between_round_break": { "const": false },
+        "notes": { "type": "string" }
+      }
+    },
+    "accelerated_clock": {
+      "type": "object",
+      "required": ["on_display_seconds", "on_real_seconds", "affects_simulation_tick_rate", "affects_authored_frame_data", "affects_stamina_per_tick", "affects_knockdown_count_clock"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "on_display_seconds": { "const": 180 },
+        "on_real_seconds": { "const": 105 },
+        "affects_simulation_tick_rate": { "const": false },
+        "affects_authored_frame_data": { "const": false },
+        "affects_stamina_per_tick": { "const": false },
+        "affects_knockdown_count_clock": { "const": false },
+        "notes": { "type": "string" }
+      }
+    },
+    "round_lengths_seconds": { "type": "array", "minItems": 1, "items": { "enum": [60, 120, 180] } },
+    "free_form_round_length_permitted": { "const": false },
+    "between_rounds_break_seconds": { "const": 30 },
+    "segments": { "type": "array", "minItems": 3, "items": { "type": "string" } },
+    "prohibitions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "rule", "statement"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "rule": { "type": "string" },
+          "statement": { "type": "string", "minLength": 1 },
+          "enforced_by": { "type": "string" }
+        }
+      }
+    }
+  }
+}
