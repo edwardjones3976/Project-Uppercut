@@ -29,10 +29,10 @@ That is the first complete bout this project has produced. It is not the gate �
 the engine, with a spectator able to follow it — but it is the first time the canon has been executed
 rather than validated.
 
-## The eight required checks that could honestly be built
+## The eleven required checks
 
-The ROADMAP lists eleven required automated checks. Until now exactly one existed — the attribute
-fixtures — because the other ten need something to run. Nine now run:
+The ROADMAP lists eleven required automated checks. Until this work exactly one existed — the
+attribute fixtures — because the other ten need something to run. All eleven now run:
 
 | Check | What it asserts |
 |---|---|
@@ -41,7 +41,9 @@ fixtures — because the other ten need something to run. Nine now run:
 | Determinism and seeded replay | Same seed reproduces the log byte for byte; different seeds diverge |
 | Repetition versus spam | Novelty decays with repetition **and** never reaches zero |
 | Large-batch invalid state and deadlock | 40 bouts with no out-of-range stamina or condition, strictly ordered sequences, monotonic ticks, backward causality, and no bout where nothing resolved |
-| Knockdown, stoppage and result states | Stoppages occur, each explained by a knockdown, every bout ends on a final card |
+| Knockdown, stoppage and result states | Stoppages occur, each explained by a knockdown, every bout ends on a final card — **and** some bouts reach the cards, because a result state that never occurs is unimplemented |
+| Style viability and dominant loops | Every canon style can win; none wins everything; no single move carries more than 60% of all landed offence; the sweep runs at canonical bout length, not a short one |
+| The repetition abuse list | Each of Rule 4's named abuses, played as hard as a policy can play it, loses **and** was never forbidden — a spammer stopped by a rule fails this as loudly as one that wins |
 | First Bell Firestorm | Effective pressure **can** win, and does **not** win everything |
 | Long Drain | Patience pays in stamina, and the patient instrument still throws |
 | Crowd-farming prohibition | Repeated actions are reduced by novelty; unopposed targets pay nothing |
@@ -52,9 +54,10 @@ canon. Long Drain fails if the patient instrument throws nothing, because that i
 rather than stamina control. A check that only forbids can be satisfied by a simulation where
 nothing happens, so most of these assert that something *can* happen too.
 
-Two remain unbuilt and are named rather than quietly skipped: style-viability and dominant-loop
-detection at scale, and the full repetition abuse list (safe-animation abuse, stun loops, clinch
-abuse, excessive running, passive blocking).
+The last two to be built — style viability and the abuse list — turned up nine real defects on their
+first run, including a 60-bout sweep in which every single bout ended in a stoppage while the suite
+stayed green. `docs/phase1a/exploit_hunt.md` is the full account, and it is worth reading as the
+argument for why these checks assert that things *can* happen and not only that they cannot.
 
 ## Balance instruments
 

@@ -23,22 +23,106 @@
     "notes": "Regeneration is never faster while working than while resting, and throwing pays for itself in full. The between-rounds fraction is what makes the corner matter and what makes a fast finish a real tactical choice."
   },
   "damage_regions": [
-    { "region": "head", "capacity": 100.0, "recovers_between_rounds": 0.12, "impairs": ["composure_state", "balance"] },
-    { "region": "jaw_chin", "capacity": 100.0, "recovers_between_rounds": 0.08, "impairs": ["balance", "chin_state"], "knockdown_relevant": true },
-    { "region": "eye_left", "capacity": 100.0, "recovers_between_rounds": 0.05, "impairs": ["accuracy", "tracking"] },
-    { "region": "eye_right", "capacity": 100.0, "recovers_between_rounds": 0.05, "impairs": ["accuracy", "tracking"] },
-    { "region": "torso_upper", "capacity": 100.0, "recovers_between_rounds": 0.1, "impairs": ["stamina"] },
-    { "region": "torso_lower", "capacity": 100.0, "recovers_between_rounds": 0.1, "impairs": ["stamina", "balance"] },
-    { "region": "arm_left", "capacity": 100.0, "recovers_between_rounds": 0.15, "impairs": ["guard_integrity"] },
-    { "region": "arm_right", "capacity": 100.0, "recovers_between_rounds": 0.15, "impairs": ["guard_integrity"] }
+    {
+      "region": "head",
+      "capacity": 100.0,
+      "recovers_between_rounds": 0.12,
+      "impairs": [
+        "composure_state",
+        "balance"
+      ]
+    },
+    {
+      "region": "jaw_chin",
+      "capacity": 100.0,
+      "recovers_between_rounds": 0.08,
+      "impairs": [
+        "balance",
+        "chin_state"
+      ],
+      "knockdown_relevant": true
+    },
+    {
+      "region": "eye_left",
+      "capacity": 100.0,
+      "recovers_between_rounds": 0.05,
+      "impairs": [
+        "accuracy",
+        "tracking"
+      ]
+    },
+    {
+      "region": "eye_right",
+      "capacity": 100.0,
+      "recovers_between_rounds": 0.05,
+      "impairs": [
+        "accuracy",
+        "tracking"
+      ]
+    },
+    {
+      "region": "torso_upper",
+      "capacity": 100.0,
+      "recovers_between_rounds": 0.1,
+      "impairs": [
+        "stamina"
+      ]
+    },
+    {
+      "region": "torso_lower",
+      "capacity": 100.0,
+      "recovers_between_rounds": 0.1,
+      "impairs": [
+        "stamina",
+        "balance"
+      ]
+    },
+    {
+      "region": "arm_left",
+      "capacity": 100.0,
+      "recovers_between_rounds": 0.15,
+      "impairs": [
+        "guard_integrity"
+      ]
+    },
+    {
+      "region": "arm_right",
+      "capacity": 100.0,
+      "recovers_between_rounds": 0.15,
+      "impairs": [
+        "guard_integrity"
+      ]
+    }
   ],
   "knockdown": {
     "$comment": "Rule 14. A knockdown is the product of observable force, placement, contact quality, movement, balance, awareness, accumulated condition and failed defence - never a dice roll attached to a punch.",
     "flat_random_roll_per_punch": false,
-    "inputs": ["delivered_force", "contact_quality", "target_region", "closing_velocity", "balance", "accumulated_condition", "chin_state", "guard_state"],
+    "inputs": [
+      "delivered_force",
+      "contact_quality",
+      "target_region",
+      "closing_velocity",
+      "balance",
+      "accumulated_condition",
+      "chin_state",
+      "guard_state"
+    ],
+    "pressure_threshold": 1.5,
+    "pressure_threshold_note": "The line the combined inputs above must cross for a knockdown. It lives here rather than inside a simulator because it decides how often fights end early, which is a design statement, not an implementation detail. Set 2026-08-03 by sweeping it across a 60-bout all-pairs run of the six stress profiles at three rounds of three minutes: 1.30 stopped 78% of bouts, 1.45 stopped 55%, 1.50 stopped 45%, 1.60 stopped 15% and 1.90 stopped none. 1.50 was chosen because both result paths stay busy - a stoppage is a live threat in every bout and the cards still decide the majority. The value is a hypothesis; the requirement that neither path go dead is not.",
+    "pressure_modifiers": {
+      "$comment": "Two of the inputs listed above - balance and guard_state - were declared and then never used, which left delivered force, accumulated condition and stamina as the only terms. All three are bounded and all three move slowly, so pressure had a hard ceiling just above 1.0 and no tail: a threshold of 0.95 stopped two bouts in three and a threshold of 1.05 stopped none at all. A design number with a cliff that sharp is not tunable. These modifiers are the missing terms, and they are state, not dice - Rule 14's ban is on a flat random roll attached to a punch, not on the fight mattering.",
+      "caught_committed_multiplier": 1.55,
+      "balanced_multiplier": 1.0,
+      "unguarded_lane_bonus": 0.35,
+      "notes": "caught_committed is the counter: a fighter dropped while inside his own recovery was caught doing something, which is how most real knockdowns happen and why commitment is the currency this whole model is priced in. unguarded_lane reads the coverage extent the collision pipeline already computed for the target lane, so a shot through an open lane lands heavier than the same shot into a covering arm - the guard keeps mattering after interception fails."
+    },
+    "decision_path_must_survive": true,
     "count_ticks_per_number": 60,
     "count_to": 10,
     "mandatory_eight_count": true,
+    "count_condition_relief_fraction": 0.45,
+    "count_stamina_relief_fraction": 0.25,
+    "count_relief_note": "What the count is FOR. A fighter who takes the full eight has had eight seconds to clear his head and get his breath back, and that is why referees give it. Without this the model had no way back from being hurt inside a round: accumulated condition only ever rose and stamina only ever fell, so the first knockdown guaranteed the rest and every bout in a 60-bout sweep ended in stoppage. Relief is partial on purpose - the count buys clarity, never a fresh fighter, and the knockdown itself stays on the card forever.",
     "max_per_round": 3,
     "max_per_bout": 4,
     "rise_window_ticks": 480,
@@ -48,22 +132,49 @@
     "$comment": "Rule 14, stated as a bound rather than a curve so it cannot drift into immunity.",
     "max_resistance_confers_immunity": false,
     "attribute": "chin",
-    "scales": ["knockdown_resistance", "stun_duration"],
+    "scales": [
+      "knockdown_resistance",
+      "stun_duration"
+    ],
     "early_stoppage_possible_at_max": true,
     "notes": "Chin +100 is the most authored resistance available and still loses to enough evidence. A rare early stoppage against a maximum-Chin fighter is a correct outcome, not a bug."
   },
   "recovery": {
     "attribute": "recovery",
-    "scales": ["between_rounds_recovery", "stun_exit_speed", "condition_regain"],
+    "scales": [
+      "between_rounds_recovery",
+      "stun_exit_speed",
+      "condition_regain"
+    ],
     "between_rounds_break_ticks": 1800,
     "notes": "Thirty real seconds at 60 ticks (Rule 8). Menus do not pause it, which is why the corner is a resource and not a loading screen."
   },
   "stoppage_conditions": [
-    { "id": "count_expired", "trigger": "the knockdown count reaches its limit before the fighter rises", "authority": "referee" },
-    { "id": "knockdown_limit", "trigger": "knockdowns exceed the per-round or per-bout maximum", "authority": "referee" },
-    { "id": "referee_judgement", "trigger": "the officiating profile's stoppage threshold is met on observable evidence", "authority": "referee" },
-    { "id": "medical", "trigger": "a monitored injury crosses its medical minimum", "authority": "doctor" },
-    { "id": "corner_retirement", "trigger": "the corner withdraws the fighter between rounds", "authority": "corner" }
+    {
+      "id": "count_expired",
+      "trigger": "the knockdown count reaches its limit before the fighter rises",
+      "authority": "referee"
+    },
+    {
+      "id": "knockdown_limit",
+      "trigger": "knockdowns exceed the per-round or per-bout maximum",
+      "authority": "referee"
+    },
+    {
+      "id": "referee_judgement",
+      "trigger": "the officiating profile's stoppage threshold is met on observable evidence",
+      "authority": "referee"
+    },
+    {
+      "id": "medical",
+      "trigger": "a monitored injury crosses its medical minimum",
+      "authority": "doctor"
+    },
+    {
+      "id": "corner_retirement",
+      "trigger": "the corner withdraws the fighter between rounds",
+      "authority": "corner"
+    }
   ],
   "prohibitions": [
     "Collapse per-region condition into a single generic health pool (Rule 14).",
@@ -75,13 +186,53 @@
     "Restore a region to full between rounds - accumulated damage is what makes late rounds different."
   ],
   "invariants": [
-    { "id": "no_generic_pool", "rule": "Rule 14", "statement": "Every damage region maps to a declared condition region, all eight strikeable regions are covered, and no generic health pool exists.", "enforced_by": "tools/uppercut_validate/condition.py::check_regions" },
-    { "id": "no_knockout_roll", "rule": "Rule 14", "statement": "Knockdowns are produced from observable inputs; no flat per-punch random roll exists, and the input list includes force, placement, quality and accumulated condition.", "enforced_by": "tools/uppercut_validate/condition.py::check_knockdown" },
-    { "id": "chin_is_not_immunity", "rule": "Rule 14", "statement": "Maximum Chin never confers immunity, and an early stoppage remains possible at maximum Chin.", "enforced_by": "tools/uppercut_validate/condition.py::check_chin" },
-    { "id": "count_clock_is_universal", "rule": "Rule 16", "statement": "The knockdown count is authoritative and identical across referees; officiating philosophy may not alter it.", "enforced_by": "tools/uppercut_validate/condition.py::check_knockdown" },
-    { "id": "work_never_outpaces_rest", "rule": "Rule 14", "statement": "Stamina regeneration is non-increasing from idle to moving to throwing, and throwing regenerates nothing.", "enforced_by": "tools/uppercut_validate/condition.py::check_stamina" },
-    { "id": "rounds_do_not_erase_damage", "rule": "Rule 14", "statement": "No region recovers fully between rounds; accumulated condition is what makes a late round different from an early one.", "enforced_by": "tools/uppercut_validate/condition.py::check_regions" },
-    { "id": "stoppage_is_evidenced", "rule": "Rule 3", "statement": "Every stoppage condition names an authority and an observable trigger, and none reads official scores.", "enforced_by": "tools/uppercut_validate/condition.py::check_stoppages" },
-    { "id": "break_is_authoritative", "rule": "Rule 8", "statement": "The between-rounds break is 1800 ticks - thirty real seconds at the authoritative 60-tick clock.", "enforced_by": "tools/uppercut_validate/condition.py::check_recovery" }
+    {
+      "id": "no_generic_pool",
+      "rule": "Rule 14",
+      "statement": "Every damage region maps to a declared condition region, all eight strikeable regions are covered, and no generic health pool exists.",
+      "enforced_by": "tools/uppercut_validate/condition.py::check_regions"
+    },
+    {
+      "id": "no_knockout_roll",
+      "rule": "Rule 14",
+      "statement": "Knockdowns are produced from observable inputs; no flat per-punch random roll exists, and the input list includes force, placement, quality and accumulated condition.",
+      "enforced_by": "tools/uppercut_validate/condition.py::check_knockdown"
+    },
+    {
+      "id": "chin_is_not_immunity",
+      "rule": "Rule 14",
+      "statement": "Maximum Chin never confers immunity, and an early stoppage remains possible at maximum Chin.",
+      "enforced_by": "tools/uppercut_validate/condition.py::check_chin"
+    },
+    {
+      "id": "count_clock_is_universal",
+      "rule": "Rule 16",
+      "statement": "The knockdown count is authoritative and identical across referees; officiating philosophy may not alter it.",
+      "enforced_by": "tools/uppercut_validate/condition.py::check_knockdown"
+    },
+    {
+      "id": "work_never_outpaces_rest",
+      "rule": "Rule 14",
+      "statement": "Stamina regeneration is non-increasing from idle to moving to throwing, and throwing regenerates nothing.",
+      "enforced_by": "tools/uppercut_validate/condition.py::check_stamina"
+    },
+    {
+      "id": "rounds_do_not_erase_damage",
+      "rule": "Rule 14",
+      "statement": "No region recovers fully between rounds; accumulated condition is what makes a late round different from an early one.",
+      "enforced_by": "tools/uppercut_validate/condition.py::check_regions"
+    },
+    {
+      "id": "stoppage_is_evidenced",
+      "rule": "Rule 3",
+      "statement": "Every stoppage condition names an authority and an observable trigger, and none reads official scores.",
+      "enforced_by": "tools/uppercut_validate/condition.py::check_stoppages"
+    },
+    {
+      "id": "break_is_authoritative",
+      "rule": "Rule 8",
+      "statement": "The between-rounds break is 1800 ticks - thirty real seconds at the authoritative 60-tick clock.",
+      "enforced_by": "tools/uppercut_validate/condition.py::check_recovery"
+    }
   ]
 }

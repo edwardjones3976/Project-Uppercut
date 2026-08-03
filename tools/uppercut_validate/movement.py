@@ -23,6 +23,10 @@ REQUIRED_INVARIANTS = (
     "feet_establish_position", "no_magnetic_correction", "no_overlap", "no_invisible_lunges",
     "threat_responsive_compression", "explicit_accel_decel", "reach_relative_range",
     "stance_mirror_exact",
+    # Added 2026-08-03 by Claude Opus 5 with the ring-track work: an invariant the
+    # data declares but nothing requires can be dropped in a later edit without
+    # anything noticing, which is exactly how the running gap got in.
+    "retreat_slower_than_advance", "separation_is_ring_bounded",
 )
 
 
@@ -186,6 +190,66 @@ def check_invariants(doc: dict) -> list:
     return [f"missing required invariant '{r}'" for r in REQUIRED_INVARIANTS if r not in present]
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 09:52 UTC | START ]
+# Added inside the original author's file; their tags above and below are theirs
+# and are left exactly as written.
+def check_directional_footwork(doc: dict) -> list:
+    """Rule 4: excessive running must lose to boxing, not to a prohibition.
+
+    The mechanism is the stride asymmetry, so the ordering is load-bearing: if
+    retreat ever covers as much ground as advance, a pressure fighter can never
+    close and running stops being a losing strategy - it becomes an unanswerable
+    one. Checked here rather than trusted to stay sorted by hand.
+    """
+    d = doc["locomotion"]["directional"]
+    errs = []
+    if d["retreat_stride_multiplier"] >= d["advance_stride_multiplier"]:
+        errs.append("retreat covers at least as much ground as advance - pressure could never "
+                    "close, and Rule 4's 'excessive running' would be unanswerable rather than "
+                    "unprofitable")
+    if d["lateral_stride_multiplier"] > d["advance_stride_multiplier"]:
+        errs.append("circling outruns advancing - lateral movement would dominate both other "
+                    "directions")
+    if d["exhausted_stride_multiplier"] >= 1.0:
+        errs.append("exhaustion does not shorten the stride, so stamina buys no ground and the "
+                    "pool has no positional meaning")
+    if set(d["exhausted_applies_to"]) != {"advance", "retreat", "lateral"}:
+        errs.append("exhaustion is applied to some directions and not others - that is a penalty "
+                    "aimed at a playstyle, which Rule 4 forbids; being out of gas slows everything")
+    return errs
+
+
+def check_ring_track(doc: dict) -> list:
+    """Rule 13 / Rule 4: the ring bounds separation, and it does so without ever
+    taking movement away."""
+    t = doc["ring"]["track"]
+    ring, su = doc["ring"], doc["spatial_units"]
+    errs = []
+    expected = ring["side_m"] / su["reference_reach_span_m"]
+    if abs(t["axis_length_ru"] - expected) > 0.01:
+        errs.append(f"axis_length_ru {t['axis_length_ru']} does not follow from side_m "
+                    f"{ring['side_m']} and reference reach {su['reference_reach_span_m']} "
+                    f"(expected {expected:.2f}) - two coordinate systems by another name")
+    if abs(t["back_to_ropes_ru"] - ring["rope_proximity_m"] / su["reference_reach_span_m"]) > 0.01:
+        errs.append("back_to_ropes_ru does not follow from rope_proximity_m")
+    if abs(t["cornered_ru"] - ring["corner_proximity_m"] / su["reference_reach_span_m"]) > 0.01:
+        errs.append("cornered_ru does not follow from corner_proximity_m")
+    if t["cornered_ru"] <= t["back_to_ropes_ru"]:
+        errs.append("the corner is not deeper than the ropes - cornering would be indistinguishable "
+                    "from having your back to a rope")
+    if t["rope_lateral_multiplier"] != 1.0:
+        errs.append("lateral movement is reduced on the ropes - the ropes may end free retreat, "
+                    "never the ability to circle off them (Rule 4)")
+    # The bound must actually bind: the widest band must fit inside the ring, or
+    # the ropes would never be reached and the mechanism would be inert.
+    widest = max(b["min_ru"] for b in doc["range_bands"]["bands"])
+    if widest >= t["axis_length_ru"]:
+        errs.append("the ring is not wider than the outermost band boundary - fighters would be "
+                    "on the ropes permanently and the bound would be indistinguishable from a wall")
+    return errs
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 09:52 UTC | END ]
+
+
 ALL_CHECKS = [
     ("schema", check_schema),
     ("bands_rule13", check_bands),
@@ -195,6 +259,8 @@ ALL_CHECKS = [
     ("facing_rule15", check_facing),
     ("anti_cheat_rule13", check_anti_cheat),
     ("threat_compression", check_threat_compression),
+    ("directional_footwork_rule4", check_directional_footwork),
+    ("ring_track_rule13", check_ring_track),
     ("event_vocabulary", check_events),
     ("invariants_declared", check_invariants),
 ]

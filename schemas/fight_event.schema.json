@@ -29,7 +29,7 @@
     "type": {
       "enum": [
         "bout_start", "round_start", "round_end", "break_start", "break_end", "bout_end",
-        "step", "pivot", "stance_change", "range_change",
+        "step", "pivot", "stance_change", "range_change", "ropes_reached", "cornered",
         "punch_thrown", "punch_outcome", "guard_impact", "evasion", "clinch_start", "clinch_end",
         "condition_change", "stamina_change", "balance_change", "composure_change",
         "knockdown", "count_tick", "rise", "stoppage", "doctor_check",

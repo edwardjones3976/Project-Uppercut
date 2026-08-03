@@ -11,29 +11,95 @@
   "title": "Condition and Recovery Model",
   "description": "ROADMAP Phase 1A step 8: stamina, per-region condition, knockdowns, stoppages and recovery. Engine-neutral; definitions only (Rule 18).",
   "type": "object",
-  "required": ["schema_version", "tuning_status", "no_generic_health_pool", "stamina", "damage_regions", "knockdown", "chin", "recovery", "stoppage_conditions", "prohibitions", "invariants"],
+  "required": [
+    "schema_version",
+    "tuning_status",
+    "no_generic_health_pool",
+    "stamina",
+    "damage_regions",
+    "knockdown",
+    "chin",
+    "recovery",
+    "stoppage_conditions",
+    "prohibitions",
+    "invariants"
+  ],
   "additionalProperties": false,
   "properties": {
-    "contribution": { "type": "object" },
-    "$comment": { "type": "string" },
-    "schema_version": { "type": "string" },
-    "tuning_status": { "enum": ["hypothesis", "validated"] },
-    "no_generic_health_pool": { "const": true, "description": "Rule 14: damage lands on regions, never on one bar." },
+    "contribution": {
+      "type": "object"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "tuning_status": {
+      "enum": [
+        "hypothesis",
+        "validated"
+      ]
+    },
+    "no_generic_health_pool": {
+      "const": true,
+      "description": "Rule 14: damage lands on regions, never on one bar."
+    },
     "stamina": {
       "type": "object",
-      "required": ["max", "regen_per_tick_idle", "regen_per_tick_moving", "regen_per_tick_throwing", "between_rounds_recovery_fraction", "low_threshold_fraction", "exhausted_threshold_fraction"],
+      "required": [
+        "max",
+        "regen_per_tick_idle",
+        "regen_per_tick_moving",
+        "regen_per_tick_throwing",
+        "between_rounds_recovery_fraction",
+        "low_threshold_fraction",
+        "exhausted_threshold_fraction"
+      ],
       "additionalProperties": false,
       "properties": {
-        "$comment": { "type": "string" },
-        "max": { "type": "number", "exclusiveMinimum": 0 },
-        "start_fraction": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
-        "regen_per_tick_idle": { "type": "number", "exclusiveMinimum": 0 },
-        "regen_per_tick_moving": { "type": "number", "minimum": 0 },
-        "regen_per_tick_throwing": { "const": 0, "description": "Throwing pays for itself in full." },
-        "between_rounds_recovery_fraction": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
-        "low_threshold_fraction": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
-        "exhausted_threshold_fraction": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
-        "notes": { "type": "string" }
+        "$comment": {
+          "type": "string"
+        },
+        "max": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "start_fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "regen_per_tick_idle": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "regen_per_tick_moving": {
+          "type": "number",
+          "minimum": 0
+        },
+        "regen_per_tick_throwing": {
+          "const": 0,
+          "description": "Throwing pays for itself in full."
+        },
+        "between_rounds_recovery_fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "low_threshold_fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "exhausted_threshold_fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "notes": {
+          "type": "string"
+        }
       }
     },
     "damage_regions": {
@@ -41,56 +107,214 @@
       "minItems": 8,
       "items": {
         "type": "object",
-        "required": ["region", "capacity", "recovers_between_rounds", "impairs"],
+        "required": [
+          "region",
+          "capacity",
+          "recovers_between_rounds",
+          "impairs"
+        ],
         "additionalProperties": false,
         "properties": {
-          "region": { "type": "string" },
-          "capacity": { "type": "number", "exclusiveMinimum": 0 },
-          "recovers_between_rounds": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "description": "Strictly below 1: a round never erases accumulated damage." },
-          "impairs": { "type": "array", "minItems": 1, "items": { "type": "string" } },
-          "knockdown_relevant": { "type": "boolean" }
+          "region": {
+            "type": "string"
+          },
+          "capacity": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "recovers_between_rounds": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "exclusiveMaximum": 1,
+            "description": "Strictly below 1: a round never erases accumulated damage."
+          },
+          "impairs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "knockdown_relevant": {
+            "type": "boolean"
+          }
         }
       }
     },
     "knockdown": {
       "type": "object",
-      "required": ["flat_random_roll_per_punch", "inputs", "count_ticks_per_number", "count_to", "max_per_round", "max_per_bout"],
+      "required": [
+        "flat_random_roll_per_punch",
+        "inputs",
+        "count_ticks_per_number",
+        "count_to",
+        "max_per_round",
+        "max_per_bout",
+        "count_condition_relief_fraction",
+        "count_stamina_relief_fraction",
+        "pressure_modifiers",
+        "pressure_threshold",
+        "decision_path_must_survive"
+      ],
       "additionalProperties": false,
       "properties": {
-        "$comment": { "type": "string" },
-        "flat_random_roll_per_punch": { "const": false, "description": "Rule 14, stated as a constant so it cannot drift." },
-        "inputs": { "type": "array", "minItems": 4, "items": { "type": "string" } },
-        "count_ticks_per_number": { "type": "integer", "exclusiveMinimum": 0 },
-        "count_to": { "type": "integer", "exclusiveMinimum": 0 },
-        "mandatory_eight_count": { "type": "boolean" },
-        "max_per_round": { "type": "integer", "exclusiveMinimum": 0 },
-        "max_per_bout": { "type": "integer", "exclusiveMinimum": 0 },
-        "rise_window_ticks": { "type": "integer", "exclusiveMinimum": 0 },
-        "notes": { "type": "string" }
+        "$comment": {
+          "type": "string"
+        },
+        "flat_random_roll_per_punch": {
+          "const": false,
+          "description": "Rule 14, stated as a constant so it cannot drift."
+        },
+        "inputs": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "string"
+          }
+        },
+        "count_ticks_per_number": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "count_to": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "mandatory_eight_count": {
+          "type": "boolean"
+        },
+        "max_per_round": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "max_per_bout": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "rise_window_ticks": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "notes": {
+          "type": "string"
+        },
+        "count_condition_relief_fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1,
+          "description": "Rule 14: strictly between zero and one. At zero a hurt fighter never recovers inside a round and knockdowns cluster into an automatic stoppage; at one a knockdown erases the damage that caused it."
+        },
+        "count_stamina_relief_fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "count_relief_note": {
+          "type": "string"
+        },
+        "pressure_modifiers": {
+          "type": "object",
+          "required": [
+            "caught_committed_multiplier",
+            "balanced_multiplier",
+            "unguarded_lane_bonus"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "$comment": {
+              "type": "string"
+            },
+            "caught_committed_multiplier": {
+              "type": "number",
+              "exclusiveMinimum": 1.0,
+              "description": "Strictly above the balanced multiplier: being caught mid-commitment must matter, or balance is a declared input that changes nothing."
+            },
+            "balanced_multiplier": {
+              "const": 1.0
+            },
+            "unguarded_lane_bonus": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "pressure_threshold": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Rule 14: the line the observable inputs must cross. Authored here so that how often fights end early is a design decision on the record, not a constant buried in whichever simulator happens to be running."
+        },
+        "pressure_threshold_note": {
+          "type": "string"
+        },
+        "decision_path_must_survive": {
+          "const": true,
+          "description": "A result state that never occurs is unimplemented. If no bout ever reaches the cards, the judging subsystem, the round-by-round scoring and every style that wins on points are all dead code wearing a passing test."
+        }
       }
     },
     "chin": {
       "type": "object",
-      "required": ["max_resistance_confers_immunity", "attribute", "scales", "early_stoppage_possible_at_max"],
+      "required": [
+        "max_resistance_confers_immunity",
+        "attribute",
+        "scales",
+        "early_stoppage_possible_at_max"
+      ],
       "additionalProperties": false,
       "properties": {
-        "$comment": { "type": "string" },
-        "max_resistance_confers_immunity": { "const": false },
-        "attribute": { "type": "string" },
-        "scales": { "type": "array", "minItems": 1, "items": { "type": "string" } },
-        "early_stoppage_possible_at_max": { "const": true },
-        "notes": { "type": "string" }
+        "$comment": {
+          "type": "string"
+        },
+        "max_resistance_confers_immunity": {
+          "const": false
+        },
+        "attribute": {
+          "type": "string"
+        },
+        "scales": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "early_stoppage_possible_at_max": {
+          "const": true
+        },
+        "notes": {
+          "type": "string"
+        }
       }
     },
     "recovery": {
       "type": "object",
-      "required": ["attribute", "scales", "between_rounds_break_ticks"],
+      "required": [
+        "attribute",
+        "scales",
+        "between_rounds_break_ticks"
+      ],
       "additionalProperties": false,
       "properties": {
-        "attribute": { "type": "string" },
-        "scales": { "type": "array", "minItems": 1, "items": { "type": "string" } },
-        "between_rounds_break_ticks": { "const": 1800, "description": "Rule 8: thirty real seconds at the authoritative 60-tick clock." },
-        "notes": { "type": "string" }
+        "attribute": {
+          "type": "string"
+        },
+        "scales": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "between_rounds_break_ticks": {
+          "const": 1800,
+          "description": "Rule 8: thirty real seconds at the authoritative 60-tick clock."
+        },
+        "notes": {
+          "type": "string"
+        }
       }
     },
     "stoppage_conditions": {
@@ -98,28 +322,64 @@
       "minItems": 3,
       "items": {
         "type": "object",
-        "required": ["id", "trigger", "authority"],
+        "required": [
+          "id",
+          "trigger",
+          "authority"
+        ],
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
-          "trigger": { "type": "string", "minLength": 1 },
-          "authority": { "enum": ["referee", "doctor", "corner"] }
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "trigger": {
+            "type": "string",
+            "minLength": 1
+          },
+          "authority": {
+            "enum": [
+              "referee",
+              "doctor",
+              "corner"
+            ]
+          }
         }
       }
     },
-    "prohibitions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "prohibitions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
     "invariants": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["id", "rule", "statement"],
+        "required": [
+          "id",
+          "rule",
+          "statement"
+        ],
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
-          "rule": { "type": "string" },
-          "statement": { "type": "string", "minLength": 1 },
-          "enforced_by": { "type": "string" }
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "rule": {
+            "type": "string"
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "enforced_by": {
+            "type": "string"
+          }
         }
       }
     }

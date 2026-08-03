@@ -106,6 +106,34 @@ def check_knockdown(doc: dict) -> list:
         errs.append("Rule 16: the count advances one number per authoritative second (60 ticks)")
     if k["max_per_round"] > k["max_per_bout"]:
         errs.append("per-round knockdown limit exceeds the per-bout limit")
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 10:10 UTC | START ]
+    # Added with the knockdown-model work. Original author's tags untouched.
+    # Every input the model DECLARES has to be one the model USES, or the list
+    # above is documentation of an intention rather than a description of a
+    # system. balance and guard_state sat in that list unread for a whole step,
+    # and the cost was a pressure function with no tail: no threshold existed
+    # that stopped some fights and not others.
+    if "balance" in k["inputs"] and "pressure_modifiers" not in k:
+        errs.append("Rule 14: 'balance' is declared as a knockdown input but nothing in the model "
+                    "gives it a coefficient - a declared input that changes no outcome is a claim, "
+                    "not a mechanism")
+    if "guard_state" in k["inputs"] and "unguarded_lane_bonus" not in k.get(
+            "pressure_modifiers", {}):
+        errs.append("Rule 14: 'guard_state' is declared as a knockdown input but no term reads it "
+                    "- the guard would stop mattering the instant interception failed")
+    pm = k.get("pressure_modifiers", {})
+    if pm and pm["caught_committed_multiplier"] <= pm["balanced_multiplier"]:
+        errs.append("being caught mid-commitment is no worse than being set - the counter-punch "
+                    "knockdown, which is how most of them actually happen, could not occur")
+    rel = k.get("count_condition_relief_fraction")
+    if rel is not None and not 0 < rel < 1:
+        errs.append("the count must relieve some accumulated condition and not all of it: at zero "
+                    "a hurt fighter never recovers inside a round and knockdowns cluster into an "
+                    "automatic stoppage, at one the knockdown erases what caused it")
+    if k.get("decision_path_must_survive") is not True:
+        errs.append("the model does not require that some bouts reach the cards - a result state "
+                    "that never occurs is unimplemented, however green its tests are")
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 10:10 UTC | END ]
     return errs
 
 

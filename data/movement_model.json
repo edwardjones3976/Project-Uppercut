@@ -12,38 +12,118 @@
   "spatial_units": {
     "range_unit": "reach_units",
     "definition": "Pairwise range in reach units: center distance divided by the mean of the two fighters' authored reach spans. Range is reach-relative so the coed, no-division roster (Rule 11) balances differing reach through geometry and counterplay, never hidden modifiers.",
-    "ring_unit": "meters"
+    "ring_unit": "meters",
+    "reference_reach_span_m": 1.3,
+    "reference_reach_note": "One reach unit in meters for the reference pair, so the ring's authored meters and the range bands' reach units are the same space rather than two coordinate systems that never meet. Added when the excessive-running abuse showed a retreating fighter opening distance forever: separation had no ring to run out of. Hypothesis, like every number here."
   },
   "range_bands": {
     "$comment": "The five bands of move.schema.json range_band, made geometric. Contiguous, reach-relative, hysteresis-guarded.",
     "hysteresis_ru": 0.05,
     "hysteresis_note": "A band change registers only after crossing the boundary plus hysteresis in the travel direction. This kills range flicker and is the structural anti-magnetic-correction statement: the simulation never adjusts distance to make a move fit - a wrong-range move whiffs with full commitment consequence (Rule 13).",
     "bands": [
-      { "key": "clinch", "min_ru": 0.0, "max_ru": 0.35 },
-      { "key": "inside", "min_ru": 0.35, "max_ru": 0.75 },
-      { "key": "mid", "min_ru": 0.75, "max_ru": 1.1 },
-      { "key": "outside", "min_ru": 1.1, "max_ru": 1.6 },
-      { "key": "out_of_range", "min_ru": 1.6, "max_ru": null }
+      {
+        "key": "clinch",
+        "min_ru": 0.0,
+        "max_ru": 0.35
+      },
+      {
+        "key": "inside",
+        "min_ru": 0.35,
+        "max_ru": 0.75
+      },
+      {
+        "key": "mid",
+        "min_ru": 0.75,
+        "max_ru": 1.1
+      },
+      {
+        "key": "outside",
+        "min_ru": 1.1,
+        "max_ru": 1.6
+      },
+      {
+        "key": "out_of_range",
+        "min_ru": 1.6,
+        "max_ru": null
+      }
     ],
-    "band_change_emits": ["range_change"]
+    "band_change_emits": [
+      "range_change"
+    ]
   },
   "locomotion": {
     "$comment": "Movement qualities per posture mode. Mode ids are locked to machines.posture_continuum in data/combat_states.json - the validator enforces the cross-file lock. Mode transitions stay zero-delay there; these parameters shape motion, they never gate it.",
     "modes": [
-      { "posture_mode": "free_navigation", "stride_length_ru": 0.55, "acceleration_frames": 4, "deceleration_frames": 5, "turn_rate_deg_per_frame": 12, "stamina_cost_per_ru": 0.4, "weight_transfer_visible": true },
-      { "posture_mode": "boxing_steps", "stride_length_ru": 0.22, "acceleration_frames": 2, "deceleration_frames": 2, "turn_rate_deg_per_frame": 9, "stamina_cost_per_ru": 0.6, "weight_transfer_visible": true },
-      { "posture_mode": "planted", "stride_length_ru": 0.0, "acceleration_frames": 0, "deceleration_frames": 0, "turn_rate_deg_per_frame": 5, "stamina_cost_per_ru": 0.0, "weight_transfer_visible": true, "notes": "Full power transfer happens planted; stepping punches trade power for position (hypothesis, promoted or struck at step 6)." },
-      { "posture_mode": "pivot", "stride_length_ru": 0.12, "acceleration_frames": 2, "deceleration_frames": 3, "turn_rate_deg_per_frame": 20, "stamina_cost_per_ru": 0.5, "weight_transfer_visible": true, "notes": "The believable mechanism for angle changes and stance switching (Rule 15)." }
+      {
+        "posture_mode": "free_navigation",
+        "stride_length_ru": 0.55,
+        "acceleration_frames": 4,
+        "deceleration_frames": 5,
+        "turn_rate_deg_per_frame": 12,
+        "stamina_cost_per_ru": 0.4,
+        "weight_transfer_visible": true
+      },
+      {
+        "posture_mode": "boxing_steps",
+        "stride_length_ru": 0.22,
+        "acceleration_frames": 2,
+        "deceleration_frames": 2,
+        "turn_rate_deg_per_frame": 9,
+        "stamina_cost_per_ru": 0.6,
+        "weight_transfer_visible": true
+      },
+      {
+        "posture_mode": "planted",
+        "stride_length_ru": 0.0,
+        "acceleration_frames": 0,
+        "deceleration_frames": 0,
+        "turn_rate_deg_per_frame": 5,
+        "stamina_cost_per_ru": 0.0,
+        "weight_transfer_visible": true,
+        "notes": "Full power transfer happens planted; stepping punches trade power for position (hypothesis, promoted or struck at step 6)."
+      },
+      {
+        "posture_mode": "pivot",
+        "stride_length_ru": 0.12,
+        "acceleration_frames": 2,
+        "deceleration_frames": 3,
+        "turn_rate_deg_per_frame": 20,
+        "stamina_cost_per_ru": 0.5,
+        "weight_transfer_visible": true,
+        "notes": "The believable mechanism for angle changes and stance switching (Rule 15)."
+      }
     ],
     "threat_compression": {
       "$comment": "Rule 13 threat-responsive stride compression, driven by observable inputs only.",
-      "threat_bands": ["inside", "mid"],
+      "threat_bands": [
+        "inside",
+        "mid"
+      ],
       "compressed_mode": "boxing_steps",
-      "release_bands": ["outside", "out_of_range"],
-      "observable_inputs": ["range_and_position_observable", "opponent_observables"]
+      "release_bands": [
+        "outside",
+        "out_of_range"
+      ],
+      "observable_inputs": [
+        "range_and_position_observable",
+        "opponent_observables"
+      ]
     },
     "max_frame_displacement_ru": 0.14,
-    "displacement_note": "Hard per-tick displacement cap below every stride: no invisible lunges, no teleport resolution, including hit reactions and separation pushback (Rule 13)."
+    "displacement_note": "Hard per-tick displacement cap below every stride: no invisible lunges, no teleport resolution, including hit reactions and separation pushback (Rule 13).",
+    "directional": {
+      "$comment": "Footwork is not symmetric. A fighter covers more ground stepping toward an opponent than away from one, because the drive comes off the rear foot and going backwards there is nothing to drive against. This is the whole mechanism by which pressure closes on movement, and it is why 'excessive running' loses without ever being prohibited (Rule 4): a runner gives up ground more slowly than it is taken, and the ring ends.",
+      "advance_stride_multiplier": 1.0,
+      "retreat_stride_multiplier": 0.78,
+      "lateral_stride_multiplier": 0.85,
+      "exhausted_stride_multiplier": 0.6,
+      "exhausted_applies_to": [
+        "advance",
+        "retreat",
+        "lateral"
+      ],
+      "notes": "The exhausted multiplier applies below condition_model.stamina.exhausted_threshold_fraction and applies to every direction, not only retreat - legs going is not a punishment aimed at runners, it is what being out of gas does. Retreat must stay strictly below advance or distance becomes uncloseable; the validator enforces that ordering rather than trusting the numbers to stay sorted."
+    }
   },
   "separation": {
     "min_center_distance_ru": 0.28,
@@ -53,10 +133,30 @@
   "facing": {
     "$comment": "Facing is authored geometry, mirrored exactly across stance (Rule 15). Zero degrees points at the opponent; negative is the lead side for an orthodox fighter.",
     "arcs": [
-      { "key": "front", "center_deg": 0, "half_width_deg": 60, "punches_permitted": true },
-      { "key": "lead_side", "center_deg": -90, "half_width_deg": 30, "punches_permitted": false },
-      { "key": "rear_side", "center_deg": 90, "half_width_deg": 30, "punches_permitted": false },
-      { "key": "back", "center_deg": 180, "half_width_deg": 60, "punches_permitted": false }
+      {
+        "key": "front",
+        "center_deg": 0,
+        "half_width_deg": 60,
+        "punches_permitted": true
+      },
+      {
+        "key": "lead_side",
+        "center_deg": -90,
+        "half_width_deg": 30,
+        "punches_permitted": false
+      },
+      {
+        "key": "rear_side",
+        "center_deg": 90,
+        "half_width_deg": 30,
+        "punches_permitted": false
+      },
+      {
+        "key": "back",
+        "center_deg": 180,
+        "half_width_deg": 60,
+        "punches_permitted": false
+      }
     ],
     "arc_note": "Arc widths tile the full circle: 120 + 60 + 60 + 120 = 360 degrees, no gaps, no overlap.",
     "back_exposed_threshold_deg": 120,
@@ -68,17 +168,86 @@
     "side_m": 6.4,
     "rope_proximity_m": 0.9,
     "corner_proximity_m": 1.2,
-    "note": "Ring position feeds Ringcraft observables (ropes, corners, center control) for Crowd rewards and judging evidence at later steps. Sizes are hypotheses."
+    "note": "Ring position feeds Ringcraft observables (ropes, corners, center control) for Crowd rewards and judging evidence at later steps. Sizes are hypotheses. The track block converts these sizes into the same reach units the range bands use.",
+    "track": {
+      "$comment": "The ring as a bound on movement, not only as a source of Ringcraft observables. Reference model resolves engagement along a single axis: two positions on a track of ring-side length, separation is their difference. Enough to make running finite and cornering real; the Unreal implementation keeps two dimensions and stays authoritative (Decision 0002).",
+      "axis_length_ru": 4.92,
+      "axis_length_derivation": "side_m / spatial_units.reference_reach_span_m = 6.4 / 1.30",
+      "back_to_ropes_ru": 0.69,
+      "cornered_ru": 0.92,
+      "rope_retreat_multiplier": 0.0,
+      "rope_lateral_multiplier": 1.0,
+      "notes": "rope_retreat_multiplier of zero is the point: with your back on the ropes a backward step buys nothing. It does not forbid the input, it does not freeze the fighter, and lateral movement stays fully available at full rate - circling off the ropes is the boxing answer and it remains open. What ends is free retreat in a straight line."
+    }
   },
-  "emits": ["step", "pivot", "range_change", "stance_change"],
+  "emits": [
+    "cornered",
+    "pivot",
+    "range_change",
+    "ropes_reached",
+    "stance_change",
+    "step"
+  ],
   "invariants": [
-    { "id": "feet_establish_position", "rule": "Rule 13", "statement": "Feet establish position; position establishes range; range establishes contact; contact establishes consequence. Range derives from authoritative foot position only.", "enforced_by": "structure of this document; simulation tests at step 5" },
-    { "id": "no_magnetic_correction", "rule": "Rule 13", "statement": "The simulation never adjusts distance to make a move land. Wrong-range attempts resolve as whiffed with full commitment consequence.", "enforced_by": "tools/uppercut_validate/movement.py::check_anti_cheat" },
-    { "id": "no_overlap", "rule": "Rule 13", "statement": "min_center_distance_ru is authoritative; overlap resolves by bounded mutual pushback within the displacement cap.", "enforced_by": "tools/uppercut_validate/movement.py::check_displacement" },
-    { "id": "no_invisible_lunges", "rule": "Rule 13", "statement": "Per-tick displacement is hard-capped below every stride length; no motion may exceed it, including hit reactions and separation.", "enforced_by": "tools/uppercut_validate/movement.py::check_displacement" },
-    { "id": "threat_responsive_compression", "rule": "Rule 13", "statement": "Stride compresses inside threatening range and releases outside it, driven only by observable inputs.", "enforced_by": "tools/uppercut_validate/movement.py::check_threat_compression" },
-    { "id": "explicit_accel_decel", "rule": "Rule 13", "statement": "Every mobile mode declares acceleration and deceleration frames; velocity never steps instantaneously (no ice skating).", "enforced_by": "tools/uppercut_validate/movement.py::check_compression_law" },
-    { "id": "reach_relative_range", "rule": "Rule 11", "statement": "Range bands are reach-relative so differing reach across the coed roster is balanced through geometry and counterplay, never hidden modifiers.", "enforced_by": "spatial_units.range_unit const" },
-    { "id": "stance_mirror_exact", "rule": "Rule 15", "statement": "Southpaw facing geometry is the exact mirror of orthodox; ambidexterity removes familiarity penalties only, never geometry.", "enforced_by": "schema const and tools/uppercut_validate/movement.py::check_facing" }
+    {
+      "id": "feet_establish_position",
+      "rule": "Rule 13",
+      "statement": "Feet establish position; position establishes range; range establishes contact; contact establishes consequence. Range derives from authoritative foot position only.",
+      "enforced_by": "structure of this document; simulation tests at step 5"
+    },
+    {
+      "id": "no_magnetic_correction",
+      "rule": "Rule 13",
+      "statement": "The simulation never adjusts distance to make a move land. Wrong-range attempts resolve as whiffed with full commitment consequence.",
+      "enforced_by": "tools/uppercut_validate/movement.py::check_anti_cheat"
+    },
+    {
+      "id": "no_overlap",
+      "rule": "Rule 13",
+      "statement": "min_center_distance_ru is authoritative; overlap resolves by bounded mutual pushback within the displacement cap.",
+      "enforced_by": "tools/uppercut_validate/movement.py::check_displacement"
+    },
+    {
+      "id": "no_invisible_lunges",
+      "rule": "Rule 13",
+      "statement": "Per-tick displacement is hard-capped below every stride length; no motion may exceed it, including hit reactions and separation.",
+      "enforced_by": "tools/uppercut_validate/movement.py::check_displacement"
+    },
+    {
+      "id": "threat_responsive_compression",
+      "rule": "Rule 13",
+      "statement": "Stride compresses inside threatening range and releases outside it, driven only by observable inputs.",
+      "enforced_by": "tools/uppercut_validate/movement.py::check_threat_compression"
+    },
+    {
+      "id": "explicit_accel_decel",
+      "rule": "Rule 13",
+      "statement": "Every mobile mode declares acceleration and deceleration frames; velocity never steps instantaneously (no ice skating).",
+      "enforced_by": "tools/uppercut_validate/movement.py::check_compression_law"
+    },
+    {
+      "id": "reach_relative_range",
+      "rule": "Rule 11",
+      "statement": "Range bands are reach-relative so differing reach across the coed roster is balanced through geometry and counterplay, never hidden modifiers.",
+      "enforced_by": "spatial_units.range_unit const"
+    },
+    {
+      "id": "stance_mirror_exact",
+      "rule": "Rule 15",
+      "statement": "Southpaw facing geometry is the exact mirror of orthodox; ambidexterity removes familiarity penalties only, never geometry.",
+      "enforced_by": "schema const and tools/uppercut_validate/movement.py::check_facing"
+    },
+    {
+      "id": "retreat_slower_than_advance",
+      "rule": "Rule 4",
+      "statement": "Retreat covers strictly less ground than advance, so pressure can always close. Excessive running is answered by geometry rather than by a rule that forbids it.",
+      "enforced_by": "tools/uppercut_validate/movement.py::check_directional_footwork"
+    },
+    {
+      "id": "separation_is_ring_bounded",
+      "rule": "Rule 13",
+      "statement": "Separation is bounded by the ring: no sequence of legal steps opens distance forever. With the back on the ropes a retreating step buys no ground, while lateral movement stays fully available at full rate.",
+      "enforced_by": "tools/uppercut_validate/movement.py::check_ring_track"
+    }
   ]
 }

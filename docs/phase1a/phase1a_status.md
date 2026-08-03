@@ -64,15 +64,33 @@ which is a safety instrument rather than a pacing option.
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 10:46 UTC | edit: event, clock, ninth check ] -->
 
 **The evidence rig exists (WS5).** `tools/uppercut_sim/` executes the canonical models end to end -
-decisions, collision pipeline, condition, crowd, knockdowns, stoppages, sealed cards - and eight of
-the ROADMAP's eleven required automated checks now run against it: score-access denial,
-accelerated-clock synchronization, determinism and seeded replay, repetition-versus-spam,
-large-batch invalid-state and deadlock, knockdown and stoppage and result states, First Bell
-Firestorm, Long Drain, and Crowd-farming prohibition. A 90-bout stress-profile round robin found no
-dominant extreme and no absent counterplay.
-Two checks remain unbuilt and are named rather than skipped: style-viability and dominant-loop
-detection at scale, and the full repetition abuse list.
+decisions, collision pipeline, condition, crowd, knockdowns, stoppages, sealed cards - and **all
+eleven** of the ROADMAP's required automated checks now run against it: score-access denial,
+accelerated-clock synchronization, style viability and dominant-loop detection, the repetition
+abuse list, determinism and seeded replay, repetition-versus-spam, large-batch invalid-state and
+deadlock, knockdown and stoppage and result states, First Bell Firestorm, Long Drain, and
+Crowd-farming prohibition.
 Unreal remains authoritative (Decision 0002); the reference model is an instrument, not a result.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 10:12 UTC | edit: eleven of eleven ] -->
+
+**The last two checks found nine real defects, and that is the point of them.** Playing Rule 4's
+named abuses as hard as a policy can play them turned up: judges counting contacts rather than
+scoring rounds; an evidence harness with its own opinion about who won; a ring that did not exist,
+which made excessive running unanswerable rather than unprofitable; two named abuses that were the
+same behaviour; a clean jab hitting exactly as hard as a clean overhand; two knockdown inputs
+declared in canon since step 8 and read by nothing; no way back from being hurt inside a round; and
+a 60-bout sweep in which **every single bout ended in a stoppage** while the suite stayed green,
+because the result-state check asserted that stoppages can happen and never that decisions do. The
+ninth was the largest: `punch_model.repetition_economy` declared four mechanisms, gave none of them
+a number, and so ran entirely inert - the whole of Rule 4's answer to repetition existed as four
+sentences. All nine are resolved in canon rather than in the simulator, with a validator refusing
+each regression. Full account with before-and-after figures: `docs/phase1a/exploit_hunt.md`.
+
+Result states over 60 bouts at canonical length now read 45% stoppage, 55% to the cards. **Style
+balance is the named open finding** - viability passes, every style can win, but power and pressure
+run well ahead of parity (power_threat 72-80%, drainer 12-22%) and the showman's result swings
+enough between seed bases to be close to noise. Recorded as evidence rather than as a red test.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 10:12 UTC | START/END ] -->
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 09:52 UTC | edit: steps 11-12, evidence rig ] -->
 
 **What "definitions complete" does and does not mean.** Every layer a CPU-vs-CPU match needs is now

@@ -144,6 +144,13 @@ def check_result_states() -> list:
             errs.append(f"seed {seed}: the bout did not end with a final card")
     if stopped == 0:
         errs.append("no bout in 30 ever reached a stoppage - the stoppage path is untested")
+    # Both result states, or one of them is unimplemented wearing a passing test.
+    # This half was missing until 2026-08-03, and while it was missing the model
+    # spent a whole sweep stopping 100% of bouts with the entire judging path -
+    # round scoring, the cards, every style that wins on points - dead code.
+    if stopped == 30:
+        errs.append("every one of 30 bouts ended in a stoppage - no fight reaches the cards, so "
+                    "round scoring and every points-based style are unreachable")
     return errs
 
 
@@ -249,9 +256,169 @@ def check_accelerated_clock() -> list:
     return errs
 
 
+# ---- 10. style viability and dominant-loop detection ------------------------
+def _winner(bt) -> str:
+    """The bout's official outcome, read from the engine rather than restated.
+
+    An earlier version of this helper computed its own verdict from knockdowns
+    and raw landed count. That was wrong twice over: it duplicated an authority
+    that already exists (the sealed cards), and its volume tiebreak disagreed
+    with them, so the harness could call a bout for a fighter the judges scored
+    against. `Bout.decision()` is the single reading. Rule 3 is untouched - the
+    firewall stops POLICIES seeing the cards, and a policy never holds a Bout.
+    """
+    return bt.decision()
+
+
+def style_balance(seeds: int = 8, base: int = 41000) -> dict:
+    """Win counts per style over an all-pairs sweep at canonical bout length.
+
+    Separated from the gate check on purpose. The gate is 'can this style win at
+    all' - a binary the project can hold itself to today. The rates this returns
+    are tuning evidence, and they are lopsided right now: reported in
+    docs/phase1a/exploit_hunt.md rather than converted into a red test, because
+    a check that fails for a known, named, unresolved tuning question stops being
+    read after the second week.
+    """
+    names = policy.available_profiles()
+    wins = {n: 0 for n in names}
+    played = {n: 0 for n in names}
+    for i, a in enumerate(names):
+        for b in names[i + 1:]:
+            for s in range(seeds):
+                bt = _bout(base + s, a, b, rounds=3, round_seconds=180)
+                played[a] += 1
+                played[b] += 1
+                w = _winner(bt)
+                if w:
+                    wins[bt.fighters[0].profile if w == "A" else bt.fighters[1].profile] += 1
+    return {n: (wins[n], played[n]) for n in names}
+
+
+def check_style_viability(seeds: int = 8) -> list:
+    """Rule 21: every major style keeps a legitimate route to victory, and no
+    style is a dominant extreme. Lopsided is a finding; zero and total are gate
+    failures, and this reports which."""
+    names = policy.available_profiles()
+    wins = {n: 0 for n in names}
+    played = {n: 0 for n in names}
+    move_landed = {}
+    errs = []
+    for i, a in enumerate(names):
+        for b in names[i + 1:]:
+            for s in range(seeds):
+                # Canonical bout length, not a short one. This check ran at two
+                # ninety-second rounds until 2026-08-03 and passed while the
+                # showman style won none of twenty bouts at three-by-three -
+                # a viability check that only holds at a length nobody fights at
+                # is measuring the harness, not the game.
+                bt = _bout(41000 + s, a, b, rounds=3, round_seconds=180)
+                played[a] += 1
+                played[b] += 1
+                w = _winner(bt)
+                if w:
+                    wins[bt.fighters[0].profile if w == "A" else bt.fighters[1].profile] += 1
+                for ev in bt.log:
+                    if ev["type"] == "punch_outcome" and "region" in ev.get("payload", {}):
+                        m = ev["payload"]["move"]
+                        move_landed[m] = move_landed.get(m, 0) + 1
+    for n in names:
+        if played[n] and wins[n] == 0:
+            errs.append(f"style '{n}' never won in {played[n]} bouts - absent counterplay is a "
+                        f"gate failure under Rule 21, not a tuning note")
+        if played[n] and wins[n] == played[n]:
+            errs.append(f"style '{n}' won every one of {played[n]} bouts - dominant extreme")
+    # Dominant loop: one move carrying an implausible share of all landed offence.
+    total = sum(move_landed.values())
+    if total:
+        top, n_top = max(move_landed.items(), key=lambda kv: kv[1])
+        if n_top / total > 0.6:
+            errs.append(f"dominant loop: '{top}' accounts for {n_top / total:.0%} of all landed "
+                        f"offence across the sweep")
+        if len(move_landed) < 4:
+            errs.append(f"only {len(move_landed)} distinct moves ever landed - the sweep is too "
+                        f"narrow to detect a dominant loop at all")
+    else:
+        errs.append("no offence landed in the entire sweep - the check is vacuous")
+    return errs
+
+
+# ---- 11. the repetition abuse list -----------------------------------------
+def check_repetition_abuse_list() -> list:
+    """Rule 4's named abuses, each played as hard as a policy can play it.
+
+    Two assertions per abuse, and the second is the one that matters: the abuse
+    must not dominate, AND it must never have been forbidden. A spammer stopped
+    by a rule rather than beaten by a fighter fails this suite exactly as loudly
+    as one that wins.
+    """
+    from . import exploits
+    errs = []
+    baselines = ("technician", "counterpuncher", "rusher")
+    for xid in exploits.EXPLOITS:
+        abuse_wins = 0
+        bouts = 0
+        acted = 0
+        for base in baselines:
+            for s in range(4):
+                bt = _bout(52000 + s, base, xid, rounds=2, round_seconds=90)
+                bouts += 1
+                if _winner(bt) == "B":
+                    abuse_wins += 1
+                abuser = bt.fighters[1]
+                acted += abuser.thrown + abuser.retreats + abuser.clinch_entries
+        if abuse_wins == bouts:
+            errs.append(f"abuse '{xid}' won every one of {bouts} bouts - it is not an abuse, it is "
+                        f"the optimal strategy")
+        if xid != "_x_passive_blocker" and acted == 0:
+            errs.append(f"abuse '{xid}' never acted at all - it was prohibited rather than "
+                        f"punished, which Rule 4 explicitly forbids")
+
+    # Crowd farming must be answered by novelty, not by a lockout.
+    farm = _bout(52100, "technician", "_x_meter_farmer", rounds=2, round_seconds=90)
+    farmer, varied = farm.fighters[1], farm.fighters[0]
+    if farmer.crowd > varied.crowd:
+        errs.append("the meter farmer out-earned a varied fighter on crowd - novelty decay is not "
+                    "answering low-risk farming")
+    gains = [e for e in farm.log if e["type"] == "crowd_gain" and e["actor"] == farmer.name]
+    if gains and all(g["payload"]["amount"] <= 0 for g in gains):
+        errs.append("the farmer's crowd gain was zeroed outright rather than decayed - Rule 4 "
+                    "protects legitimate repetition")
+
+    # Clinch abuse must be recognised observably, by the referee.
+    cl = _bout(52200, "rusher", "_x_clincher", rounds=2, round_seconds=90)
+    warns = [e for e in cl.log if e["type"] == "referee_warning"
+             and e.get("payload", {}).get("reason") == "clinch_abuse"]
+    if cl.fighters[1].clinch_entries >= 6 and not warns:
+        errs.append("repeated clinching drew no referee warning - clinch abuse must be recognised "
+                    "through officiating rather than silently ignored")
+
+    # Excessive running must lose on evidence rather than be blocked.
+    run = _bout(52300, "rusher", "_x_runner", rounds=2, round_seconds=90)
+    runner = run.fighters[1]
+    if runner.retreats == 0:
+        errs.append("the runner never retreated - running was prevented rather than made "
+                    "unprofitable")
+    if runner.effective_force > run.fighters[0].effective_force:
+        errs.append("empty avoidance out-scored a pressure fighter on effective offence - Rule 21's "
+                    "Long Drain condition says patience must be earned, not free")
+
+    # Passive blocking must not be an indefinitely safe state.
+    pas = _bout(52400, "power_threat", "_x_passive_blocker", rounds=2, round_seconds=90)
+    blocker = pas.fighters[1]
+    if blocker.blocked_taken == 0 and pas.fighters[0].landed == 0:
+        errs.append("the passive blocker was never even pressured - the check is vacuous")
+    if _winner(pas) == "B":
+        errs.append("pure passivity won the bout - blocking has become an indefinitely safe state, "
+                    "which Rule 4 prohibits")
+    return errs
+
+
 ALL_CHECKS = [
     ("score_access_denial", check_score_access_denial),
     ("accelerated_clock_synchronization", check_accelerated_clock),
+    ("style_viability_and_dominant_loops", check_style_viability),
+    ("repetition_abuse_list", check_repetition_abuse_list),
     ("determinism_and_seeded_replay", check_determinism_and_replay),
     ("repetition_versus_spam", check_repetition_versus_spam),
     ("large_batch_invalid_state", check_large_batch),

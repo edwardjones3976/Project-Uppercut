@@ -25,6 +25,7 @@ REQUIRED_INVARIANTS = (
     "commitment_is_absolute", "outcome_recovery_total", "commitment_order_in_frames",
     "no_magnetic_offense", "input_is_never_eaten", "repetition_is_observable",
     "chaining_costs_something", "move_table_agreement",
+    "power_is_bought_with_commitment",
 )
 
 # Rule 4: language that would mean the penalty is bookkeeping rather than boxing.
@@ -237,6 +238,41 @@ def check_invariants(doc: dict) -> list:
     return [f"missing required invariant '{r}'" for r in REQUIRED_INVARIANTS if r not in present]
 
 
+def check_delivered_impact(doc: dict) -> list:
+    """Rule 14: power is what commitment buys, and the spread has to be real.
+
+    The two failure modes this exists for are opposite. If the scalar band is
+    narrow, every punch hits the same and the jab knocks people out - which is
+    the bug that put this block in the model. If the floor is at or below zero,
+    some punch is harmless, and a harmless punch is a wasted move slot rather
+    than a boxing tool.
+    """
+    di = doc["delivered_impact"]
+    errs = []
+    offensive = {"jab", "cross", "hook", "uppercut", "overhand", "body_shot"}
+    costs = [m["stamina_cost"] for m in _moves()
+             if m.get("category") in offensive and m.get("stamina_cost", 0) > 0]
+    if not costs:
+        errs.append("no punch stamina costs found - the derivation has nothing to normalize over "
+                    "and would silently return a constant")
+        return errs
+    lo, hi = min(costs), max(costs)
+    if hi <= lo:
+        errs.append("every punch costs the same to throw, so a scalar derived from cost is a "
+                    "constant - commitment would buy nothing")
+    spread = di["max_impact_scalar"] - di["min_impact_scalar"]
+    if spread < 0.25:
+        errs.append(f"impact spread of {spread:.2f} is too narrow to separate a jab from an "
+                    f"overhand - Rule 14 needs what lands to matter, not just that it landed")
+    if di["min_impact_scalar"] <= 0:
+        errs.append("the lightest punch delivers nothing - there is no harmless punch in boxing, "
+                    "and a move that cannot accumulate cannot set anything up")
+    if "condition_damage" not in di["applies_to"] or "knockdown_pressure" not in di["applies_to"]:
+        errs.append("the scalar shapes one consequence of landing and not the other, so a light "
+                    "punch would either bank damage it cannot cash or end fights it cannot hurt")
+    return errs
+
+
 ALL_CHECKS = [
     ("schema", check_schema),
     ("commitment_rule13", check_commitment),
@@ -245,6 +281,7 @@ ALL_CHECKS = [
     ("repetition_economy_rule4", check_repetition_economy),
     ("chaining_rule13", check_chaining),
     ("move_table_agreement_rule22", check_move_table_agreement),
+    ("delivered_impact_rule14", check_delivered_impact),
     ("prohibitions", check_prohibitions),
     ("invariants_declared", check_invariants),
 ]

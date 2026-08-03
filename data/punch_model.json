@@ -12,9 +12,15 @@
   "commitment": {
     "$comment": "Rule 13. Commitment is the price of offense and the reason counterplay exists. A thrower may never take an action back; only being struck interrupts, which is what the animation interrupt tiers already encode.",
     "thrower_cancelable_phases": [],
-    "startup_interruptible_by": ["being_struck"],
-    "active_interruptible_by": ["being_struck"],
-    "recovery_interruptible_by": ["being_struck"],
+    "startup_interruptible_by": [
+      "being_struck"
+    ],
+    "active_interruptible_by": [
+      "being_struck"
+    ],
+    "recovery_interruptible_by": [
+      "being_struck"
+    ],
     "free_cancel_permitted": false,
     "input_buffer_ticks": 2,
     "notes": "The buffer serves Rule 19 responsiveness - an input landing 1-2 ticks early is honoured rather than dropped - without weakening commitment, because a buffered input still waits for recovery to end."
@@ -22,14 +28,60 @@
   "outcome_recovery": {
     "$comment": "This is where data/contact_classes.json stops being a table of names. Its commitment_tier ordering (blocked 1 < dodged 2 < whiffed 3) becomes actual recovery frames and actual counter windows. Multipliers apply to the move's authored recovery_frames.",
     "rows": [
-      { "class": "clean", "recovery_multiplier": 1.0, "counter_window_ticks": 0, "notes": "Landing is never punished for landing." },
-      { "class": "solid", "recovery_multiplier": 1.0, "counter_window_ticks": 0 },
-      { "class": "grazed", "recovery_multiplier": 1.0, "counter_window_ticks": 1 },
-      { "class": "brushed", "recovery_multiplier": 1.0, "counter_window_ticks": 2, "notes": "Barely connecting still leaves the thrower more exposed than connecting well - the punch went further past its target." },
-      { "class": "blocked", "recovery_multiplier": 1.15, "counter_window_ticks": 4, "notes": "The arm stops on structure; the thrower recovers from a shorter journey than a miss." },
-      { "class": "dodged", "recovery_multiplier": 1.3, "counter_window_ticks": 7, "notes": "The defender chose to move and earns more than the defender who chose to cover." },
-      { "class": "whiffed", "recovery_multiplier": 1.5, "counter_window_ticks": 10, "notes": "Empty space is the greatest consequence in the model (Rule 13)." }
+      {
+        "class": "clean",
+        "recovery_multiplier": 1.0,
+        "counter_window_ticks": 0,
+        "notes": "Landing is never punished for landing."
+      },
+      {
+        "class": "solid",
+        "recovery_multiplier": 1.0,
+        "counter_window_ticks": 0
+      },
+      {
+        "class": "grazed",
+        "recovery_multiplier": 1.0,
+        "counter_window_ticks": 1
+      },
+      {
+        "class": "brushed",
+        "recovery_multiplier": 1.0,
+        "counter_window_ticks": 2,
+        "notes": "Barely connecting still leaves the thrower more exposed than connecting well - the punch went further past its target."
+      },
+      {
+        "class": "blocked",
+        "recovery_multiplier": 1.15,
+        "counter_window_ticks": 4,
+        "notes": "The arm stops on structure; the thrower recovers from a shorter journey than a miss."
+      },
+      {
+        "class": "dodged",
+        "recovery_multiplier": 1.3,
+        "counter_window_ticks": 7,
+        "notes": "The defender chose to move and earns more than the defender who chose to cover."
+      },
+      {
+        "class": "whiffed",
+        "recovery_multiplier": 1.5,
+        "counter_window_ticks": 10,
+        "notes": "Empty space is the greatest consequence in the model (Rule 13)."
+      }
     ]
+  },
+  "delivered_impact": {
+    "$comment": "How much a punch delivers when it lands. Deliberately NOT an authored power number per move: the move table already says what each punch costs to throw and how long it leaves you standing there, and that IS the punch's power. Adding a separate power field would let a punch be cheap, fast and heavy at once, which is the exact thing the commitment model exists to prevent.",
+    "derived_from": "stamina_cost",
+    "normalization": "linear over the punch table's own stamina_cost range",
+    "min_impact_scalar": 0.45,
+    "max_impact_scalar": 1.0,
+    "applies_to": [
+      "condition_damage",
+      "knockdown_pressure"
+    ],
+    "why_this_was_added": "The reference model previously scaled damage and knockdown pressure by contact quality alone, so a clean jab and a clean overhand hit exactly as hard. A single-jab loop could therefore knock a varied fighter down four times and win, which the repetition-abuse check caught. Quality says how well it landed; this says how much there was to land.",
+    "notes": "min_impact_scalar is above zero because there is no harmless punch - the jab still accumulates, still scores and still sets up everything else; it simply does not end nights on its own. The scalar multiplies quality rather than replacing it, so a grazed overhand still does less than a clean one."
   },
   "range_gate": {
     "$comment": "Rule 12: feet -> position -> range -> contact -> consequence. The simulation never edits distance to rescue an attempt.",
@@ -54,29 +106,61 @@
         "id": "arm_fatigue",
         "fires_on": "accumulated work by the throwing arm",
         "observable_as": "arm condition and guard integrity degrade visibly on the side doing the work",
-        "affects": ["stamina_cost", "startup_frames"],
-        "target": "thrower"
+        "affects": [
+          "stamina_cost",
+          "startup_frames"
+        ],
+        "target": "thrower",
+        "coefficients": {
+          "per_throw_same_arm": 0.05,
+          "recovery_per_idle_tick": 0.004,
+          "max_multiplier": 1.7,
+          "note": "Multiplies the throwing arm's stamina cost and startup. Recovers whenever that arm is not working, so a fighter who mixes hands never accumulates it - which is the point: the tax is on doing one thing, not on throwing punches."
+        }
       },
       {
         "id": "position_cost",
         "fires_on": "throwing repeatedly without resetting the feet",
         "observable_as": "ring position is ceded; the thrower ends up where the opponent put them",
-        "affects": ["ring_position"],
-        "target": "thrower"
+        "affects": [
+          "ring_position"
+        ],
+        "target": "thrower",
+        "coefficients": {
+          "ru_ceded_per_throw_without_step": 0.012,
+          "resets_on": "step_in, step_out, step_lateral",
+          "note": "Punching without moving the feet cedes ground. The thrower ends up where the opponent put them, which is what 'position_cost' has always said and what nothing was doing."
+        }
       },
       {
         "id": "opponent_read",
         "fires_on": "a pattern the defender has now seen land or miss more than once",
         "observable_as": "the defender's guard and evasion arrive earlier against that pattern",
-        "affects": ["defender_reaction_window"],
-        "target": "defender"
+        "affects": [
+          "defender_reaction_window"
+        ],
+        "target": "defender",
+        "coefficients": {
+          "sightings_before_effect": 2,
+          "gain_per_sighting": 0.055,
+          "max_gain": 0.32,
+          "decay_per_unseen_offer": 1,
+          "note": "The defender's evasion and guard arrive earlier against a pattern seen more than once. Decays as soon as the pattern stops being offered, so a fighter who varies is never carrying a penalty they cannot shed - the read belongs to the defender's observation, not to a counter on the thrower."
+        }
       },
       {
         "id": "counter_window_growth",
         "fires_on": "the same punch offered from the same timing",
         "observable_as": "the punch becomes easier to time; counters land that previously did not",
-        "affects": ["counter_window_ticks"],
-        "target": "defender"
+        "affects": [
+          "counter_window_ticks"
+        ],
+        "target": "defender",
+        "coefficients": {
+          "ticks_per_sighting": 1,
+          "max_added_ticks": 6,
+          "note": "The same punch from the same timing becomes easier to time. Expressed in the same tick currency as the outcome_recovery counter windows so the two cannot drift apart."
+        }
       }
     ],
     "prohibited_mechanisms": [
@@ -85,7 +169,8 @@
       "Input lockout or move disabling after repeated use.",
       "An invisible accuracy penalty the fighter cannot observe or prevent."
     ],
-    "legitimate_repetition": "A jab that keeps working because the opponent never answers it is not spam and takes no penalty. Every mechanism above requires the opponent to have done something - fatigue requires the work, the read requires the observation, the counter window requires the offer."
+    "legitimate_repetition": "A jab that keeps working because the opponent never answers it is not spam and takes no penalty. Every mechanism above requires the opponent to have done something - fatigue requires the work, the read requires the observation, the counter window requires the offer.",
+    "coefficients_note": "Added 2026-08-03. Every mechanism above was declared with a fires_on, an observable_as and a target, and none of them had a number, so none of them could be implemented and none of them were - the reference simulator ran with the whole repetition economy inert. A single-jab loop therefore out-landed a varied technician and won twelve bouts out of twelve, which the abuse-list check caught. A mechanism with no coefficient is a sentence, not a system; the validator now refuses one."
   },
   "chaining": {
     "$comment": "Combinations exist because recovery overlaps the next windup, not because a combo table says so. No free cancels: a link starts late in recovery, never during active contact.",
@@ -105,13 +190,59 @@
     "Permit a chained follow-up to begin during another punch's active window."
   ],
   "invariants": [
-    { "id": "commitment_is_absolute", "rule": "Rule 13", "statement": "No punch phase is cancelable by the thrower, and only being struck interrupts one.", "enforced_by": "tools/uppercut_validate/punches.py::check_commitment" },
-    { "id": "outcome_recovery_total", "rule": "Criterion A.5", "statement": "Every contact class in data/contact_classes.json has exactly one recovery row, and no other class appears.", "enforced_by": "tools/uppercut_validate/punches.py::check_outcome_recovery" },
-    { "id": "commitment_order_in_frames", "rule": "Rule 13", "statement": "Recovery multiplier and counter window are non-decreasing across commitment tier, and strictly increasing across blocked -> dodged -> whiffed. Landed classes are never punished for landing.", "enforced_by": "tools/uppercut_validate/punches.py::check_outcome_recovery" },
-    { "id": "no_magnetic_offense", "rule": "Rule 12", "statement": "A punch outside its authored range band whiffs; no throw advances the fighter automatically.", "enforced_by": "tools/uppercut_validate/punches.py::check_gates" },
-    { "id": "input_is_never_eaten", "rule": "Rule 19", "statement": "Insufficient stamina degrades the punch; it never suppresses the input.", "enforced_by": "tools/uppercut_validate/punches.py::check_gates" },
-    { "id": "repetition_is_observable", "rule": "Rule 4", "statement": "Every repetition mechanism declares what it fires on and how it is observable, penalizes at least one side through consequence rather than count, and the model carries mechanisms acting on both thrower and defender - otherwise 'counterable' is a claim rather than a mechanism.", "enforced_by": "tools/uppercut_validate/punches.py::check_repetition_economy" },
-    { "id": "chaining_costs_something", "rule": "Rule 13", "statement": "Links begin only in late recovery, same-hand links cost at least as much as opposite-hand links, and same-hand power repeats cost at least as much as ordinary same-hand links.", "enforced_by": "tools/uppercut_validate/punches.py::check_chaining" },
-    { "id": "move_table_agreement", "rule": "Rule 22", "statement": "Every punch category the model reasons about exists in the move table, and every move range band exists in the movement model.", "enforced_by": "tools/uppercut_validate/punches.py::check_move_table_agreement" }
+    {
+      "id": "commitment_is_absolute",
+      "rule": "Rule 13",
+      "statement": "No punch phase is cancelable by the thrower, and only being struck interrupts one.",
+      "enforced_by": "tools/uppercut_validate/punches.py::check_commitment"
+    },
+    {
+      "id": "outcome_recovery_total",
+      "rule": "Criterion A.5",
+      "statement": "Every contact class in data/contact_classes.json has exactly one recovery row, and no other class appears.",
+      "enforced_by": "tools/uppercut_validate/punches.py::check_outcome_recovery"
+    },
+    {
+      "id": "commitment_order_in_frames",
+      "rule": "Rule 13",
+      "statement": "Recovery multiplier and counter window are non-decreasing across commitment tier, and strictly increasing across blocked -> dodged -> whiffed. Landed classes are never punished for landing.",
+      "enforced_by": "tools/uppercut_validate/punches.py::check_outcome_recovery"
+    },
+    {
+      "id": "no_magnetic_offense",
+      "rule": "Rule 12",
+      "statement": "A punch outside its authored range band whiffs; no throw advances the fighter automatically.",
+      "enforced_by": "tools/uppercut_validate/punches.py::check_gates"
+    },
+    {
+      "id": "input_is_never_eaten",
+      "rule": "Rule 19",
+      "statement": "Insufficient stamina degrades the punch; it never suppresses the input.",
+      "enforced_by": "tools/uppercut_validate/punches.py::check_gates"
+    },
+    {
+      "id": "repetition_is_observable",
+      "rule": "Rule 4",
+      "statement": "Every repetition mechanism declares what it fires on and how it is observable, penalizes at least one side through consequence rather than count, and the model carries mechanisms acting on both thrower and defender - otherwise 'counterable' is a claim rather than a mechanism.",
+      "enforced_by": "tools/uppercut_validate/punches.py::check_repetition_economy"
+    },
+    {
+      "id": "chaining_costs_something",
+      "rule": "Rule 13",
+      "statement": "Links begin only in late recovery, same-hand links cost at least as much as opposite-hand links, and same-hand power repeats cost at least as much as ordinary same-hand links.",
+      "enforced_by": "tools/uppercut_validate/punches.py::check_chaining"
+    },
+    {
+      "id": "move_table_agreement",
+      "rule": "Rule 22",
+      "statement": "Every punch category the model reasons about exists in the move table, and every move range band exists in the movement model.",
+      "enforced_by": "tools/uppercut_validate/punches.py::check_move_table_agreement"
+    },
+    {
+      "id": "power_is_bought_with_commitment",
+      "rule": "Rule 14",
+      "statement": "A punch's delivered impact is derived from what it costs to throw, never authored beside that cost. No punch can be cheap, fast and heavy at the same time.",
+      "enforced_by": "tools/uppercut_validate/punches.py::check_delivered_impact"
+    }
   ]
 }

@@ -38,13 +38,40 @@ def bias_for(profile: str):
 
 
 def posture_for(profile: str) -> str:
+    from . import exploits
+    if profile in exploits.POSTURES:
+        return exploits.POSTURES[profile]
     return bias_for(profile)[1]
 
 
 def decide(profile: str, obs: dict, rng) -> str | None:
-    """Return a move id to throw, or None to hold. Observable inputs only."""
+    """Return an action id, or None to hold. Observable inputs only.
+
+    Exploit policies are dispatched first so the exploit hunt can drive the same
+    engine as the balance instruments - an abuse tested against a different
+    simulator would prove nothing about this one."""
+    from . import exploits
+    if profile in exploits.EXPLOITS:
+        return exploits.EXPLOITS[profile](obs, rng)
     aggression, _, variety, risk = bias_for(profile)
     punches = canon.punches()
+
+    # Range discipline: close when out of range rather than throwing into air.
+    # A profile that ignored this would fail the Rule 12 gate by whiffing forever.
+    band = obs.get("band_key", "mid")
+    if band in ("outside", "out_of_range"):
+        return "step_in"
+    if band == "clinch" and rng.random() < 0.6:
+        return "step_out"
+    # Ringcraft, one branch only. On the reference model's single axis there is
+    # no ring to cut, so the pressure fighter gets no special behaviour here -
+    # it closes because advance beats retreat, which is the mechanism, not a
+    # bonus. What a backed-up fighter does have is the circle-off, and a boxer
+    # with gas left takes it rather than staying pinned. Reads only where the
+    # ropes are, so Rule 3 is untouched.
+    if obs.get("own_back_to_ropes") and obs["own_stamina_fraction"] > 0.2 \
+            and rng.random() < (1.0 - aggression) * 0.7:
+        return "step_lateral"
 
     # Rule 4: a tired fighter throws less. This reads the fighter's OWN stamina,
     # which is not privileged information about anyone else.
@@ -69,6 +96,11 @@ def decide(profile: str, obs: dict, rng) -> str | None:
     else:
         pref = [m for m in pool if m in BODY]
     pool = pref or pool
+    # Only throw what this band actually permits (Rule 12).
+    in_band = [m for m in pool if punches[m]["range_band"] == band]
+    pool = in_band or [m for m in punches if punches[m]["range_band"] == band]
+    if not pool:
+        return "step_in"
     return pool[rng.randrange(len(pool))]
 
 
