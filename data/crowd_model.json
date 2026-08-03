@@ -1,0 +1,81 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 09:15 UTC",
+    "end": "2026-08-03 09:15 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$comment": "ROADMAP Phase 1A step 11 - Crowd Bar architecture. data/crowd_contract.json already states Rule 12 as law: what the crowd rewards, what it refuses to reward, and what it may never touch. This turns that law into a mechanism - gain sources with novelty and risk gating, decay, and the exclusive full-bar choice. The Crowd Bar is an earned character resource and a presentation layer; it is never a secret judge and never a rubber band. Engine-neutral definitions only (Rule 18). Semantics: docs/phase1a/crowd_bar.md.",
+  "schema_version": "0.1.0-draft",
+  "tuning_status": "hypothesis",
+  "bar": {
+    "max": 100.0,
+    "start": 0.0,
+    "decay_per_tick_idle": 0.012,
+    "decay_grace_ticks": 240,
+    "carries_between_rounds": true,
+    "resets_on_full_spend": true,
+    "notes": "Decay after a grace window is what stops a fighter banking a bar early and coasting. It carries between rounds because the crowd remembers the fight, not the bell."
+  },
+  "gain_sources": [
+    { "id": "clean_offense", "base_gain": 2.2, "requires_risk": true, "novelty_gated": true },
+    { "id": "counters", "base_gain": 3.4, "requires_risk": true, "novelty_gated": true },
+    { "id": "reversals", "base_gain": 4.0, "requires_risk": true, "novelty_gated": true },
+    { "id": "evasions", "base_gain": 1.6, "requires_risk": true, "novelty_gated": true },
+    { "id": "defense", "base_gain": 1.0, "requires_risk": false, "novelty_gated": true },
+    { "id": "combinations", "base_gain": 2.8, "requires_risk": true, "novelty_gated": true },
+    { "id": "variety", "base_gain": 1.4, "requires_risk": false, "novelty_gated": false },
+    { "id": "ringcraft", "base_gain": 1.2, "requires_risk": false, "novelty_gated": true },
+    { "id": "appropriate_showmanship", "base_gain": 2.0, "requires_risk": true, "novelty_gated": true },
+    { "id": "high_risk_success", "base_gain": 4.5, "requires_risk": true, "novelty_gated": true },
+    { "id": "momentum_changing_sequences", "base_gain": 5.0, "requires_risk": true, "novelty_gated": true }
+  ],
+  "novelty": {
+    "$comment": "Rule 12 with Rule 4's teeth. The same action, repeated, is worth progressively less crowd - not because a counter says so, but because a crowd that has already seen it is not surprised by it. The decline is observable in the crowd's own reaction.",
+    "repeat_multiplier": 0.55,
+    "floor_multiplier": 0.1,
+    "window_ticks": 600,
+    "resets_on_different_action": true,
+    "notes": "Floor above zero on purpose: a jab that keeps working still earns something, because Rule 4 protects legitimate repetition. It simply stops being a meter engine."
+  },
+  "risk_gate": {
+    "$comment": "The anti-farming mechanism that matters. A risk-requiring source pays nothing when the action carried no exposure.",
+    "requires_counter_exposure": true,
+    "zero_gain_when_unopposed": true,
+    "notes": "Landing on a fighter who is down, stunned beyond response, or out of range to answer earns no crowd. Farming a safe target is the single most tempting exploit in a meter system."
+  },
+  "full_bar": {
+    "choice": ["ultimate", "full_crowd_trait"],
+    "exclusive": true,
+    "spend_empties_bar": true,
+    "expires_after_ticks": 3600,
+    "notes": "Rule 12: one completed bar activates one or the other, never both. The expiry stops a fighter holding a full bar indefinitely as a threat with no decision attached."
+  },
+  "authority": {
+    "reads_official_scores": false,
+    "alters_official_scores": false,
+    "alters_judging_criteria": false,
+    "alters_contact_truth": false,
+    "alters_condition_truth": false,
+    "alters_stamina_truth": false,
+    "grants_generic_multipliers": false
+  },
+  "prohibitions": [
+    "Read or alter official scorecards, or change judging criteria (Rule 3, Rule 12).",
+    "Grant a hidden generic damage, defense, speed, stamina or comeback multiplier (Rule 12).",
+    "Reward low-risk meter farming, raw activity, or repeated safe actions (Rule 12, Rule 4).",
+    "Override contact truth, condition truth or stamina truth (Rule 13, Rule 14).",
+    "Activate both an Ultimate and a Full-Crowd Trait from one completed bar (Rule 12).",
+    "Reduce a repeated action's crowd value to exactly zero - legitimate repetition stays legitimate (Rule 4)."
+  ],
+  "invariants": [
+    { "id": "crowd_is_blind_to_scores", "rule": "Rule 3", "statement": "The Crowd Bar neither reads nor alters official scores and cannot change judging criteria.", "enforced_by": "tools/uppercut_validate/crowd.py::check_authority" },
+    { "id": "no_generic_multipliers", "rule": "Rule 12", "statement": "The Crowd Bar grants no hidden generic damage, defense, speed, stamina or comeback multiplier, and overrides no contact, condition or stamina truth.", "enforced_by": "tools/uppercut_validate/crowd.py::check_authority" },
+    { "id": "gain_sources_are_canonical", "rule": "Rule 12", "statement": "Every gain source is a behaviour the crowd contract declares rewardable, and no behaviour the contract declares insufficient appears as a source.", "enforced_by": "tools/uppercut_validate/crowd.py::check_gain_sources" },
+    { "id": "risk_gate_stops_farming", "rule": "Rule 4", "statement": "Risk-requiring sources pay nothing against a target that cannot answer, and the highest-paying sources all require risk.", "enforced_by": "tools/uppercut_validate/crowd.py::check_risk_gate" },
+    { "id": "novelty_decays_but_never_to_zero", "rule": "Rule 4", "statement": "Repetition reduces crowd value toward a floor strictly above zero: a working jab still earns, it simply stops being a meter engine.", "enforced_by": "tools/uppercut_validate/crowd.py::check_novelty" },
+    { "id": "full_bar_is_exclusive", "rule": "Rule 12", "statement": "A completed bar offers exactly the Ultimate and the Full-Crowd Trait, exclusively, and spending empties it.", "enforced_by": "tools/uppercut_validate/crowd.py::check_full_bar" },
+    { "id": "banking_is_discouraged", "rule": "Rule 12", "statement": "The bar decays after a grace window and a full bar expires, so holding is a decision with a cost rather than a free threat.", "enforced_by": "tools/uppercut_validate/crowd.py::check_bar" }
+  ]
+}

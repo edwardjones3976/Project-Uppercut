@@ -16,9 +16,12 @@ Project Uppercut is the working title for an original modern arcade-boxing game 
 Preproduction closed 2026-08-02 with the Phase 0 quality gate passed on repository evidence
 ([phase0_status](docs/phase0/phase0_status.md)). The repository carries the canonical operating notes,
 binding rules and decisions 0001–0011, the validation toolchain (schemas, contracts, validators,
-fixtures, 335 tests in CI), Phase 1A definitions for **all ten** ROADMAP combat steps — combat states,
+fixtures, 381 tests in CI), Phase 1A definitions for **all twelve** ROADMAP steps — combat states,
 movement/facing, camera, animation states, collision truth, basic punches, guard and evasion,
-condition and recovery, CPU decision-making, and deterministic logging and replay
+condition and recovery, CPU decision-making, deterministic logging and replay, the Crowd Bar, and
+the Special/Ultimate/Full-Crowd-Trait architecture — plus a Python reference simulator running
+complete CPU-vs-CPU bouts with eight of the ROADMAP's required automated checks green
+([evidence rig](docs/phase1a/evidence_rig.md))
 ([phase1a_status](docs/phase1a/phase1a_status.md)) — a boxing-canon combat reference
 ([guard and style matchups](docs/design/boxing_guard_matchups.md)), and a verified Unreal Engine
 5.8.1 Blueprint sandbox (`sandbox/UppercutSandbox.uproject`, headless editor check: zero errors, zero

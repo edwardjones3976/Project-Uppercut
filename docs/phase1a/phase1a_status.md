@@ -18,8 +18,8 @@ data plus validator plus tests exist in the repository; it never means engine im
 | 8 | Stamina, health, condition, knockdowns, recovery | **defined** | `data/condition_model.json`, `schemas/condition_model.schema.json`, `tools/uppercut_validate/condition.py`, `tests/test_condition.py`, `docs/phase1a/condition_and_recovery.md`; closes the stamina pool step 6 left open, eight region tracks, no generic pool, no flat KO roll, Chin is never immunity |
 | 9 | CPU decision-making (observable info only) | **defined** | `data/cpu_decision_model.json`, `schemas/cpu_decision_model.schema.json`, `tools/uppercut_validate/cpu.py`, `tests/test_cpu.py`, `docs/phase1a/cpu_decision_making.md`; the score firewall is proven as a set relation against the isolation contract, not as a discipline, and difficulty changes perception only |
 | 10 | Deterministic logging and replay evidence | **defined** | `data/replay_model.json`, `schemas/replay_model.schema.json`, `tools/uppercut_validate/replay.py`, `tests/test_replay.py`, `docs/phase1a/logging_and_replay.md`; resimulation and replay kept as separate contracts, major events must carry causal explanation, sealed cards stay sealed through replay |
-| 11 | Crowd Bar architecture | provisioned slots only | provisioned states in `data/combat_states.json` |
-| 12 | Special / Full-Crowd Trait / Ultimate architecture | provisioned slots only | same |
+| 11 | Crowd Bar architecture | **defined** | `data/crowd_model.json`, `schemas/crowd_model.schema.json`, `tools/uppercut_validate/crowd.py`, `tests/test_crowd.py`, `docs/phase1a/crowd_bar.md`; gain sources locked to the crowd contract, novelty decays to a floor above zero, risk gate stops farming, full bar exclusive |
+| 12 | Special / Full-Crowd Trait / Ultimate architecture | **defined** | `data/ability_model.json`, `schemas/ability_model.schema.json`, `tools/uppercut_validate/ability.py`, `tests/test_ability.py`, `docs/phase1a/ability_architecture.md`; every ability counterable with no invulnerability and no commitment bypass, command entry bypasses nothing (architecture only, no fighter content) |
 
 ## Engine prerequisite
 
@@ -51,8 +51,19 @@ explicitly deferred, behind steps 3-4 in the binding order.
 ## Quality gate
 
 The Phase 1A quality gate is defined in `ROADMAP.md`. Nothing in it is claimed. Current honest
-position: **steps 1-10 all defined and validated**, with engine slices for steps 1, 2 and 5;
-steps 11-12 provisioned only. 335 tests.
+position: **all twelve Phase 1A steps defined and validated**, with engine slices for steps 1, 2
+and 5, and a Python reference simulator running complete CPU-vs-CPU bouts. 381 tests.
+
+**The evidence rig exists (WS5).** `tools/uppercut_sim/` executes the canonical models end to end -
+decisions, collision pipeline, condition, crowd, knockdowns, stoppages, sealed cards - and eight of
+the ROADMAP's eleven required automated checks now run against it: score-access denial, determinism
+and seeded replay, repetition-versus-spam, large-batch invalid-state and deadlock, knockdown and
+stoppage and result states, First Bell Firestorm, Long Drain, and Crowd-farming prohibition. A
+90-bout stress-profile round robin found no dominant extreme and no absent counterplay.
+Three checks remain unbuilt and are named rather than skipped: accelerated-clock synchronization,
+style-viability and dominant-loop detection at scale, and the full repetition abuse list.
+Unreal remains authoritative (Decision 0002); the reference model is an instrument, not a result.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 09:52 UTC | edit: steps 11-12, evidence rig ] -->
 
 **What "definitions complete" does and does not mean.** Every layer a CPU-vs-CPU match needs is now
 specified, cross-locked to its neighbours, and enforced by something that fails loudly. That is not

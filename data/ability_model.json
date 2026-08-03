@@ -1,0 +1,90 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 09:22 UTC",
+    "end": "2026-08-03 09:22 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$comment": "ROADMAP Phase 1A step 12 - Special, Ultimate and Full-Crowd Trait architecture. Rule 12 gives each fighter two counterable Specials and, at a full Crowd Bar, an exclusive choice between an Ultimate and a Full-Crowd Trait. The load-bearing law is that none of them may buy their way out of counterplay: an ability is a stronger option, never a safer one, and Rule 11 prohibits unblockable-by-design outright. This is architecture, not content - no fighter-specific ability is authored here. Engine-neutral definitions only (Rule 18). Semantics: docs/phase1a/ability_architecture.md.",
+  "schema_version": "0.1.0-draft",
+  "tuning_status": "hypothesis",
+  "ability_classes": [
+    {
+      "id": "special",
+      "per_fighter": 2,
+      "resource": "crowd_bar_partial",
+      "cost_fraction": 0.35,
+      "counterable": true,
+      "grants_invulnerability": false,
+      "bypasses_commitment": false,
+      "notes": "Two per fighter, Rule 12. A Special is a signature option with real startup, real recovery and a real answer - it is what a fighter reaches for, not what a fighter wins with."
+    },
+    {
+      "id": "ultimate",
+      "per_fighter": 1,
+      "resource": "crowd_bar_full",
+      "cost_fraction": 1.0,
+      "counterable": true,
+      "grants_invulnerability": false,
+      "bypasses_commitment": false,
+      "notes": "The full-bar offensive choice. Exclusive with the Full-Crowd Trait; spending empties the bar."
+    },
+    {
+      "id": "full_crowd_trait",
+      "per_fighter": 1,
+      "resource": "crowd_bar_full",
+      "cost_fraction": 1.0,
+      "counterable": true,
+      "grants_invulnerability": false,
+      "bypasses_commitment": false,
+      "notes": "The full-bar non-offensive choice - a fighter-defining state rather than a strike. Exclusive with the Ultimate from the same bar."
+    }
+  ],
+  "counterplay_requirements": {
+    "$comment": "Rule 11 and Rule 13. Every ability answers the same nine questions every ordinary attack answers, because an ability that skips them has left the combat system rather than extended it.",
+    "must_define": [
+      "startup_frames", "active_frames", "recovery_frames", "range_band",
+      "resource_cost", "guard_interaction", "hit_reaction",
+      "counter_vulnerability", "positional_consequence"
+    ],
+    "min_startup_frames": 6,
+    "min_recovery_frames": 12,
+    "whiff_is_punishable": true,
+    "notes": "The startup floor is what makes an Ultimate readable. An ability that arrives faster than a jab is not a climax, it is a coin flip."
+  },
+  "activation": {
+    "$comment": "Rule 15: command entry may not bypass anything. Recognition is forgiving; the fight is not.",
+    "requires_explicit_confirmation": true,
+    "recognition_is_remappable": true,
+    "recognition_is_trainable": true,
+    "bypasses_stun": false,
+    "bypasses_recovery": false,
+    "bypasses_range": false,
+    "bypasses_resource_cost": false,
+    "bypasses_startup": false,
+    "bypasses_whiff_punishment": false
+  },
+  "exclusivity": {
+    "full_bar_choice": ["ultimate", "full_crowd_trait"],
+    "both_from_one_bar": false,
+    "notes": "Rule 12, restated here because this is the file that would be tempted to break it."
+  },
+  "prohibitions": [
+    "Author an ability that is unblockable by design (Rule 11).",
+    "Grant invulnerability, or bypass commitment, during any ability (Rule 13).",
+    "Let command entry bypass stun, recovery, range, resource cost, startup, tracking limits or whiff punishment (Rule 15).",
+    "Activate both an Ultimate and a Full-Crowd Trait from one completed bar (Rule 12).",
+    "Give a fighter more than two Specials (Rule 12).",
+    "Define an ability without the same nine counterplay properties every ordinary attack defines (Rule 22)."
+  ],
+  "invariants": [
+    { "id": "every_ability_is_counterable", "rule": "Rule 11", "statement": "No ability class grants invulnerability, bypasses commitment, or is unblockable by design.", "enforced_by": "tools/uppercut_validate/ability.py::check_classes" },
+    { "id": "abilities_answer_the_same_questions", "rule": "Rule 22", "statement": "Every ability must define the same nine properties an ordinary attack defines - startup, active, recovery, range, cost, guard interaction, hit reaction, counter vulnerability and positional consequence.", "enforced_by": "tools/uppercut_validate/ability.py::check_counterplay" },
+    { "id": "ultimates_stay_readable", "rule": "Rule 13", "statement": "Minimum startup and recovery floors hold for abilities, and a whiffed ability is punishable.", "enforced_by": "tools/uppercut_validate/ability.py::check_counterplay" },
+    { "id": "input_bypasses_nothing", "rule": "Rule 15", "statement": "Command entry bypasses no stun, recovery, range, cost, startup or whiff punishment, and activation requires explicit confirmation.", "enforced_by": "tools/uppercut_validate/ability.py::check_activation" },
+    { "id": "two_specials_only", "rule": "Rule 12", "statement": "Each fighter has exactly two Specials, one Ultimate and one Full-Crowd Trait.", "enforced_by": "tools/uppercut_validate/ability.py::check_classes" },
+    { "id": "full_bar_exclusivity_holds_here_too", "rule": "Rule 12", "statement": "The full-bar choice matches the crowd model and never yields both.", "enforced_by": "tools/uppercut_validate/ability.py::check_exclusivity" },
+    { "id": "full_bar_costs_the_whole_bar", "rule": "Rule 12", "statement": "Both full-bar abilities cost the entire bar; a Special costs strictly less.", "enforced_by": "tools/uppercut_validate/ability.py::check_classes" }
+  ]
+}
