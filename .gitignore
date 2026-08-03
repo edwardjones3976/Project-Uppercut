@@ -17,3 +17,7 @@ sandbox/Intermediate/
 sandbox/Saved/
 sandbox/.vs/
 sandbox/*.sln
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 05:38 UTC | edit: keep transfer artifacts out of canon ]
+# Patch files are transfer artifacts, not repository content.
+*.patch
