@@ -16,20 +16,21 @@ Project Uppercut is the working title for an original modern arcade-boxing game 
 Preproduction closed 2026-08-02 with the Phase 0 quality gate passed on repository evidence
 ([phase0_status](docs/phase0/phase0_status.md)). The repository carries the canonical operating notes,
 binding rules and decisions 0001–0011, the validation toolchain (schemas, contracts, validators,
-fixtures, 284 tests in CI), Phase 1A definitions for ROADMAP steps 1–7 — combat states,
-movement/facing, camera behavior, animation states, collision truth, basic punches, and guard and evasion
+fixtures, 335 tests in CI), Phase 1A definitions for **all ten** ROADMAP combat steps — combat states,
+movement/facing, camera, animation states, collision truth, basic punches, guard and evasion,
+condition and recovery, CPU decision-making, and deterministic logging and replay
 ([phase1a_status](docs/phase1a/phase1a_status.md)) — a boxing-canon combat reference
 ([guard and style matchups](docs/design/boxing_guard_matchups.md)), and a verified Unreal Engine
 5.8.1 Blueprint sandbox (`sandbox/UppercutSandbox.uproject`, headless editor check: zero errors, zero
 warnings; pinned baseline in [technical_baseline](docs/phase0/technical_baseline.md)). Deterministic
-fixed-tick resimulation (Decision 0002) is validated at three levels — engine runtime, Blueprint actor
-tick, and the canonical state machine executing in the Blueprint VM — byte-identical across same-seed
-processes and seed-sensitive ([evidence](docs/phase1a/determinism_probe_results.md)); the C++ trigger
-stays armed for scale, not correctness. **No playable boxing match or completed gameplay
-implementation is claimed yet** (Rule 18). Next in the fixed order: ROADMAP step 8 — stamina, health,
-condition, knockdowns and recovery — though the honest priority is closing the gap between defined
-steps and in-engine slices, of which there is currently one.
-<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 07:42 UTC | edit: status sync, step 7 ] -->
+fixed-tick resimulation (Decision 0002) is validated at five levels — engine runtime, Blueprint actor
+tick, the canonical state machine, range-band resolution with hysteresis, and the four-stage collision
+pipeline — each byte-identical across same-seed processes and seed-sensitive, with zero mismatches
+against canon ([evidence](docs/phase1a/determinism_probe_results.md)); the C++ trigger stays armed for
+scale, not correctness. **No playable boxing match or completed gameplay implementation is claimed
+yet** (Rule 18). Remaining in Phase 1A: steps 11–12 (Crowd Bar and Special/Ultimate architecture),
+the evidence rig, and the substantial distance between validated definitions and a running match.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 09:07 UTC | edit: status sync, steps 8-10 ] -->
 
 ## Core direction
 

@@ -17,7 +17,7 @@ data plus validator plus tests exist in the repository; it never means engine im
 | 7 | Guard and evasion | **defined** | `data/guard_evasion_model.json`, `schemas/guard_evasion_model.schema.json`, `tools/uppercut_validate/guard.py`, `tests/test_guard.py`, `docs/phase1a/guard_and_evasion.md`; all ten named guards authored as postures over the two collision volumes, closing Decision 0010's step-7 promise |
 | 8 | Stamina, health, condition, knockdowns, recovery | **defined** | `data/condition_model.json`, `schemas/condition_model.schema.json`, `tools/uppercut_validate/condition.py`, `tests/test_condition.py`, `docs/phase1a/condition_and_recovery.md`; closes the stamina pool step 6 left open, eight region tracks, no generic pool, no flat KO roll, Chin is never immunity |
 | 9 | CPU decision-making (observable info only) | **defined** | `data/cpu_decision_model.json`, `schemas/cpu_decision_model.schema.json`, `tools/uppercut_validate/cpu.py`, `tests/test_cpu.py`, `docs/phase1a/cpu_decision_making.md`; the score firewall is proven as a set relation against the isolation contract, not as a discipline, and difficulty changes perception only |
-| 10 | Deterministic logging and replay evidence | not started | fight-event schema exists |
+| 10 | Deterministic logging and replay evidence | **defined** | `data/replay_model.json`, `schemas/replay_model.schema.json`, `tools/uppercut_validate/replay.py`, `tests/test_replay.py`, `docs/phase1a/logging_and_replay.md`; resimulation and replay kept as separate contracts, major events must carry causal explanation, sealed cards stay sealed through replay |
 | 11 | Crowd Bar architecture | provisioned slots only | provisioned states in `data/combat_states.json` |
 | 12 | Special / Full-Crowd Trait / Ultimate architecture | provisioned slots only | same |
 
@@ -51,8 +51,15 @@ explicitly deferred, behind steps 3-4 in the binding order.
 ## Quality gate
 
 The Phase 1A quality gate is defined in `ROADMAP.md`. Nothing in it is claimed. Current honest
-position: steps 1-9 defined and validated, with engine slices for steps 1, 2 and 5;
-step 10 not started; steps 11-12 provisioned only. 319 tests.
+position: **steps 1-10 all defined and validated**, with engine slices for steps 1, 2 and 5;
+steps 11-12 provisioned only. 335 tests.
+
+**What "definitions complete" does and does not mean.** Every layer a CPU-vs-CPU match needs is now
+specified, cross-locked to its neighbours, and enforced by something that fails loudly. That is not
+the gate. The gate wants complete matches running from selection through post-fight flow, and the
+distance between a validated definition and a running match remains the largest item on the board.
+Steps 11-12 are also still provisioned slots, so Phase 1A's definition work is not finished either -
+only the ten steps that a match strictly requires.
 
 **Gate item answered structurally.** The gate asks that CPU fighters use "no hidden score, opponent
 input, or privileged state knowledge" - an absence, which behaviour testing struggles to show. Step 9

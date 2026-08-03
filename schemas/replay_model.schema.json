@@ -1,0 +1,95 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 08:58 UTC",
+    "end": "2026-08-03 08:58 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-uppercut.local/schemas/replay_model.schema.json",
+  "title": "Logging and Replay Model",
+  "description": "ROADMAP Phase 1A step 10: what the authoritative event log guarantees. Resimulation and replay are separate contracts by construction. Engine-neutral; definitions only (Rule 18).",
+  "type": "object",
+  "required": ["schema_version", "tuning_status", "resimulation", "replay", "log_requirements", "visibility_rules", "prohibitions", "invariants"],
+  "additionalProperties": false,
+  "properties": {
+    "contribution": { "type": "object" },
+    "$comment": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "tuning_status": { "enum": ["hypothesis", "validated"] },
+    "resimulation": {
+      "type": "object",
+      "required": ["inputs", "reproduces", "byte_identical_required", "excluded_from_hash", "wall_clock_may_affect_outcome"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "inputs": { "type": "array", "minItems": 2, "items": { "type": "string" } },
+        "reproduces": { "const": "authoritative_event_log" },
+        "byte_identical_required": { "const": true },
+        "excluded_from_hash": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "wall_clock_may_affect_outcome": { "const": false, "description": "Criterion E.19." },
+        "notes": { "type": "string" }
+      }
+    },
+    "replay": {
+      "type": "object",
+      "required": ["source", "reruns_cpu_decisions", "reruns_judging", "reruns_rng"],
+      "additionalProperties": false,
+      "properties": {
+        "$comment": { "type": "string" },
+        "source": { "const": "saved_event_log" },
+        "reruns_cpu_decisions": { "const": false, "description": "A replay re-presents; it never re-decides." },
+        "reruns_judging": { "const": false },
+        "reruns_rng": { "const": false },
+        "may_change_camera": { "type": "boolean" },
+        "sealed_events_visible_during": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "string" }
+      }
+    },
+    "log_requirements": {
+      "type": "object",
+      "required": ["monotonic_seq", "monotonic_tick", "every_event_carries_clock", "explains_references_are_backward", "sealed_events_marked", "required_explained_types"],
+      "additionalProperties": false,
+      "properties": {
+        "monotonic_seq": { "const": true },
+        "monotonic_tick": { "const": true },
+        "every_event_carries_clock": { "const": true, "description": "Rule 9: one synchronized authoritative clock, read by everything." },
+        "explains_references_are_backward": { "const": true },
+        "sealed_events_marked": { "const": true },
+        "required_explained_types": { "type": "array", "minItems": 4, "items": { "type": "string" } },
+        "notes": { "type": "string" }
+      }
+    },
+    "visibility_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["event_type", "visibility", "revealed_at"],
+        "additionalProperties": false,
+        "properties": {
+          "event_type": { "type": "string" },
+          "visibility": { "enum": ["observable", "sealed"] },
+          "revealed_at": { "type": "string" }
+        }
+      }
+    },
+    "prohibitions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "rule", "statement"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "rule": { "type": "string" },
+          "statement": { "type": "string", "minLength": 1 },
+          "enforced_by": { "type": "string" }
+        }
+      }
+    }
+  }
+}

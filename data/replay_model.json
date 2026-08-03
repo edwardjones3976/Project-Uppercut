@@ -1,0 +1,65 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-03 08:58 UTC",
+    "end": "2026-08-03 08:58 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$comment": "ROADMAP Phase 1A step 10 - deterministic simulation logging and replay evidence. schemas/fight_event.schema.json already defines what an event LOOKS like; nothing until now defined what the log GUARANTEES. Two distinct contracts live here and are deliberately not merged: resimulation (same seed and initial state reproduce the same authoritative event log) and replay (a saved log reproduces the recorded presentation without re-running uncertain decisions). Conflating them is how a replay system starts silently re-deciding fights. Engine-neutral definitions only (Rule 18). Semantics: docs/phase1a/logging_and_replay.md.",
+  "schema_version": "0.1.0-draft",
+  "tuning_status": "hypothesis",
+  "resimulation": {
+    "$comment": "Decision 0002 / Criterion E.19. Validated in-engine at four levels already (determinism_probe_results.md Phases A-E); this is the contract those probes were testing against.",
+    "inputs": ["seed", "authoritative_initial_state", "authored_data_version"],
+    "reproduces": "authoritative_event_log",
+    "byte_identical_required": true,
+    "excluded_from_hash": ["camera", "presentation", "audio", "commentary", "crowd_render"],
+    "wall_clock_may_affect_outcome": false,
+    "notes": "Anything excluded from the hash is also forbidden from writing simulation state - the camera model already declares exactly that, which is what makes the exclusion safe rather than convenient."
+  },
+  "replay": {
+    "$comment": "Rule 13 and Rule 3. A replay re-presents; it never re-decides.",
+    "source": "saved_event_log",
+    "reruns_cpu_decisions": false,
+    "reruns_judging": false,
+    "reruns_rng": false,
+    "may_change_camera": true,
+    "sealed_events_visible_during": ["archival_reveal"],
+    "notes": "Camera is the one thing a replay may choose freely, because the camera writes no simulation state. Everything else is read from the log as recorded."
+  },
+  "log_requirements": {
+    "monotonic_seq": true,
+    "monotonic_tick": true,
+    "every_event_carries_clock": true,
+    "explains_references_are_backward": true,
+    "sealed_events_marked": true,
+    "required_explained_types": [
+      "punch_outcome", "knockdown", "stoppage", "referee_deduction",
+      "judge_round_card", "judge_final_card"
+    ],
+    "notes": "The ROADMAP gate asks that the log explain major combat and judging events. 'Explained' means the event names the earlier seq values it causally follows, so a reader can walk backwards from a stoppage to the exchange that caused it."
+  },
+  "visibility_rules": [
+    { "event_type": "judge_round_card", "visibility": "sealed", "revealed_at": "archival_reveal" },
+    { "event_type": "judge_final_card", "visibility": "sealed", "revealed_at": "archival_reveal" }
+  ],
+  "prohibitions": [
+    "Re-run CPU decisions, judging or the RNG during replay (Rule 13).",
+    "Let wall-clock time, frame rate or container ordering affect the authoritative log (Criterion E.19).",
+    "Include camera or presentation state in the determinism hash.",
+    "Emit a sealed judge event as observable, or reveal one before the archival reveal (Rule 3).",
+    "Write an explains reference to a later sequence number.",
+    "Record a major combat or judging event with no causal explanation (ROADMAP gate)."
+  ],
+  "invariants": [
+    { "id": "resim_is_byte_identical", "rule": "Criterion E.19", "statement": "Same seed, same authoritative initial state and same authored data reproduce a byte-identical authoritative event log.", "enforced_by": "tools/uppercut_validate/replay.py::check_resimulation" },
+    { "id": "presentation_excluded", "rule": "Rule 13", "statement": "Camera and presentation are excluded from the determinism hash, and every excluded system is one that writes no simulation state.", "enforced_by": "tools/uppercut_validate/replay.py::check_resimulation" },
+    { "id": "replay_never_redecides", "rule": "Rule 13", "statement": "Replay re-runs neither CPU decisions, nor judging, nor the RNG; it re-presents a recorded log.", "enforced_by": "tools/uppercut_validate/replay.py::check_replay" },
+    { "id": "sealed_stays_sealed_in_replay", "rule": "Rule 3", "statement": "Sealed judge events are visible only at the archival reveal, never during the fight or the immediate result flow, and replay does not widen that.", "enforced_by": "tools/uppercut_validate/replay.py::check_visibility" },
+    { "id": "log_is_ordered", "rule": "Criterion E.19", "statement": "Sequence and tick are monotonic and every event carries the authoritative clock.", "enforced_by": "tools/uppercut_validate/replay.py::check_log_requirements" },
+    { "id": "causality_points_backward", "rule": "Rule 13", "statement": "An explains reference names an earlier sequence number; nothing is caused by its own future.", "enforced_by": "tools/uppercut_validate/replay.py::check_log_requirements" },
+    { "id": "major_events_are_explained", "rule": "ROADMAP Phase 1A gate", "statement": "Punch outcomes, knockdowns, stoppages, deductions and both judge cards must carry causal explanation, so a reader can walk backwards from a result to the exchange that produced it.", "enforced_by": "tools/uppercut_validate/replay.py::check_log_requirements" },
+    { "id": "event_vocabulary_agrees", "rule": "Rule 22", "statement": "Every type named here exists in fight_event.schema.json, and every sealed type named by the score-isolation contract is marked sealed here.", "enforced_by": "tools/uppercut_validate/replay.py::check_visibility" }
+  ]
+}
