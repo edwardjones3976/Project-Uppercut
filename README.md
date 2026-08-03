@@ -16,8 +16,8 @@ Project Uppercut is the working title for an original modern arcade-boxing game 
 Preproduction closed 2026-08-02 with the Phase 0 quality gate passed on repository evidence
 ([phase0_status](docs/phase0/phase0_status.md)). The repository carries the canonical operating notes,
 binding rules and decisions 0001–0010, the validation toolchain (schemas, contracts, validators,
-fixtures, 242 tests in CI), Phase 1A definitions for ROADMAP steps 1–5 — combat states,
-movement/facing, camera behavior, animation states, and collision truth
+fixtures, 262 tests in CI), Phase 1A definitions for ROADMAP steps 1–6 — combat states,
+movement/facing, camera behavior, animation states, collision truth, and basic punches
 ([phase1a_status](docs/phase1a/phase1a_status.md)) — boxing-canon combat references for
 [guard and style matchups](docs/design/boxing_guard_matchups.md) and
 [punches, targets, angles, and guard interception](docs/design/boxing-punches-guards-and-target-matchups.md),
@@ -28,8 +28,8 @@ editor check: zero errors, zero warnings; pinned baseline in
 state machine executing in the Blueprint VM — byte-identical across same-seed processes and
 seed-sensitive ([evidence](docs/phase1a/determinism_probe_results.md)); the C++ trigger stays armed
 for scale, not correctness. **No playable boxing match or completed gameplay implementation is
-claimed yet** (Rule 18). Next in the fixed order: ROADMAP step 6 — basic punches.
-<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 06:12 UTC | edit: status sync ] -->
+claimed yet** (Rule 18). Next in the fixed order: ROADMAP step 7 — guard and evasion.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 06:58 UTC | edit: status sync, step 6 ] -->
 
 ## Core direction
 
