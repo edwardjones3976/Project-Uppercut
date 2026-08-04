@@ -1057,10 +1057,51 @@ exists precisely to make that discovery cost a contract instead of a phase, and
 here it did: the finding arrived before a line of C++, from a Python sweep that
 took under a second.
 
-**Slice item 9 is held pending contact-quality grading.** The four quality bands
-already exist in `collision_model` — brushed 0.15, grazed 0.40, solid 0.75, clean
-1.00 — and the missing input is alignment, which is the collision pipeline's next
-piece rather than a new invention. That is now the real next item.
+**Slice item 9 is held.** The first diagnosis was contact-quality grading, and it
+was half right — see the follow-up immediately below, which built it and found the
+real blocker underneath.
+
+### Grading built, and the blocker it uncovered
+
+Contact quality is now in the contract, ported from the reference simulator rather
+than invented: an alignment draw at contact, reduced by `stamina_gate`'s exhaustion
+penalty, dispatched through `collision_model`'s own four bands (brushed 0.15,
+grazed 0.40, solid 0.75, clean 1.00). Canon's pressure formula grades only solid
+and clean, so brushed and grazed shots now accumulate without dropping anybody —
+which is exactly what the bands are for. Landings distribute properly: in the
+canonical round, 10 brushed, 14 grazed, 11 solid, 8 clean.
+
+**It did not revive the decision path.** Still 24 of 24 seeds stopped in round one.
+And the run says why in one number:
+
+    blocked = 0
+
+Zero blocks in a full round. Phase N managed 17 in half that time; here the guard
+never works at all. The cause is structural, not numeric. Our fighters are
+committed on roughly 740 of every 800 decision ticks, and `committed_defense`
+multiplies a committed defender's extents by 0.6 — which puts high_guard's 0.95
+head lane at 0.57, under the 0.6 interception threshold. Against a **hard
+geometric threshold**, "committed" therefore means "guard entirely absent," every
+time, for almost the whole fight.
+
+The reference simulator does not have this problem because its guard stage is
+**probabilistic**: it blocks with chance `extent × 0.55`, so a committed defender
+still catches a share of what comes. Our pipeline replaced three of the reference's
+four random draws with geometry — sweep, evasion and guard — which is a strictly
+better determinism story and, at the guard stage, went one step too far. A
+threshold with no tolerance turns a graded defensive state into a binary one.
+
+**So the real next item is the defensive pipeline, not the knockdown numbers.**
+The choice is a design question and belongs to the Director rather than to this
+contract: either committed defense should degrade coverage rather than erase it
+(a softer multiplier, or a threshold with a partial-block band beneath it), or
+guard interception needs the tolerance the reference gets from its dice. Both are
+expressible without inventing anything; they are different statements about what
+being caught mid-punch should cost.
+
+Nothing here says canon's 0.57 knockdown threshold is wrong. It says the threshold
+still cannot be judged, because it is being measured against a fighter who is never
+defending.
 
 ### What this does not say
 

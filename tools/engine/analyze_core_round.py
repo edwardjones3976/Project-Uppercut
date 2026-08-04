@@ -100,7 +100,22 @@ def canon_pack() -> dict:
     c["caught"] = q(pm["caught_committed_multiplier"])
     c["balanced"] = q(pm["balanced_multiplier"])
     c["open_lane"] = q(pm["unguarded_lane_bonus"])
-    c["solid_force"] = q(0.75)          # the graded band, Phase N's simplification
+    c["solid_force"] = q(0.75)          # retained: the pressure term is per-class below
+    # ---- contact quality, which is what unblocks this phase --------------
+    # The four bands and the alignment thresholds that dispatch between them.
+    col = json.loads(io.open(os.path.join(REPO, CANON["collision"]), "rb").read())
+    bands = sorted(col["quality_bands"], key=lambda b: b["min_alignment"])
+    c["bands"] = [(b["class"], q(b["min_alignment"]), q(b["delivered_force_fraction"]))
+                  for b in bands]
+    c["band_thresholds"] = [t for _, t, _ in c["bands"][1:]]   # 0.35, 0.6, 0.85
+    pm_ = json.loads(io.open(os.path.join(REPO, CANON["punch"]), "rb").read())
+    sg = pm_["stamina_gate"]
+    c["align_penalty_max"] = q(sg["low_stamina_alignment_penalty_max"])
+    c["low_frac"] = q(st["low_threshold_fraction"])
+    c["exh_frac"] = q(st["exhausted_threshold_fraction"])
+    # Knockdown force is graded too: canon's pressure formula weights solid at
+    # 0.75 and clean at 1.0 and does not fire below solid at all.
+    c["kd_force"] = {"solid": q(0.75), "clean": q(1.0)}
     c["between_stam"] = q(st["between_rounds_recovery_fraction"])
     c["region_recovery"] = {d["region"]: q(d["recovers_between_rounds"])
                             for d in cm["damage_regions"]}
@@ -120,10 +135,42 @@ def canon_pack() -> dict:
     return c
 
 
+def grade(c: dict, align: int) -> tuple:
+    """alignment -> (class, delivered_force_fraction). collision_model's own
+    four bands and their thresholds; nothing invented."""
+    n = sum(1 for t in c["band_thresholds"] if align >= t)
+    return c["bands"][n][0], c["bands"][n][2]
+
+
+def alignment(c: dict, x: int, stamina: int) -> int:
+    """Contact quality, ported from the reference simulator rather than invented.
+
+    Two things are worth stating plainly. First, this is where the fight's one
+    genuine die sits: canon's `resolve()` draws alignment at random, and Rule 14
+    permits it - what Rule 14 forbids is a random KNOCKOUT roll attached to a
+    punch, not stochastic contact quality feeding a deterministic threshold.
+    Second, in this core the draw is the ONLY random term in the contact
+    pipeline: the reference sim also rolls for sweep, evasion and guard, all
+    three of which are geometry here. That is a strictly stronger determinism
+    story, and it is worth keeping when the rest of the pipeline ports.
+
+    Exhaustion lands worse (punch_model.stamina_gate): the penalty is subtracted
+    before the bands read it, so a tired fighter grades lower without any punch
+    being refused.
+    """
+    align = x % 10001
+    frac = (stamina * 10000) // c["st_max"]
+    if frac < c["low_frac"]:
+        t = 10000 if frac <= c["exh_frac"] else \
+            ((c["low_frac"] - frac) * 10000) // (c["low_frac"] - c["exh_frac"])
+        align = max(0, align - (c["align_penalty_max"] * t) // 10000)
+    return align
+
+
 def pressure(c: dict, mv: dict, cond: dict, stamina: int, committed: bool,
-             extent: int) -> int:
+             extent: int, kd_force: int) -> int:
     """Rule 14 in fixed point. Every term is canon; none of them is a die."""
-    force = (c["solid_force"] * mv["impact"]) // 10000
+    force = (kd_force * mv["impact"]) // 10000
     # jaw 0.6 / head 0.4, as a fraction of capacity. One expression, fixed order
     # of operations, so the C++ cannot round it differently.
     accumulated = ((cond["jaw_chin"] * 6000 + cond["head"] * 4000) // 10000) \
@@ -212,8 +259,13 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True) -> str
                                 cond[opp][arm] = min(c["cap"][arm],
                                                      cond[opp][arm] + absorbed)
                         elif asf:
+                            # Contact quality. The LCG advances here, once per
+                            # landing - the only die in the pipeline.
+                            x = (LCG_A * x + LCG_C) % LCG_M
+                            align = alignment(c, x, st[i])
+                            cls, frac = grade(c, align)
                             result, region = "landed", mv["region"]
-                            force = (c["band_force"] * mv["impact"]) // 10000
+                            force = (frac * mv["impact"]) // 10000
                             cond[opp][region] = min(c["cap"][region],
                                                     cond[opp][region] + force * 6)
                             damage_total += force * 6
@@ -224,13 +276,19 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True) -> str
                             result, region = "whiffed", "-"
                         if result:
                             counts[result] += 1
-                            rows.append("P|%d|%d|%s|%s|%s|%d|%d|%d|%d|%s|%d|%d"
+                            rows.append("P|%d|%d|%s|%s|%s|%d|%d|%d|%d|%s|%d|%d|%s"
                                         % (T, i, mid, result, region, k, tip, plane,
-                                           surface, dflags, force, dext))
+                                           surface, dflags, force, dext,
+                                           cls if result == "landed" else "-"))
                             punch[i] = None
                             # ---- the knockdown, decided from state alone ----
-                            if result == "landed" and region in c["kd_regions"]:
-                                pr = pressure(c, mv, cond[opp], st[opp], d_comm, dext)
+                            # Canon's pressure formula grades only solid and clean;
+                            # a brushed or grazed shot accumulates and does not drop
+                            # anybody, which is the whole point of the bands.
+                            if result == "landed" and region in c["kd_regions"] \
+                                    and cls in c["kd_force"]:
+                                pr = pressure(c, mv, cond[opp], st[opp], d_comm, dext,
+                                              c["kd_force"][cls])
                                 if pr >= c["kd_threshold"]:
                                     kd_total[opp] += 1
                                     kd_round[opp] += 1
