@@ -448,9 +448,13 @@ void AUppercutBoutDirector::BuildScene()
     // broadcast camera, side-on. With the ring in, it pulls back and lifts above
     // the top rope: at the old height the ropes cut straight across both
     // fighters' heads, which is a real broadcast problem solved the real way.
+    // Framed for the ring's real size, not the oversized one: the rope line is
+    // 6.4 m a side, so the camera sits about 3.4 m outside it and 2.2 m up -
+    // roughly where a ringside broadcast camera actually is, and high enough
+    // that the top rope (1.37 m) crosses below two 1.80 m fighters' heads.
     Camera = bArena
-        ? World->SpawnActor<ACameraActor>(FVector(MidCm, -900.0, 330.0),
-                                          FRotator(-11.0, 90.0, 0))
+        ? World->SpawnActor<ACameraActor>(FVector(MidCm, -660.0, 220.0),
+                                          FRotator(-9.0, 90.0, 0))
         : World->SpawnActor<ACameraActor>(FVector(MidCm, -620.0, 200.0),
                                           FRotator(-8.0, 90.0, 0));
     // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: mannequin visual pass ]
@@ -599,6 +603,29 @@ void AUppercutBoutDirector::BuildArena()
     // two boxers shadow-boxing inside the apron.
     const TCHAR* CanvasPart = TEXT("cartoon_boxing_arena_511");
     double CanvasTop = 0.0;
+    // The four ropes, and where a real ring puts them. A professional ring has
+    // FOUR ropes at 18, 30, 42 and 54 inches above the canvas - 46, 76, 107 and
+    // 137 cm. The pack has four (correct) but bunches the lower two near the mat:
+    // measured at the right scale they land at 154 / 118 / 52 / 23, so the top
+    // pair sit about 12% high and the bottom pair less than half where they
+    // belong. They are separate meshes, so each goes on its own regulation line
+    // rather than staying where the artist left it.
+    static const TCHAR* RopeParts[4] = {
+        TEXT("cartoon_boxing_arena_5_3"), TEXT("cartoon_boxing_arena_5_4"),
+        TEXT("cartoon_boxing_arena_5_5"), TEXT("cartoon_boxing_arena_5_6") };
+    static const double RopeHeightCm[4] = { 137.0, 107.0, 76.0, 46.0 };
+    // Scale comes from the ROPE rectangle, because the rope line is what "ring
+    // size" means. Canon's ring is 6.4 m a side (movement_model's
+    // axis_length_derivation: 6.4 / 1.30), which sits between boxing's 20-foot
+    // championship standard and its 24-foot maximum. The first version of this
+    // scaled the widest mesh - the apron - to an invented 1.7x the fighting axis,
+    // and built a ring 44% too large with two fighters lost inside it.
+    const TCHAR* SpanPart = TEXT("cartoon_boxing_arena_5_3");
+    double SpanWidth = 0.0;
+    TArray<AStaticMeshActor*> RopeActor;
+    TArray<double> RopeCentreZ;
+    RopeActor.SetNumZeroed(4);
+    RopeCentreZ.SetNumZeroed(4);
 
     TArray<AStaticMeshActor*> Spawned;
     FBox Bounds(ForceInit);
@@ -621,6 +648,19 @@ void AUppercutBoutDirector::BuildArena()
         const FBox MeshBox = Mesh->GetBoundingBox();
         Bounds += MeshBox;
         if (FCString::Strcmp(Part, CanvasPart) == 0) { CanvasTop = MeshBox.Max.Z; }
+        if (FCString::Strcmp(Part, SpanPart) == 0)
+        {
+            SpanWidth = FMath::Max(MeshBox.Max.X - MeshBox.Min.X,
+                                   MeshBox.Max.Y - MeshBox.Min.Y);
+        }
+        for (int32 R = 0; R < 4; ++R)
+        {
+            if (FCString::Strcmp(Part, RopeParts[R]) == 0)
+            {
+                RopeActor[R] = A;
+                RopeCentreZ[R] = MeshBox.GetCenter().Z;
+            }
+        }
         Spawned.Add(A);
     }
     if (Spawned.Num() == 0)
@@ -629,26 +669,43 @@ void AUppercutBoutDirector::BuildArena()
         return;
     }
 
+    // Canon's ring side, in centimetres: the track axis IS the rope line.
     const double AxisCm = S.Axis / 10000.0 * S.RuToCm;
-    const FVector Size = Bounds.GetSize();
-    const double Widest = FMath::Max(Size.X, Size.Y);
-    // 1.7x the fighting axis across the apron. Canon's track is 7.8 m end to end,
-    // which is already wider than a real 6 m canvas, so the ring is sized from
-    // the fight rather than from boxing's own dimensions - the sim's numbers win
-    // that argument, and a ring the fighters can walk out of would be worse.
-    const double Scale = (Widest > 1.0) ? (AxisCm * 1.7) / Widest : 1.0;
+    const double Scale = (SpanWidth > 1.0) ? AxisCm / SpanWidth : 1.0;
     const FVector Centre = Bounds.GetCenter();
     const FVector Target(AxisCm / 2.0, 0.0, 0.0);
+    // A genuine near-coplanar case, kept as cheap insurance: _5_1's underside
+    // lands 0.9 cm below the mat once scaled, and two surfaces that close can
+    // fight for depth across a 6.4 m floor. Two centimetres of separation is
+    // invisible at ring scale.
+    //
+    // Honest note, because this was twice blamed for something else: the pale
+    // shape on the canvas is NOT a depth artifact. It is the pack's own painted
+    // emblem - two boxing gloves in the middle of the mat, visible in the source
+    // texture. Removing the debug floor did not shift it and neither did this
+    // nudge, which is what finally sent someone to look at the PNG.
+    const double DepthNudgeCm = 2.0;
     for (AStaticMeshActor* A : Spawned)
     {
         A->SetActorScale3D(FVector(Scale));
+        const bool bIsCanvas = (A->GetStaticMeshComponent()->GetStaticMesh()
+            && A->GetStaticMeshComponent()->GetStaticMesh()->GetName() == CanvasPart);
         A->SetActorLocation(FVector(Target.X - Centre.X * Scale,
                                     Target.Y - Centre.Y * Scale,
-                                    -CanvasTop * Scale));
+                                    -CanvasTop * Scale + (bIsCanvas ? 0.0 : DepthNudgeCm)));
+    }
+    // Each rope onto its own regulation line, overriding the pack's spacing.
+    for (int32 R = 0; R < 4; ++R)
+    {
+        if (!RopeActor[R]) { continue; }
+        const FVector L = RopeActor[R]->GetActorLocation();
+        RopeActor[R]->SetActorLocation(
+            FVector(L.X, L.Y, RopeHeightCm[R] - RopeCentreZ[R] * Scale));
     }
     UE_LOG(LogTemp, Display,
-           TEXT("UppercutBoutDirector: arena ON (%d parts, %.1f m wide, scale %.4f)"),
-           Spawned.Num(), Widest * Scale / 100.0, Scale);
+           TEXT("UppercutBoutDirector: arena ON (%d parts, ropes %.2f m a side, ")
+           TEXT("scale %.5f, fighters 1.80 m)"),
+           Spawned.Num(), SpanWidth * Scale / 100.0, Scale);
 }
 
 void AUppercutBoutDirector::PoseMannequins()

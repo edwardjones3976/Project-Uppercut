@@ -120,14 +120,29 @@ present is `b6f1c24b62671b8dc81b37057f851f33e075f9280d34b68f5cdcc346c0276bda` �
 **byte-identical to the primitives run and to the mannequin runs**. Five runs,
 three completely different presentations, one fight.
 
-**Gate item 11, closed for ring five.** No baked lettering appears on the ring as
-rendered. The "Big Show" cage floor and the jumbotron text in the store thumbnail
-belong to other pieces in the pack; they remain a live check for anything else
-imported from it, and are recorded as such rather than declared clean wholesale.
+**Gate item 11, ring five — no lettering, but there IS an emblem.** The first
+reading of this said "no baked lettering appears on the ring as rendered," which
+is true and incomplete. Ring five's canvas carries a painted **two-glove emblem**
+in the centre of the mat, visible in `cartoon boxing arena 5.png`. It is not text
+and not a mark belonging to anyone — a pair of generic boxing gloves on the canvas
+of a boxing game is, if anything, on-theme. But it is dressing an audience will
+read as ours, so it is a deliberate keep-or-repaint call rather than something to
+inherit by accident. The "Big Show" cage floor and jumbotron text in the store
+thumbnail belong to other pieces in the pack and remain a live check for anything
+else imported from it.
 
-**Open, cosmetic:** light irregular patches on the canvas under the fighters,
-consistent with two near-coplanar ring surfaces fighting for depth. Cosmetic only,
-and it does not touch the sim. Worth a pass when the ring gets its polish.
+**Scale, corrected 2026-08-04.** The first spawn sized the ring by eye at 1.7× the
+fighting axis applied to the widest mesh, which built it **44% too large**. It is
+now scaled from the rope rectangle to canon's own 6.4 m ring side, and the four
+ropes are placed on regulation lines (137 / 107 / 76 / 46 cm) rather than the
+pack's own bunched spacing. Full workings, researched dimensions and measured
+in-engine numbers: `docs/design/ring_and_fighter_scale.md`. The mannequins measure
+180.5 cm — the middleweight average to within a millimetre — and need no scaling.
+
+**Correction on the canvas artifact.** The pale shape on the mat was twice called
+a rendering fault (the debug floor, then z-fighting). Both diagnoses were wrong;
+it is the painted emblem above. Recorded because two confident wrong answers in a
+row is worth a note.
 
 ## Outcome
 
