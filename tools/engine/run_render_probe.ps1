@@ -18,6 +18,7 @@ param(
     [int]$Ticks = 5400,
     [string]$Tag = "R1",
     [switch]$Markers,
+    [switch]$Arena,
     [string]$Repo = "C:\Users\edwar\project-uppercut",
     [string]$Engine = "C:\Program Files\Epic Games\UE_5.8"
 )
@@ -51,6 +52,7 @@ $args = @(
     "-NoLoadingScreen", "-unattended", "-nosplash",
     "-seed=$Seed", "-ticks=$Ticks", "-repo=$Repo", "-out=$out", "-shots=$shots")
 if ($Markers) { $args += "-markers" }
+if ($Arena) { $args += "-arena" }
 
 $sw = [System.Diagnostics.Stopwatch]::StartNew()
 & $editor $args *>&1 | Tee-Object -FilePath $log | Out-Null

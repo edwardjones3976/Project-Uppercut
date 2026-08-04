@@ -206,6 +206,7 @@ bool AUppercutBoutDirector::LoadCanonAndParams()
     FParse::Value(Cmd, TEXT("shots="), ShotDir);
     // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: marker view ]
     bShowMarkers = FParse::Param(Cmd, TEXT("markers"));
+    bArena = FParse::Param(Cmd, TEXT("arena"));
     // [ edit end ]
     if (Ticks <= 0 || Repo.IsEmpty() || OutPath.IsEmpty()) { return false; }
 
@@ -395,15 +396,24 @@ void AUppercutBoutDirector::BuildScene()
     const double MidCm = (S.Axis / 2) / 10000.0 * S.RuToCm;
 
     // floor and the two rope-line posts marking the track's ends
-    SpawnShape(World, TEXT("/Engine/BasicShapes/Cube.Cube"),
-               FVector(MidCm, 0, -25), FVector(40, 40, 0.5), FLinearColor(0.16f, 0.28f, 0.42f));
     const double AxisCm = S.Axis / 10000.0 * S.RuToCm;
-    for (int32 e = 0; e < 2; ++e)
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 19:30 UTC | edit: arena ]
+    // With a real ring these are not just redundant, they are wrong: the debug
+    // floor's top surface sits at exactly z=0 and so does the canvas, and two
+    // coplanar surfaces z-fight into white blotches across the mat. The posts
+    // marked the track's ends for an audience of one - the ropes do that now.
+    if (!bArena)
     {
-        SpawnShape(World, TEXT("/Engine/BasicShapes/Cylinder.Cylinder"),
-                   FVector(e == 0 ? 0.0 : AxisCm, 0, 60), FVector(0.15, 0.15, 1.2),
-                   FLinearColor(0.8f, 0.1f, 0.1f));
+        SpawnShape(World, TEXT("/Engine/BasicShapes/Cube.Cube"),
+                   FVector(MidCm, 0, -25), FVector(40, 40, 0.5), FLinearColor(0.16f, 0.28f, 0.42f));
+        for (int32 e = 0; e < 2; ++e)
+        {
+            SpawnShape(World, TEXT("/Engine/BasicShapes/Cylinder.Cylinder"),
+                       FVector(e == 0 ? 0.0 : AxisCm, 0, 60), FVector(0.15, 0.15, 1.2),
+                       FLinearColor(0.8f, 0.1f, 0.1f));
+        }
     }
+    // [ edit end ]
     // fighters: torso capsule, head sphere, two glove spheres apiece
     const FLinearColor Cols[2] = { FLinearColor(0.85f, 0.25f, 0.1f),
                                    FLinearColor(0.1f, 0.35f, 0.9f) };
@@ -435,11 +445,17 @@ void AUppercutBoutDirector::BuildScene()
         L2->SetMobility(EComponentMobility::Movable);
         L2->SetBrightness(1.2f);
     }
-    // broadcast camera, side-on
-    Camera = World->SpawnActor<ACameraActor>(
-        FVector(MidCm, -620.0, 200.0), FRotator(-8.0, 90.0, 0));
+    // broadcast camera, side-on. With the ring in, it pulls back and lifts above
+    // the top rope: at the old height the ropes cut straight across both
+    // fighters' heads, which is a real broadcast problem solved the real way.
+    Camera = bArena
+        ? World->SpawnActor<ACameraActor>(FVector(MidCm, -900.0, 330.0),
+                                          FRotator(-11.0, 90.0, 0))
+        : World->SpawnActor<ACameraActor>(FVector(MidCm, -620.0, 200.0),
+                                          FRotator(-8.0, 90.0, 0));
     // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: mannequin visual pass ]
     BuildMannequins();
+    if (bArena) { BuildArena(); }
     if (bMannequins && !bShowMarkers)
     {
         // The primitives stop being the picture and become the instrument: still
@@ -553,6 +569,86 @@ void AUppercutBoutDirector::BuildMannequins()
     bMannequins = true;
     UE_LOG(LogTemp, Display, TEXT("UppercutBoutDirector: mannequins ON (%d clips)"),
            Clips.Num());
+}
+
+void AUppercutBoutDirector::BuildArena()
+{
+    // The imported cartoon ring, fitted to the fight rather than the other way
+    // round. The pack is authored at showroom scale - its six rings sit side by
+    // side in one scene, each mesh carrying its own layout offset, and ring five
+    // alone measures nearly 200 m across. So: spawn the ring's parts at the
+    // origin, measure what actually arrived, then scale and centre THAT onto the
+    // sim's track. Canon's axis length is the authority; the ring is the thing
+    // that moves.
+    UWorld* World = GetWorld();
+    const FImpl& S = *Impl;
+    // Ring five is a CLUSTER IN SPACE, not a naming convention - and the two
+    // facts disagree. cartoon_boxing_arena_5_Led_ and _5_light_systems1 carry a
+    // 5 in their names but sit at the origin with arena one's fixtures, 40 m from
+    // the ring; including them on the strength of the name put the union's centre
+    // between the two and landed the visible ring beside the fight instead of
+    // around it. These seven are the meshes whose bounds actually cluster at
+    // (36846, 42052) - measured with import_fab_bounds.py, not read off names.
+    static const TCHAR* Parts[] = {
+        TEXT("cartoon_boxing_arena_511"), TEXT("cartoon_boxing_arena_5_1"),
+        TEXT("cartoon_boxing_arena_5_2"), TEXT("cartoon_boxing_arena_5_3"),
+        TEXT("cartoon_boxing_arena_5_4"), TEXT("cartoon_boxing_arena_5_5"),
+        TEXT("cartoon_boxing_arena_5_6") };
+    // The canvas is the top of the base platform (_511). Fighters stand at z=0,
+    // so the ring is sunk until its canvas meets their feet - anything else has
+    // two boxers shadow-boxing inside the apron.
+    const TCHAR* CanvasPart = TEXT("cartoon_boxing_arena_511");
+    double CanvasTop = 0.0;
+
+    TArray<AStaticMeshActor*> Spawned;
+    FBox Bounds(ForceInit);
+    for (const TCHAR* Part : Parts)
+    {
+        const FString Path = FString::Printf(
+            TEXT("/Game/FabImports/CartoonBoxingArena/%s.%s"), Part, Part);
+        // A name here can resolve to a Texture2D: the FBX import dropped meshes,
+        // materials and textures into one folder. LoadObject<UStaticMesh> returns
+        // null for those, which is exactly the filter wanted.
+        UStaticMesh* Mesh = LoadObject<UStaticMesh>(nullptr, *Path);
+        if (!Mesh) { continue; }
+        AStaticMeshActor* A = World->SpawnActor<AStaticMeshActor>(
+            FVector::ZeroVector, FRotator::ZeroRotator);
+        if (!A) { continue; }
+        A->SetMobility(EComponentMobility::Movable);
+        UStaticMeshComponent* C = A->GetStaticMeshComponent();
+        C->SetStaticMesh(Mesh);
+        C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        const FBox MeshBox = Mesh->GetBoundingBox();
+        Bounds += MeshBox;
+        if (FCString::Strcmp(Part, CanvasPart) == 0) { CanvasTop = MeshBox.Max.Z; }
+        Spawned.Add(A);
+    }
+    if (Spawned.Num() == 0)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UppercutBoutDirector: arena OFF (no ring meshes)"));
+        return;
+    }
+
+    const double AxisCm = S.Axis / 10000.0 * S.RuToCm;
+    const FVector Size = Bounds.GetSize();
+    const double Widest = FMath::Max(Size.X, Size.Y);
+    // 1.7x the fighting axis across the apron. Canon's track is 7.8 m end to end,
+    // which is already wider than a real 6 m canvas, so the ring is sized from
+    // the fight rather than from boxing's own dimensions - the sim's numbers win
+    // that argument, and a ring the fighters can walk out of would be worse.
+    const double Scale = (Widest > 1.0) ? (AxisCm * 1.7) / Widest : 1.0;
+    const FVector Centre = Bounds.GetCenter();
+    const FVector Target(AxisCm / 2.0, 0.0, 0.0);
+    for (AStaticMeshActor* A : Spawned)
+    {
+        A->SetActorScale3D(FVector(Scale));
+        A->SetActorLocation(FVector(Target.X - Centre.X * Scale,
+                                    Target.Y - Centre.Y * Scale,
+                                    -CanvasTop * Scale));
+    }
+    UE_LOG(LogTemp, Display,
+           TEXT("UppercutBoutDirector: arena ON (%d parts, %.1f m wide, scale %.4f)"),
+           Spawned.Num(), Widest * Scale / 100.0, Scale);
 }
 
 void AUppercutBoutDirector::PoseMannequins()

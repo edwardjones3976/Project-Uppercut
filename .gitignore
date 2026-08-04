@@ -59,3 +59,12 @@ mixamo_boxing/
 sandbox/Content/BoxingAttacks/
 sandbox/Content/__ExternalActors__/BoxingAttacks/
 sandbox/Content/__ExternalObjects__/BoxingAttacks/
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 20:15 UTC | edit: Fab imports ]
+# Imported Fab exchange-format assets (cartoon arena FBX, boxing glove OBJ). Same
+# reasoning as the pack above: vendor content restored from Fab, not stored here.
+# What IS ours and IS committed are the import scripts in tools/engine, which
+# rebuild this folder from the Vault deterministically, and the audits that name
+# every consumed path. The 5,400-tick stream is byte-identical with these assets
+# present or absent, so nothing here can be load-bearing.
+sandbox/Content/FabImports/

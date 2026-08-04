@@ -47,6 +47,10 @@ private:
     void BuildMannequins();
     void PoseMannequins();
     UAnimSequence* Clip(const TCHAR* Rel);
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 19:30 UTC | edit: arena ]
+    // -arena spawns the imported cartoon ring. Opt-in, because a ring the sim
+    // does not know about is scenery, and scenery must never be load-bearing.
+    void BuildArena();
 
     // scene
     AStaticMeshActor* Torso[2] = { nullptr, nullptr };
@@ -59,6 +63,7 @@ private:
     TMap<FString, UAnimSequence*> Clips;
     bool bMannequins = false;   // set once the pack's mesh and clips all load
     bool bShowMarkers = false;  // -markers restores the Phase K primitive view
+    bool bArena = false;        // -arena spawns the imported ring
     bool bViewSet = false;
     bool bReady = false;
     bool bDone = false;
