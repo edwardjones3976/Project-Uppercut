@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-04 02:59 UTC** at `74c07d6 Extract the Judge subsystem: Rule 3 becomes a module boundary`.
+Generated **2026-08-04 03:47 UTC** at `b23d605 Consume referee profiles: seven philosophies that actually officiate`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **504 passed** |
+| Test suite | **513 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase G — a scored bout (BP_FightWalker) |
@@ -21,6 +21,7 @@ Open findings, named rather than rounded away:
 
 - Style balance is an open tuning item: drainer and showman sit below 30% on both seed bases (`docs/phase1a/attributes_in_the_loop.md`, "Measured after").
 - No rendered fight exists; visual readability (gate item 5) is untestable until one does.
+- Phase H is staged and blocked on the machine: no MSVC toolchain exists, and installing one means accepting a license, which is the Director's act (runbook, "C++ toolchain for Phase H"). The analyzer half is proven; the C++ half has never compiled (`tools/engine/cpp/README.md`).
 
 Standing decisions in force this sprint:
 

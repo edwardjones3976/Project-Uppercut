@@ -119,6 +119,10 @@ def main() -> int:
         "both seed bases (`docs/phase1a/attributes_in_the_loop.md`, \"Measured after\").",
         "- No rendered fight exists; visual readability (gate item 5) is untestable "
         "until one does.",
+        "- Phase H is staged and blocked on the machine: no MSVC toolchain exists, and "
+        "installing one means accepting a license, which is the Director's act "
+        "(runbook, \"C++ toolchain for Phase H\"). The analyzer half is proven; the "
+        "C++ half has never compiled (`tools/engine/cpp/README.md`).",
         "",
         "Standing decisions in force this sprint:",
         "",

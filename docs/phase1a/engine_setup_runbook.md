@@ -66,3 +66,37 @@ never guessed (Rule 18). Everything around those two moments is already prepared
 Not needed yet. Install when asset work begins and record its version the same way, at install time.
 
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 22:16 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 03:42 UTC | START: C++ toolchain ] -->
+
+## C++ toolchain for Phase H (Decision 0012) — Director's click-path
+
+**Machine audit, 2026-08-04:** UE 5.8 installed; **no Visual Studio, no MSVC, no
+cl.exe anywhere.** The Blueprint walkers never needed a compiler; the C++ fight
+core does. This install is the Director's to perform because it requires
+accepting Microsoft's license terms, which Decision 0009 explicitly excludes
+from agent authority — same shape as the Epic EULA in the original install.
+
+About 15 minutes of attention, ~10 GB of disk:
+
+1. Download **Build Tools for Visual Studio 2022** (the standalone build tools,
+   no IDE needed) from visualstudio.microsoft.com/downloads → "Tools for Visual
+   Studio" → "Build Tools for Visual Studio 2022".
+2. Run the installer, accept the license (**the step that is yours**), and in
+   the Workloads tab tick **"Desktop development with C++"** with its default
+   optional components — that carries MSVC v143 x64/x86 and a Windows 11 SDK,
+   which is what UnrealBuildTool looks for. Install.
+3. No reboot normally needed. Verification an agent can run afterwards:
+   `vswhere.exe` under `C:\Program Files (x86)\Microsoft Visual Studio\Installer`
+   reports an installation with `Microsoft.VisualStudio.Component.VC.Tools.x86.x64`.
+4. From there the staged scaffold activates per `tools/engine/cpp/README.md`:
+   copy `Source/` into the sandbox, add the Modules block to the .uproject,
+   build with `Build.bat UppercutSandboxEditor`, and run the probe under the
+   already-proven analyzer (A1 = A2 = A3-after-full-rebuild ≠ B1, judged by
+   `tools/engine/analyze_core_scaffold.py`).
+
+Record the installed MSVC and SDK versions here at install time, per D-7.
+Expect the first build to be a debugging session (Rule 18: the staged source
+has never been compiled); the contract, not the C++, is the proven half today.
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 03:42 UTC | END: C++ toolchain ] -->
