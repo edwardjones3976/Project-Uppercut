@@ -80,9 +80,12 @@ def main() -> int:
     next_step = "see docs/plans/next_steps.md"
     if plan.exists():
         txt = plan.read_text(encoding="utf-8")
-        done = "Step A is done" in txt
-        next_step = ("B. Extract the Judge subsystem" if done
-                     else "A. Put attributes into the loop")
+        if "The Judge subsystem is extracted" in txt:
+            next_step = "B (remaining): consume referee profiles"
+        elif "Step A is done" in txt:
+            next_step = "B. Extract the Judge subsystem"
+        else:
+            next_step = "A. Put attributes into the loop"
 
     ok = tests_ok and validators_ok and gate_ok
     lines = [

@@ -48,7 +48,14 @@ def scan_source(root: Path, contract: dict | None = None) -> list:
             base = root / rel
             if not base.exists():
                 continue
-            for f in sorted(base.rglob("*")):
+            # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | START edit ]
+            # A consumer path may name a single file: the reference simulator
+            # keeps its CPU logic in one module (tools/uppercut_sim/policy.py),
+            # and the contract now names it, which is what made this scan
+            # load-bearing rather than provisioned.
+            files = [base] if base.is_file() else sorted(base.rglob("*"))
+            # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | END edit ]
+            for f in files:
                 if not f.is_file() or f.suffix not in SCANNABLE:
                     continue
                 for n, line in enumerate(f.read_text(errors="replace").splitlines(), 1):

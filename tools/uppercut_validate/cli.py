@@ -6,8 +6,8 @@ import sys
 from pathlib import Path
 
 from . import (ability, animation, attribute_effects, attributes, budget, camera, clock, collision,
-               combat_states, condition, contracts, coverage, cpu, crowd, event, guard, movement,
-               punches, replay, schema_check, score_isolation)
+               combat_states, condition, contracts, coverage, cpu, crowd, event, guard,
+               judge_boundary, movement, punches, replay, schema_check, score_isolation)
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -65,9 +65,18 @@ def cmd_isolation() -> int:
             print(f"        {x}")
         failures += 0 if ok else 1
 
+    # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | START edit: live scan load-bearing ]
+    # The reference simulator's CPU logic is a real forbidden consumer now
+    # (tools/uppercut_sim/policy.py, named in the contract), so the live scan
+    # stops being provisional: a sealed-symbol reference in a forbidden path
+    # fails the run.
     live = score_isolation.scan_source(REPO, contract)
-    print(f"INFO  live repository scan -> {len(live)} violation(s) "
-          f"(no simulation source exists yet; this check is provisioned, not yet load-bearing)")
+    print(f"{'PASS' if not live else 'FAIL'}  live repository scan -> {len(live)} violation(s) "
+          f"(forbidden consumers include the reference CPU; load-bearing since 2026-08-04)")
+    for x in live:
+        print(f"        {x}")
+    failures += len(live)
+    # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | END edit ]
     return failures
 
 
@@ -433,6 +442,26 @@ def cmd_animation() -> int:
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 05:47 UTC | END edit ]
 
 
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | START edit: judge boundary ]
+def cmd_judge_boundary() -> int:
+    """Rule 3 as a module boundary (Decision 0012 slice item 1)."""
+    doc = judge_boundary.load()
+    failures = 0
+    for name, fn in judge_boundary.ALL_CHECKS:
+        errs = fn(doc)
+        print(f"{'PASS' if not errs else 'FAIL'}  {name}")
+        for e in errs:
+            print(f"        {e}")
+        failures += len(errs)
+    import ast as _ast
+    sites = sum(1 for _ in judge_boundary._witness_calls(_ast.parse(doc["engine_source"])))
+    print(f"INFO  the Judge subsystem imports nothing; {sites} witness site(s) in the engine, "
+          f"all speaking the {len(judge_boundary._fact_vocabulary()[1])}-type fact vocabulary; "
+          f"cards unreadable before the final bell (Rule 3 as a checked relation)")
+    return failures
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | END edit ]
+
+
 def main(argv: list) -> int:
     cmd = argv[1] if len(argv) > 1 else "all"
     total = 0
@@ -440,6 +469,8 @@ def main(argv: list) -> int:
         print("== Rule 10 fighter fixtures ==");  total += cmd_fighters(); print()
     if cmd in ("all", "isolation"):
         print("== Rule 3 score isolation ==");    total += cmd_isolation(); print()
+    if cmd in ("all", "judge"):
+        print("== Rule 3 judge boundary ==");     total += cmd_judge_boundary(); print()
     if cmd in ("all", "contracts"):
         print("== Rules 4/5/6/12/16 contracts =="); total += cmd_contracts(); print()
     if cmd in ("all", "docs"):

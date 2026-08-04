@@ -10,14 +10,16 @@ Determinism: one seeded stream, fighters resolved in fixed index order, no
 wall-clock read anywhere. Same seed and same canon reproduce the same log.
 
 The score firewall is enforced by construction: policies receive an Observation
-built only from observable state, and the round cards live in a private
-structure the Observation has no path to.
+built only from observable state, and the round cards live in the Judge
+subsystem (judge.py) - its own module behind a checked boundary - which the
+Observation has no path to.
 """
 from __future__ import annotations
 import random
 from dataclasses import dataclass, field
 
 from . import canon
+from . import judge as judging
 
 TICKS_PER_SECOND = 60
 
@@ -42,9 +44,9 @@ class Fighter:
     clinch_entries: int = 0
     out_of_range_attempts: int = 0
     blocked_taken: int = 0
-    # Per-round accumulators, reset at each bell. Cards score the round in front
-    # of the judges, not the bout to date - see _score_round.
-    round_force: float = 0.0
+    # Per-round accumulator, reset at each bell. The referee's three-knockdown
+    # rule reads it; the judges do not - what they score arrives as witnessed
+    # facts in judge.py (Rule 3 as a module boundary, Decision 0012 slice item 1).
     round_knockdowns_suffered: int = 0
     effective_force: float = 0.0
     # The repetition economy (punch_model.repetition_economy), which was declared
@@ -129,8 +131,10 @@ class Bout:
         self.at_ropes = [False, False]
         self.clinched = False
         self.clinch_ticks = 0
-        # Sealed. The Observation has no reference to this object (Rule 3).
-        self._cards: dict = {f.name: 0.0 for f in self.fighters}
+        # Sealed. The cards live in the Judge subsystem, which raises on any
+        # read before the final bell; the Observation has no reference to it
+        # (Rule 3 as a module boundary, Decision 0012 slice item 1).
+        self._judge = judging.Judge(f.name for f in self.fighters)
         self.stopped = False
         self.stop_reason = ""
 
@@ -612,8 +616,12 @@ class Bout:
             payload["region"] = region
             payload["force"] = round(force, 4)
             atk.landed += 1
-            atk.round_force += force
             atk.effective_force += force
+            # The judge witnesses the landing at the moment of contact: the
+            # scorer's name and the unrounded delivered force, and nothing
+            # else, cross the Rule 3 boundary.
+            self._judge.witness({"type": "punch_landed", "scorer": atk.name,
+                                 "force": force})
         if cls == "blocked":
             dfn.blocked_taken += 1
             # Blocking is not free (condition_model.impairment): a blocked punch
@@ -816,6 +824,8 @@ class Bout:
             return
         dfn.knockdowns += 1
         dfn.round_knockdowns_suffered += 1
+        # A knockdown is the most public fact in boxing; the judge sees it too.
+        self._judge.witness({"type": "knockdown", "fighter": dfn.name})
         # The mandatory eight count, which canon has declared since step 8 and
         # which nothing was executing: the man who was down loses the time as
         # well as the point.
@@ -1016,42 +1026,19 @@ class Bout:
 
     # ---- sealed judging -------------------------------------------------
     def _score_round(self) -> None:
-        """Ten-point-must on the round in front of the judges (Rule 3: sealed).
-
-        Two corrections were forced by the style-viability and abuse-list checks,
-        and both are logged here so a later edit does not silently undo them:
-
-        1. The round is scored on THIS round's work. The previous version summed
-           bout-to-date landings, so an early lead re-won every subsequent round.
-        2. The round is scored on effective offence - the sum of delivered force
-           fractions - not on a raw count of contacts. Counting contacts made a
-           brushed jab (0.15 force) worth exactly as much as a clean cross (1.0),
-           which is what let a single-jab loop out-point a varied fighter it was
-           visibly losing to. Quality already exists in canon as the collision
-           model's `delivered_force_fraction`; the card now reads it rather than
-           inventing a volume proxy beside it. This is the judging analogue of
-           Rule 14: what lands, and how well, decides - never a flat tally.
-
-        Knockdowns are deducted the way a real card deducts them: one point per
-        knockdown suffered in the round, on top of losing it.
-        """
-        a, b = self.fighters
-        if a.round_force > b.round_force:
-            win = a
-        elif b.round_force > a.round_force:
-            win = b
-        else:
-            win = None
-        for f in self.fighters:
-            base = 10.0 if (win is None or f is win) else 9.0
-            self._cards[f.name] += base - f.round_knockdowns_suffered
+        """The bell. The Judge seals the round it witnessed - the ten-point-must
+        arithmetic, and the correction history that shaped it, live in
+        tools/uppercut_sim/judge.py behind the Rule 3 boundary. The referee's
+        per-round knockdown count resets on the same bell: same moment, different
+        official, different side of the firewall."""
+        self._judge.seal_round()
         self.emit("judge_round_card", "", "", {"round": self.round},
                   visibility="sealed")
         for f in self.fighters:
-            f.round_force = 0.0
             f.round_knockdowns_suffered = 0
 
     def _final_card(self) -> None:
+        self._judge.seal_final()
         self.emit("judge_final_card", "", "", {"rounds": self.round},
                   visibility="sealed")
 
@@ -1065,7 +1052,8 @@ class Bout:
         if self.stopped:
             if a.knockdowns != b.knockdowns:
                 return b.name if a.knockdowns > b.knockdowns else a.name
-        ca, cb = self._cards[a.name], self._cards[b.name]
+        cards = self._judge.sealed_cards()      # raises before the final bell
+        ca, cb = cards[a.name], cards[b.name]
         if ca != cb:
             return a.name if ca > cb else b.name
         return ""

@@ -167,6 +167,17 @@ answers it as a set relation: the CPU's declared observable inputs are checked a
 firewall breach fails validation rather than surviving until someone reads the code. The blindness
 loophole is closed too - an empty input set would satisfy containment and is rejected.
 
+**The Judge subsystem exists** (2026-08-04, Decision 0012 slice item 1). Minimum scope's "deterministic
+Judge subsystem behind the score firewall" stops being `Bout._score_round` computed inline and becomes
+`tools/uppercut_sim/judge.py`: witnessed facts in, sealed cards out, cards unreadable before the final
+bell by exception rather than by comment. Five source-relation checks in `cli all` hold the boundary in
+both directions, each proven non-vacuous by a synthetic violation, and the extraction was held to byte
+identity - 72 bouts across every profile pairing, unchanged grand hash
+(`docs/phase1a/judge_subsystem.md`). The contract's live source scan is load-bearing as of the same
+change, with `tools/uppercut_sim/policy.py` named as the real CPU consumer. The referee did not move:
+counts and stoppages are ring facts, and referee-profile consumption is the next slice item.
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | START/END ] -->
+
 **Structural risk, and the first payment against it (Rule 18).** Definitions had outrun the engine
 seven to one: steps 1-7 defined, one engine slice. The Phase 1A gate does not ask for definitions,
 it asks for complete CPU-vs-CPU matches, and every further definition step widened a gap only

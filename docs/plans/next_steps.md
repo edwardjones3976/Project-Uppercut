@@ -100,6 +100,11 @@ a boundary a validator can check. Consume referee profiles so the seven philosop
 differ in warnings, deductions and stoppage thresholds while sharing the count
 arithmetic — exactly as Rule 16 states.
 
+> **The Judge subsystem is extracted** (2026-08-04, `docs/phase1a/judge_subsystem.md`):
+> `tools/uppercut_sim/judge.py`, witnessed facts in, sealed cards out, five
+> source-relation checks in `cli all`, byte-identical over 72 bouts. Step B's
+> second half — referee-profile consumption — is the next slice item.
+
 **C. Re-open style balance with attributes in place.** After A, re-run the sweeps. If the
 drainer still floors out, the question is answerable from canon instead of from `BIAS`.
 

@@ -14,12 +14,12 @@
     "event_visibility_value": "sealed"
   },
   "authorized_holders": [
-    { "id": "judge_subsystem", "paths": ["sim/judge/", "Source/Judge/"] },
+    { "id": "judge_subsystem", "paths": ["tools/uppercut_sim/judge.py", "sim/judge/", "Source/Judge/"] },
     { "id": "match_controller", "paths": ["sim/match_controller/", "Source/MatchController/"] }
   ],
   "forbidden_consumers": [
     { "id": "human_facing_fighter_logic", "paths": ["sim/fighter/", "Source/Fighter/"] },
-    { "id": "cpu_fighter_logic",          "paths": ["sim/cpu/", "Source/CPU/"] },
+    { "id": "cpu_fighter_logic",          "paths": ["tools/uppercut_sim/policy.py", "sim/cpu/", "Source/CPU/"] },
     { "id": "referees",                   "paths": ["sim/referee/", "Source/Referee/"] },
     { "id": "trainers_and_corners",       "paths": ["sim/corner/", "Source/Corner/"] },
     { "id": "commentary",                 "paths": ["sim/commentary/", "Source/Commentary/"] },
