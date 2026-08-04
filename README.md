@@ -47,6 +47,20 @@ document deliberately carries no volatile numbers; `tests/test_doc_drift.py` enf
 external review caught this paragraph three revisions stale.
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 21:58 UTC | edit: strip volatile tallies per doc-drift guard; supersedes 09:07 status sync ] -->
 
+## Vision and active focus
+
+Three documents keep the destination vivid without letting new ideas derail the active slice:
+
+- [**The Living Ring — Project vision**](VISION.md): the durable end-state experience,
+  historical design lineage, differentiators, product silhouette, and first undeniable demo.
+- [**Near-future objectives**](docs/plans/near_future_objectives.md): the dependency-ordered
+  bridge from the present combat core to a complete, watchable CPU bout and the Phase 1A gate.
+- [**Idea Flywheel**](docs/design/idea_flywheel.md): a structured reservoir that keeps
+  mechanics, comedy, broadcast, training, competition, and worldbuilding ideas moving without
+  authorizing scope creep.
+
+The rule is: **keep the gallery open, but keep only one painting on the easel.**
+
 ## Core direction
 
 - The production feel order is: impressively responsive, visually fast, fun and funny, boxing-logic accurate, enjoyable, steady-paced, and secretly layered with boxing idioms.
@@ -79,6 +93,9 @@ Every phase must pass a defined quality gate before the next phase begins.
 
 ## Documentation
 
+- [Project vision — The Living Ring](VISION.md)
+- [Near-future objective ladder](docs/plans/near_future_objectives.md)
+- [Idea Flywheel — anti-stagnation framework](docs/design/idea_flywheel.md)
 - [Canonical project notes](PROJECT_NOTES.md)
 - [Binding project rules](PROJECT_RULES.md)
 - [Roadmap](ROADMAP.md)
