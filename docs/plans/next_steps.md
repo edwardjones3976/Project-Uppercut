@@ -143,6 +143,15 @@ drainer still floors out, the question is answerable from canon instead of from 
 > nowhere. Byte-identical across a full rebuild, identical to the Python
 > recomputation. Next slice item: **6. the four punches animated on generic
 > fighters** — the first thing a spectator can see.
+>
+> **Phase K is proven — the game renders** (2026-08-04, same doc): jab, cross,
+> lead hook, rear uppercut and the body straight on primitive-built fighters,
+> in a runtime-spawned scene, one authoritative tick per frame. The rendered
+> run's markers are byte-identical to the Python recomputation and to a second
+> rendered run — rendering holds zero authority, proven — and the uppercut
+> splits the high guard on screen exactly as the move table's blockable_low
+> says it must. Gate item 5 (visual readability) is now TESTABLE; the call is
+> the Director's. Next slice item: **7. guard and slip**.
 
 **E. Housekeeping.** Four stale remote branches (`docs/boxing-punch-guard-reference`,
 `-v2`, `docs/confirmed-uppercut-direction-2026-08-02`, `docs/event-presentation-reference`)

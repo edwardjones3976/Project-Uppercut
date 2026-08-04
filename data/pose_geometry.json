@@ -15,15 +15,19 @@
     "retracted_ru": 0.15,
     "extension_by_move": [
       { "move_id": "jab_lead", "extended_ru": 1.05 },
+      { "move_id": "cross_rear", "extended_ru": 1.1 },
+      { "move_id": "hook_lead", "extended_ru": 0.85 },
+      { "move_id": "uppercut_rear", "extended_ru": 0.72 },
       { "move_id": "body_straight_rear", "extended_ru": 1.1 }
     ],
     "profile_note": "Extension interpolates linearly from retracted_ru to extended_ru over startup+active ticks (animation_model's per-move tick counts), so the fist is still travelling during its active window and the active-tick sweep is a genuinely moving interval. The hitbox is live only during active ticks (collision_model hitboxes.active_source = move_active_frames): startup is telegraph, not threat. Extensions sit just under each move's authored range band ceiling plus body reach, so a mid-band punch reaches through the mid band and whiffs beyond it - Rule 12's range gate expressed as geometry instead of a comparison."
   },
   "height_by_guard_interaction": [
     { "guard_interaction": "blockable_high", "height_class": "high" },
-    { "guard_interaction": "blockable_low", "height_class": "low" }
+    { "guard_interaction": "blockable_low", "height_class": "low" },
+    { "guard_interaction": "blockable_either", "height_class": "high" }
   ],
-  "height_note": "Height stays a discrete class (collision_model's height_class vocabulary), not a coordinate: what is real in this schematic is the depth sweep. Numeric heights arrive with actual clips.",
+  "height_note": "Height stays a discrete class (collision_model's height_class vocabulary), not a coordinate: what is real in this schematic is the depth sweep. Numeric heights arrive with actual clips. blockable_either (the hook) maps to 'high' here as a NAMED SIMPLIFICATION: a hook travelling around a guard needs the lateral dimension this depth-axis schematic does not carry, so for now the hook meets the high plane like a straight. The around-the-guard path arrives with 2D geometry, and this mapping is where to look when hooks stop behaving like jabs. Note what the low mapping already gives away honestly: uppercut_rear is blockable_low in the move table, so against a high guard it comes up UNDER the closed head lane through the open body lane to the jaw - the classic guard-splitter, emergent from the same one threshold.",
   "invariants": [
     "The fist sweep is evaluated against the defender's position at the evaluation tick, so footwork during an opponent's startup genuinely changes what the active window meets.",
     "A guard plane never protects a height class whose covering volume the posture holds below the interception threshold - lanes are opened by structure, not by rule."

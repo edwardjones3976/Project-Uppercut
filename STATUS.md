@@ -5,22 +5,22 @@
 
 # Status
 
-Generated **2026-08-04 05:26 UTC** at `7b06cbf Phase I PASS: the two-fighter loop runs in C++, floats bit-match CPython`.
+Generated **2026-08-04 06:16 UTC** at `34aa6a7 Phase J PASS: punches have geometry, and the lane promise runs emergent`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **531 passed** |
+| Test suite | **537 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
-| Latest engine phase proven | Phase J — real movement and swept collision (UppercutCoreSweep) |
+| Latest engine phase proven | Phase K — the first rendered slice (UppercutBoutDirector) |
 | Phase 0 | gate **PASSED** 2026-08-02 (`docs/phase0/phase0_status.md`) |
 | Phase 1A | definitions complete for all twelve steps; the quality gate is **not** passed - see `docs/phase1a/phase1a_status.md` |
-| Next step | Slice item 6: the four punches animated on generic fighters - the first rendered slice (`docs/plans/next_steps.md`) |
+| Next step | Slice item 7: guard and slip (C++) (`docs/plans/next_steps.md`) |
 
 Open findings, named rather than rounded away:
 
 - Style balance is an open tuning item: drainer and showman sit below 30% on both seed bases (`docs/phase1a/attributes_in_the_loop.md`, "Measured after").
-- No rendered fight exists; visual readability (gate item 5) is untestable until one does.
+- Visual readability (gate item 5) is now TESTABLE - the first rendered slice exists (Phase K) - but not judged: that call is the Director's, on the screenshots and live runs, not this file's.
 
 Standing decisions in force this sprint:
 

@@ -688,3 +688,66 @@ on generic fighters — is where this stops being marker streams and starts bein
 something a spectator can see. No gameplay is claimed (Rule 18).
 
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 06:15 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 06:55 UTC | START ] -->
+
+## Phase K — the first rendered slice (UppercutBoutDirector): PASS
+
+**2026-08-04.** Decision 0012 slice item 6: the four named punches — jab, cross, lead
+hook, rear uppercut — plus the proven body straight, on generic fighters, **on screen**.
+A `UppercutRenderGameMode` + `AUppercutBoutDirector` build the whole scene from engine
+primitives at runtime (no content assets, nothing to drift): floor, ring posts, two
+fighters (cylinder torso, sphere head, sphere gloves), lights, a side-on broadcast
+camera, into `/Engine/Maps/Entry`. The authoritative sim — Phase J's, widened to nine
+actions — advances exactly one tick per rendered frame; the fighters' poses READ sim
+state (the punching glove extends by the sim's own integer extension along its lane's
+height); five screenshots per run at fixed ticks.
+
+**The claim, and its proof.** Rendering must hold zero authority over the fight. The
+proof is the same proof as every phase: the rendered run's marker stream, R1, is
+**byte-identical to the Python recomputation from canon** (`analyze_render_probe.py`,
+mutation-proven first, 6 tests), and R2 — a second full rendered run — is byte-identical
+to R1:
+
+    R1 = R2   sha256 b6f1c24b62671b8d…
+    both analyzer-ok; float probe bit-identical to CPython, again
+
+**The five punches, and the widened lane result.** 315 punches over 5,400 ticks at seed
+4242: 112 blocked — every jab, cross and hook that reached the closed high lane; 41
+landed — every body straight and **uppercut** that arrived, the uppercut coming up under
+the high guard to the jaw exactly as `blockable_low` in the move table says it should
+(the classic guard-splitter, emergent from the same one threshold); 161 whiffed at
+range. The hook's depth-plane treatment is pose_geometry's NAMED simplification —
+around-the-guard hooks arrive with lateral geometry.
+
+**Gate item 5 unblocks.** "Visual speed readable enough for spectators" was untestable
+while nothing rendered. Something renders. Screenshots are in
+`sandbox/Saved/phaseK/shots_R1` and were delivered to the Director in-session; the
+judgment of readability is his, not this record's. What the record can say: two
+figures, their spacing, their gloves and their punches are distinguishable at 1280×720
+from the broadcast angle, and the render runs the full 5,400-tick bout unattended in
+about ninety seconds of wall clock.
+
+**Wedges, again, and the pattern underneath them.** The editor's spawn of
+`Build.bat` (this time `-Mode=QueryTargets`, previously `-Mode=ValidatePlatforms`)
+wedges in Build.bat's own lock-file wait loop in this launch context. Two fixes are now
+standard: pre-generate `Intermediate/TargetInfo.json` by invoking UnrealBuildTool
+directly, and run the widened watchdog (kills any Build.bat cmd plus its PING sleeper)
+alongside every editor launch. One asset lesson: `/Engine/BasicShapes/Capsule` does not
+exist in runtime engine content in 5.8 — its Failed-to-find warning cost one render of
+invisible fighters; Cube, Sphere and Cylinder all load.
+
+### What this establishes, and what it does not
+
+Established: the fight core's evidence pipeline survives a real renderer unchanged, on
+the record; the slice's four named punches resolve through the swept-geometry contract;
+and the project has its first picture — a fight a person can watch, produced by the same
+deterministic arithmetic the analyzers judge.
+
+Not established: readability is testable, not passed — that call is the Director's.
+Presentation is deliberately crude (primitive shapes, two lights, no color grading, no
+hit reactions, no crowd, no comedy). No damage, cards or verdicts flow yet. Slice item
+7 is guard and slip; the reference sim's condition/knockdown arithmetic and the Judge
+await their C++ port behind it. No gameplay is claimed beyond what renders (Rule 18).
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 06:55 UTC | END ] -->

@@ -227,6 +227,18 @@ fighters) is where evidence becomes something a spectator can see (`determinism_
 "Phase J").
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 06:15 UTC | START/END edit: Phase J proven ] -->
 
+**The game renders (Phase K)** (2026-08-04, Decision 0012 slice item 6). Jab, cross, lead hook,
+rear uppercut and the body straight on primitive-built generic fighters, in a scene spawned entirely
+at runtime — no content assets — one authoritative tick per rendered frame, screenshots on the
+record and delivered to the Director. The claim that matters is proven the house way: the rendered
+run's marker stream is byte-identical to the Python recomputation and to a second rendered run, so
+**rendering holds zero authority over the fight**. The uppercut splits the high guard on screen
+because the move table says blockable_low and the geometry obeys. Gate item 5 flips from untestable
+to testable; the readability judgment is the Director's. Presentation is deliberately crude — the
+comedy, the reactions, the crowd all await real content — and no damage or cards flow yet
+(`determinism_probe_results.md`, "Phase K").
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 06:55 UTC | START/END edit: Phase K proven ] -->
+
 **Structural risk, and the first payment against it (Rule 18).** Definitions had outrun the engine
 seven to one: steps 1-7 defined, one engine slice. The Phase 1A gate does not ask for definitions,
 it asks for complete CPU-vs-CPU matches, and every further definition step widened a gap only

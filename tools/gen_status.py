@@ -80,7 +80,9 @@ def main() -> int:
     next_step = "see docs/plans/next_steps.md"
     if plan.exists():
         txt = plan.read_text(encoding="utf-8")
-        if "Phase J is proven" in txt:
+        if "Phase K is proven" in txt:
+            next_step = "Slice item 7: guard and slip (C++)"
+        elif "Phase J is proven" in txt:
             next_step = ("Slice item 6: the four punches animated on generic fighters "
                          "- the first rendered slice")
         elif "Phase I is proven" in txt:
@@ -124,8 +126,9 @@ def main() -> int:
         "",
         "- Style balance is an open tuning item: drainer and showman sit below 30% on "
         "both seed bases (`docs/phase1a/attributes_in_the_loop.md`, \"Measured after\").",
-        "- No rendered fight exists; visual readability (gate item 5) is untestable "
-        "until one does.",
+        "- Visual readability (gate item 5) is now TESTABLE - the first rendered slice "
+        "exists (Phase K) - but not judged: that call is the Director's, on the "
+        "screenshots and live runs, not this file's.",
         "",
         "Standing decisions in force this sprint:",
         "",
