@@ -181,6 +181,28 @@ drainer still floors out, the question is answerable from canon instead of from 
 > unnecessary: the pack is authored on UE5 Manny. Content reuse is done and
 > audited end to end. Next slice item is unchanged: **8. visible stamina and
 > condition (C++)**.
+>
+> <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 18:40 UTC | edit: Phase N ] -->
+> **Phase N is proven** (2026-08-04, same doc): visible stamina and condition.
+> Per-region damage from delivered force (no generic pool), impact priced by
+> what a punch cost to throw, torso damage slowing the tank, and arm damage
+> from blocked force turning guard coverage from a load-time constant into a
+> per-punch evaluation. A1 = A2 = A3 after a full rebuild, ≠ B1, all
+> byte-identical to the Python recomputation.
+>
+> **And a finding the Director should rule on.** The guard erosion canon
+> authored — "sustained pressure opens a guard that never drops" — needs the
+> arms at 82% of capacity, which is ~243 blocked punches, which is ~216,000
+> ticks: an hour of fighting against a twelve-round bout's ~130,000, before the
+> between-rounds arm recovery canon also declares. The mechanism is correct and
+> proven at that horizon; whether it belongs inside a real fight is a tuning
+> call on `arm_damage_fraction_of_blocked_force`,
+> `guard_extent_multiplier_at_full_arms` or the arms' capacity. A test pins the
+> horizon so the number cannot rot quietly.
+>
+> Next slice item: **9. one rendered round with knockdown, decision and
+> stoppage** — which is also where accumulated condition finally has somewhere
+> to go.
 
 **E. Housekeeping.** Four stale remote branches (`docs/boxing-punch-guard-reference`,
 `-v2`, `docs/confirmed-uppercut-direction-2026-08-02`, `docs/event-presentation-reference`)

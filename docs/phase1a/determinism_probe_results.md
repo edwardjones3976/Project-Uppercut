@@ -904,3 +904,102 @@ item 8 — visible stamina and condition — is next, and it is where landing st
 matter. No gameplay is claimed (Rule 18).
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 18:40 UTC | START ] -->
+
+## Phase N — visible stamina and condition (UppercutCoreCondition): PASS, with a finding
+
+**2026-08-04.** Decision 0012 slice item 8: landing starts to matter. Phase L's
+guard-and-slip core gains the condition layer canon has carried since step 8, port
+run analyzer-first as always (`analyze_core_condition.py`, 15 mutation tests, proven
+before the C++ existed).
+
+Four canon mechanisms enter the core at once. Per-region condition accumulates from
+delivered force against each region's own capacity — no generic pool, Rule 14.
+Delivered impact is derived from what a punch **cost to throw**, normalized over the
+punch table's own stamina range, so a jab accumulates and an uppercut ends nights
+without any per-move power field existing to be abused. Torso condition scales idle
+stamina regeneration down toward 0.35, which is the moment body work stops being
+cosmetic and becomes the drainer's win condition. And arm condition — fed by
+**blocked** force, because blocking is not free — scales guard coverage extents
+toward 0.55.
+
+That last one changes the shape of the code, not just its numbers. Phase L could
+compute each posture's covered lanes once at load. Phase N cannot: the arms wear
+down, so the same guard covers less as the fight goes on, and coverage becomes a
+per-punch, per-fighter, per-tick evaluation against pose_geometry's one interception
+threshold.
+
+### The proof
+
+    A1 = A2 = A3 (after a full module rebuild)
+        sha256 88af6f3011b93c12540ead0c016062425e20abf9c7cda994322d1a98c14ddc37
+    B1 (seed 4243)
+        sha256 cf94d6440c79215e87e809be0ec0a58f15b4ed97b319a9ee453f274caae807f7
+
+All four streams analyzer-ok — which is byte-equality with the Python recomputation
+from canon, not a similarity score. 2,700 decision rows, 2,700 condition rows, 277
+punch rows at seed 4242. The float-conformance probe is again bit-identical to
+CPython at all ten checkpoints, through MSVC's optimizer, for the sixth phase
+running.
+
+### The finding: an authored mechanism that a real fight cannot reach
+
+Building the guard erosion exposed that it is effectively unreachable at canon's
+current coefficients, and the arithmetic is short enough to state in full.
+
+Opening high_guard's head lane needs its effective extent below the 0.6 interception
+threshold. The extent is 0.95, and arm damage scales it by 1 − 0.45f where f is arm
+condition as a fraction of capacity. So 0.95 × (1 − 0.45f) < 0.6 requires **f ≥
+0.819** — the arms must be at 82% of capacity. A blocked punch delivers impact × 0.5
+into each arm: between 0.225 and 0.412 against a capacity of 100. That is roughly
+**243 blocked punches on one fighter** to break his guard once.
+
+This probe blocks about one punch per 430 ticks. The lane first opens at **216,000
+ticks — an hour of continuous fighting.** A twelve-round bout is about 130,000 ticks
+of round time, and `damage_regions` gives arms 0.15 recovery between rounds, which
+this phase does not yet implement and which would push it further out of reach
+still.
+
+So the mechanism is correct, live, and proven — the H1 run at 216,000 ticks opens
+lanes 235 times and the analyzer confirms every one of them landed through a lane
+that was covered when the arms were fresh. But at these coefficients no player will
+ever see it. Canon's own note says this is "how sustained pressure opens a guard
+that never drops — the passive blocker's answer arrives through boxing rather than a
+rule (Rule 4)". At 243 blocked punches, the passive blocker has no answer arriving.
+
+**This is the Director's tuning call, not the analyzer's.** What the record can say
+is that it is now measurable: the horizon is pinned by a test that fails if a canon
+edit moves it, so the number cannot rot quietly. The obvious levers are
+`arm_damage_fraction_of_blocked_force` (0.5), `guard_extent_multiplier_at_full_arms`
+(0.55), and the arms' capacity; the requirement that the mechanism be reachable
+inside a bout is not a tuning opinion.
+
+### Two smaller observations from the same runs
+
+**Head and jaw saturate in ninety seconds.** By the end of a 5,400-tick run both
+fighters are at capacity in the head, because nothing consumes accumulated condition
+yet — no knockdown, no stoppage, no between-rounds recovery. That is slice item 9's
+work, and until it lands, "accumulated condition" is a number with nowhere to go.
+
+**torso_lower never takes a hit.** The slice's one body punch,
+`body_straight_rear`, names `torso_upper` as its leading target region, and the
+probe applies force to the leading region only. Nothing in the slice's move set
+reaches the lower body. Not a defect — an observation that the move set, not the
+region model, is what is narrow.
+
+### What this establishes, and what it does not
+
+Established: condition is per-region and canon-driven in the C++ core; force is
+priced by commitment; body work slows the tank; guard coverage is a live evaluation
+rather than a load-time constant; and all of it reproduces byte-for-byte across
+processes and a full rebuild.
+
+Not established: no knockdown, no count, no stoppage, no cards, no between-rounds
+recovery, no attributes (every attribute-scaled coefficient is the empty card's 1.0,
+Rule 10), and every landing is graded `solid` because grading needs an alignment the
+core does not compute yet — all four are named simplifications in the contract, not
+silent gaps. Slice item 9 is one rendered round with knockdown, decision and
+stoppage. No gameplay is claimed (Rule 18).
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 18:40 UTC | END ] -->
