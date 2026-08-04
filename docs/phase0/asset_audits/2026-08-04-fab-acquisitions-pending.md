@@ -22,6 +22,23 @@ Epic account.
 > planned Mixamo retarget was not needed at all. Items 2 and 3 remain pending.
 <!-- [ edit end ] -->
 
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 18:40 UTC | edit: items 2 and 3 inspected ] -->
+> **Items 2 and 3 are inspected and audited — and both need re-downloading.**
+> The Director connected their Vault cache folders on 2026-08-04. Both hold the
+> **wrong format variant**: the glove came down as a bare OBJ with no textures
+> (its texture set is in the listing's separate *Additional files* zip), and the
+> arena came down as the **USDZ conversion** rather than the author's FBX. Both
+> are otherwise fine and both are now audited in their own files
+> (`2026-08-04-boxing-glove-pedro-perin.md`,
+> `2026-08-04-cartoon-boxing-arena-2023.md`), each with its remediation and, for
+> the arena, one originality-gate item: baked lettering on the meshes.
+>
+> Neither is a UE-native pack — unlike PAKPROD, both need manual import and
+> UE-side materials. This file's own guidance above ("Add to project") only
+> applies to UE packs; a 3D-model listing has to be downloaded in a chosen format
+> and imported by hand.
+<!-- [ edit end ] -->
+
 ## 1. Fighting Animations - Boxing — PAKPROD (**purchased, $24.99**)
 
 Role: primary boxing animation tier, superseding Mixamo clips per-move where its
