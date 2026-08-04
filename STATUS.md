@@ -5,17 +5,17 @@
 
 # Status
 
-Generated **2026-08-04 06:16 UTC** at `34aa6a7 Phase J PASS: punches have geometry, and the lane promise runs emergent`.
+Generated **2026-08-04 06:52 UTC** at `b4634f2 Adopt the reuse review: content reuse begins at the next visual pass`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **537 passed** |
+| Test suite | **544 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
-| Latest engine phase proven | Phase K — the first rendered slice (UppercutBoutDirector) |
+| Latest engine phase proven | Phase L — guard and slip (UppercutCoreGuard) |
 | Phase 0 | gate **PASSED** 2026-08-02 (`docs/phase0/phase0_status.md`) |
 | Phase 1A | definitions complete for all twelve steps; the quality gate is **not** passed - see `docs/phase1a/phase1a_status.md` |
-| Next step | Slice item 7: guard and slip (C++) (`docs/plans/next_steps.md`) |
+| Next step | Slice item 8: visible stamina and condition (C++) (`docs/plans/next_steps.md`) |
 
 Open findings, named rather than rounded away:
 

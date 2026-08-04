@@ -751,3 +751,66 @@ hit reactions, no crowd, no comedy). No damage, cards or verdicts flow yet. Slic
 await their C++ port behind it. No gameplay is claimed beyond what renders (Rule 18).
 
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 06:55 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 08:05 UTC | START ] -->
+
+## Phase L — guard and slip (UppercutCoreGuard): PASS
+
+**2026-08-04.** Decision 0012 slice item 7: the defender stops being a static wall.
+Three canon mechanisms enter the C++ core at once, analyzer-first as always
+(`analyze_core_guard.py`, 7 mutation tests, proven before the C++ existed):
+
+1. **Posture switching.** high_guard ⇄ tight_elbow — the mirror pair the DATA picks:
+   at the one interception threshold (0.6), high_guard (0.95/0.55) closes the head and
+   opens the body; tight_elbow (0.55/0.95) is the inverse. Lane coverage is per-fighter
+   and dynamic; mobility and hold cost follow the current posture (posture_economy,
+   hold charged only when uncommitted, as authored). The lane rock-paper-scissors is
+   live: the punch that beats you is decided by the structure you are holding *now*.
+2. **The slip.** `slip_lead` from the evasion table and the move table together: cost
+   0.8, startup 3, a five-tick active window, commit 15. An ARRIVING head-height punch
+   during the window resolves **dodged** — evasion outranks guard
+   (`evasion_economy.outranks_guard`, the pipeline's tier order, now geometric). Body
+   punches ignore it entirely: "beaten_by body_shot", emergent.
+3. **Committed defense.** `guard_extent_multiplier_while_committed` (0.6) scales the
+   defender's extents at evaluation time — 0.95 × 0.6 = 0.57 < 0.6 and the closed lane
+   opens. A fighter caught inside their own commitment can be hit through the guard
+   they are still nominally holding: **the counterpunch, from canon numbers alone.**
+   108 such landings in the canonical run, each carrying its `c` flag in the stream.
+
+Named simplifications, in the contract itself: posture-switch economics are not
+authored in canon (the switch commits one decision interval at zero cost — the
+contract's number, flagged for canon when guard work deepens); offense pricing per
+posture and the slip mistime penalty port with the fuller pipeline; roll_under waits.
+
+**The runs.** Seed 4242 × 5,400 ticks: 2,977 evidence rows — 277 punches (17 blocked,
+244 landed, 13 whiffed, 3 dodged), 61 guard switches, 55 slips, both postures held by
+both fighters, every action taken. A1, A2, A3 after a **full rebuild**; B1 at 4243.
+
+    A1 = A2 = A3   sha256 cb14f6e35c527451…   (A3 from a rebuilt binary)
+    B1 differs     sha256 924a0142f45274a4…
+
+Analyzer ok on all four — byte-for-byte against the Python recomputation plus the
+defender-state-aware lane laws (no dodge outside a slip window or of a body punch, no
+head punch blocked through an active slip, the counter window proven non-vacuous).
+Float probe bit-identical to CPython, again. Fourth consecutive phase: compiled clean
+first build, passed first run.
+
+**An emergent worth naming:** landed jumped from Phase K's 41 to 244 — not a bug, a
+consequence. Eleven actions mean fighters spend more time committed (a slip commits 15
+ticks, a switch 4), and committed defenders' guards degrade, so a bout full of
+structure-churn gets hit more. Defence spam is self-punishing by geometry — Rule 4's
+philosophy arriving without a single anti-spam rule being written.
+
+### What this establishes, and what it does not
+
+Established: dynamic per-fighter lane coverage, a frame-locked evasion that outranks
+guard, and the committed-defense counter window — all from canon data, all
+byte-identical across processes and a full rebuild, all identical to the Python
+recomputation.
+
+Not established: still no damage, condition, knockdowns or cards from a landed punch;
+one evasion of four; no referee or judge in the C++ core yet; decisions remain an LCG
+schedule. Slice item 8 — visible stamina and condition — is where landing starts to
+matter. No gameplay is claimed (Rule 18).
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 08:05 UTC | END ] -->

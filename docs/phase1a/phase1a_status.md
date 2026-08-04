@@ -239,6 +239,19 @@ comedy, the reactions, the crowd all await real content — and no damage or car
 (`determinism_probe_results.md`, "Phase K").
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 06:55 UTC | START/END edit: Phase K proven ] -->
 
+**The defender fights back structurally (Phase L)** (2026-08-04, Decision 0012 slice item 7). Guard
+and slip in the C++ core: posture switching makes lane coverage per-fighter and dynamic (high_guard
+⇄ tight_elbow, the mirror pair the data itself picks at the one interception threshold), the slip is
+a frame-locked evasion that outranks guard and loses to the body shot, and committed defense scales
+a mid-action defender's extents so the counter window opens from canon numbers alone — 108 counters
+through degraded guards in the canonical run, each flagged in the evidence stream. An emergent worth
+keeping: defence spam is self-punishing by geometry (structure-churn spends commitment, commitment
+degrades cover), Rule 4's philosophy without an anti-spam rule anywhere. Byte-identical across a
+full rebuild, identical to the Python recomputation, fourth consecutive phase passing on the first
+run. Still no damage or cards from a landed punch — slice item 8 is where landing starts to matter
+(`determinism_probe_results.md`, "Phase L").
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 08:05 UTC | START/END edit: Phase L proven ] -->
+
 **Structural risk, and the first payment against it (Rule 18).** Definitions had outrun the engine
 seven to one: steps 1-7 defined, one engine slice. The Phase 1A gate does not ask for definitions,
 it asks for complete CPU-vs-CPU matches, and every further definition step widened a gap only

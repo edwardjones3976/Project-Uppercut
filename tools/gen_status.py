@@ -80,7 +80,9 @@ def main() -> int:
     next_step = "see docs/plans/next_steps.md"
     if plan.exists():
         txt = plan.read_text(encoding="utf-8")
-        if "Phase K is proven" in txt:
+        if "Phase L is proven" in txt:
+            next_step = "Slice item 8: visible stamina and condition (C++)"
+        elif "Phase K is proven" in txt:
             next_step = "Slice item 7: guard and slip (C++)"
         elif "Phase J is proven" in txt:
             next_step = ("Slice item 6: the four punches animated on generic fighters "

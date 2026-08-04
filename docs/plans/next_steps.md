@@ -160,6 +160,15 @@ drainer still floors out, the question is answerable from canon instead of from 
 > Control Rig and IK Retargeter carry it, and a licensed boxing animation pack
 > is the Director's purchase decision when animation work begins. The C++ core
 > keeps deciding truth; clips only show it.
+>
+> **Phase L is proven** (2026-08-04, same doc): guard and slip. Posture
+> switching makes lane coverage per-fighter and live (high_guard ⇄
+> tight_elbow, the data's own mirror pair), the slip dodges arriving head
+> punches during its five-tick window and loses to the body shot, and
+> committed defense opens the counter window from canon numbers alone — 108
+> counters landed through degraded guards in the canonical run. Byte-identical
+> across a full rebuild, identical to the Python recomputation. Next slice
+> item: **8. visible stamina and condition** — where landing starts to matter.
 
 **E. Housekeeping.** Four stale remote branches (`docs/boxing-punch-guard-reference`,
 `-v2`, `docs/confirmed-uppercut-direction-2026-08-02`, `docs/event-presentation-reference`)
