@@ -203,6 +203,22 @@ drainer still floors out, the question is answerable from canon instead of from 
 > Next slice item: **9. one rendered round with knockdown, decision and
 > stoppage** — which is also where accumulated condition finally has somewhere
 > to go.
+>
+> <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 21:40 UTC | edit: Phase O held ] -->
+> **Phase O's contract is written and the phase is HELD** (2026-08-04, same
+> doc): knockdown, count, relief, stoppage, rounds, sealed cards and a verdict,
+> 12 tests. The contract then refused its own stream. Canon requires
+> `decision_path_must_survive`; under this contract **24 of 24 swept seeds end
+> by stoppage inside round one**. The cause is Phase N's named simplification
+> becoming load-bearing — every landing graded `solid`, while canon's 0.57
+> threshold was swept against a model where most landings arrive brushed or
+> grazed. No C++ was written, because it would have faithfully implemented a
+> contract that violates a canon invariant.
+>
+> **The real next item is contact-quality grading** — the four bands already
+> exist in `collision_model` (brushed 0.15, grazed 0.40, solid 0.75, clean 1.00)
+> and the missing input is alignment, which is the collision pipeline's next
+> piece. Slice item 9 resumes behind it.
 
 **E. Housekeeping.** Four stale remote branches (`docs/boxing-punch-guard-reference`,
 `-v2`, `docs/confirmed-uppercut-direction-2026-08-02`, `docs/event-presentation-reference`)

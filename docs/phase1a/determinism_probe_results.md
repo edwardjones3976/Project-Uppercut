@@ -1003,3 +1003,76 @@ silent gaps. Slice item 9 is one rendered round with knockdown, decision and
 stoppage. No gameplay is claimed (Rule 18).
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 18:40 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 21:40 UTC | START ] -->
+
+## Phase O — a round that can end: CONTRACT WRITTEN, PHASE HELD
+
+**2026-08-04.** Decision 0012 slice item 9. The contract for knockdowns, the
+count, stoppage, rounds and the decision was written first, as every phase is
+(`analyze_core_round.py`, 12 tests). It then **refused its own stream**, and the
+C++ was not written. This record exists because that is the correct outcome, not
+a failure to deliver.
+
+### What the contract covers
+
+Knockdown from observable state alone — canon's pressure product of delivered
+force, accumulated jaw and head condition, stamina fraction, whether the defender
+was caught inside his own commitment, and how open the lane was. No dice: there is
+nowhere in the expression a random number could enter, and the analyzer checks the
+arithmetic rather than trusting the claim. The mandatory eight count at canon's
+480 ticks. Partial relief on rising — condition and stamina both, because the count
+buys clarity and never a fresh fighter. Stoppage on three knockdowns in a round or
+four in the bout. Rounds, the corner's partial recovery, 10-point-must cards, and a
+verdict — with the cards sealed until the bout ends and the analyzer failing if a
+card value appears anywhere before the verdict line (Rule 3).
+
+### The finding that held the phase
+
+    24 seeds swept:  stoppages 24 (100%)  decisions 0 (0%)  stopped in round 1: 24
+
+Canon's knockdown block declares `decision_path_must_survive: true`. Under this
+contract it does not survive at all. Every bout ends inside the first round,
+typically inside thirty seconds, on the three-knockdown rule.
+
+The cause is not the threshold. It is **Phase N's named simplification becoming
+load-bearing**. Every landing in the C++ slice is graded `solid`, because grading
+needs an alignment the core does not compute yet. In Phase N that was harmless —
+grading only fed accumulation, and accumulation had nowhere to go. In Phase O it
+feeds knockdown pressure, and canon's 0.57 threshold was swept against the
+reference simulator, where most landings arrive brushed or grazed and carry a
+fraction of solid force. Grade everything solid and the threshold stops being a
+line and becomes a floor.
+
+The slice's high landing rate compounds it: with defenders committed most of the
+time, Phase N already measured far more landings than blocks, so nearly every
+punch that arrives is both landing *and* graded at full solid force.
+
+### Why the C++ was not written
+
+Writing it would have produced a faithful implementation of a contract that
+provably violates a canon invariant — a phase that passes its own byte-comparison
+while every bout it simulates ends in round one. The analyzer-first discipline
+exists precisely to make that discovery cost a contract instead of a phase, and
+here it did: the finding arrived before a line of C++, from a Python sweep that
+took under a second.
+
+**Slice item 9 is held pending contact-quality grading.** The four quality bands
+already exist in `collision_model` — brushed 0.15, grazed 0.40, solid 0.75, clean
+1.00 — and the missing input is alignment, which is the collision pipeline's next
+piece rather than a new invention. That is now the real next item.
+
+### What this does not say
+
+It does not say canon's threshold is wrong. It says the threshold cannot be judged
+against a model that grades every landing at full force, so tuning it now would be
+tuning against an artifact — the same trap the external review named in its own
+warning about tuning subsystems before their consequences exist. The Director's
+call on the guard-erosion horizon has the same shape and should probably be taken
+together with this one.
+
+The contract, its tests and the finding are committed and standing. When grading
+lands, `test_the_decision_path_is_currently_dead` fails on purpose and forces this
+record to be rewritten rather than quietly outgrown.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 21:40 UTC | END ] -->
