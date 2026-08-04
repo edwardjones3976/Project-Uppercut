@@ -191,6 +191,17 @@ clinches, so clinch-side tendencies are unreachable in natural play until the CP
 (`docs/phase1a/referee_consumption.md`).
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | START/END edit: referees consumed ] -->
 
+**The fight core has a C++ home, and it is proven (Phase H)** (2026-08-04, Decision 0012 slice
+item 3). `UppercutCore` is a real Unreal C++ Runtime module in the sandbox, compiled by a toolchain
+installed the same day on the Director's license acceptance, and its probe — the Phase D hysteresis
+walk, the same rule's third independent implementation — reproduced byte-identically across
+processes and a **full rebuild**, with bytes identical to the Python reference recomputation.
+Analyzer-first as every phase before it: the contract was mutation-proven and committed before the
+machine could compile. The claim is deliberately narrow — one rule walking alone, no fighters, no
+cards — and the next slice item, the two-fighter authoritative loop, is where the core starts being
+a core (`docs/phase1a/determinism_probe_results.md`, "Phase H").
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 04:52 UTC | START/END edit: Phase H proven ] -->
+
 **Structural risk, and the first payment against it (Rule 18).** Definitions had outrun the engine
 seven to one: steps 1-7 defined, one engine slice. The Phase 1A gate does not ask for definitions,
 it asks for complete CPU-vs-CPU matches, and every further definition step widened a gap only

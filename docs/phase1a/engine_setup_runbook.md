@@ -99,4 +99,25 @@ Record the installed MSVC and SDK versions here at install time, per D-7.
 Expect the first build to be a debugging session (Rule 18: the staged source
 has never been compiled); the contract, not the C++, is the proven half today.
 
+> **Installed 2026-08-04** (Director accepted the license in-session; agent ran the
+> unattended install under Decision 0009): **VS 2022 Build Tools 17.14.37 (July 2026),
+> MSVC 14.44.35207, Windows SDK 10.0.26100.0**, plus **.NET Framework SDK 4.8 /
+> 4.6.2 targeting pack** added by `modify` — UBT's SwarmInterface rules demand NetFxSDK
+> and the bare C++ workload does not carry it. The staged source compiled clean first
+> build (71 s) and Phase H passed the same day (`determinism_probe_results.md`).
+>
+> Installer lessons, paid for so they need not be paid twice: (1) `Build.bat` on this
+> machine wedges in its own lock-file wait loop — both when invoked directly and when
+> the editor's TurnkeySupport spawns `-Mode=ValidatePlatforms`; `wedge_watchdog.ps1`
+> already handles the latter, and the documented build path is now **UnrealBuildTool
+> invoked directly** through the engine's bundled dotnet
+> (`Engine\Binaries\ThirdParty\DotNet\10.0\win-x64\dotnet.exe Engine\Binaries\DotNET\
+> UnrealBuildTool\UnrealBuildTool.dll <Target> Win64 Development -project=... -WaitMutex`,
+> cwd `Engine\Source`), which sidesteps the wrapper entirely. (2) The VS bootstrapper
+> re-forwards its command line **unquoted**, so a spaced `--installPath` must be passed
+> as a single pre-quoted argument string or the inner installer sees a truncated path
+> and exits 0x1. (3) `setup.exe modify --quiet` demands elevation from the start (exit
+> 5007) and does not know `--wait`; the downloaded `vs_BuildTools.exe` bootstrapper
+> performs the same modify through the elevated installer service without a UAC prompt.
+
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 03:42 UTC | END: C++ toolchain ] -->

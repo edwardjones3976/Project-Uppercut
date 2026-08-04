@@ -119,6 +119,14 @@ drainer still floors out, the question is answerable from canon instead of from 
 
 **D. Phase H in the engine — or the C++ decision first.** See below.
 
+> **Phase H is proven** (2026-08-04, `docs/phase1a/determinism_probe_results.md`):
+> `UppercutCore` lives in the sandbox as a real C++ module, compiled by a toolchain
+> installed on the Director's license acceptance, and its probe reproduced the
+> Phase D hysteresis walk byte-identically across processes and a full rebuild —
+> identical bytes to the Python reference, analyzer-first as always. Next slice
+> item: **4. the two-fighter authoritative loop in C++** — where the core starts
+> being a core.
+
 **E. Housekeeping.** Four stale remote branches (`docs/boxing-punch-guard-reference`,
 `-v2`, `docs/confirmed-uppercut-direction-2026-08-02`, `docs/event-presentation-reference`)
 are merged or superseded and should be deleted. Quick menu and statistics are small and

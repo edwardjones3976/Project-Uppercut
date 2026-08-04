@@ -80,7 +80,9 @@ def main() -> int:
     next_step = "see docs/plans/next_steps.md"
     if plan.exists():
         txt = plan.read_text(encoding="utf-8")
-        if "Referee profiles are consumed" in txt:
+        if "Phase H is proven" in txt:
+            next_step = "Slice item 4: the two-fighter authoritative loop in C++"
+        elif "Referee profiles are consumed" in txt:
             next_step = "Phase H: the C++ core scaffold (Decision 0012 slice item 3)"
         elif "The Judge subsystem is extracted" in txt:
             next_step = "B (remaining): consume referee profiles"
@@ -119,10 +121,6 @@ def main() -> int:
         "both seed bases (`docs/phase1a/attributes_in_the_loop.md`, \"Measured after\").",
         "- No rendered fight exists; visual readability (gate item 5) is untestable "
         "until one does.",
-        "- Phase H is staged and blocked on the machine: no MSVC toolchain exists, and "
-        "installing one means accepting a license, which is the Director's act "
-        "(runbook, \"C++ toolchain for Phase H\"). The analyzer half is proven; the "
-        "C++ half has never compiled (`tools/engine/cpp/README.md`).",
         "",
         "Standing decisions in force this sprint:",
         "",

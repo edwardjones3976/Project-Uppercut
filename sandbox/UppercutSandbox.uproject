@@ -2,7 +2,14 @@
 	"FileVersion": 3,
 	"EngineAssociation": "5.8",
 	"Category": "",
-	"Description": "Project Uppercut generic technical sandbox (ROADMAP Phase 1A). Blueprint-first per Decision 0002.",
+	"Description": "Project Uppercut generic technical sandbox (ROADMAP Phase 1A). Blueprint-first per Decision 0002; UppercutCore C++ module added 2026-08-04 per Decision 0012.",
+	"Modules": [
+		{
+			"Name": "UppercutCore",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
 	"Plugins": [
 		{
 			"Name": "AndroidFileServer",

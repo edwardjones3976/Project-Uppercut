@@ -504,3 +504,64 @@ entrance, break, count, doctor-check and post-fight segments remain unbuilt and 
 such. No gameplay is claimed (Rule 18).
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 14:12 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 04:52 UTC | START ] -->
+
+## Phase H — the C++ core scaffold (UppercutCoreProbe): PASS
+
+**2026-08-04.** Decision 0012 slice item 3: the first C++ slice of the authoritative
+fight core, proven by the same discipline as every Blueprint phase — analyzer built and
+mutation-proven first (9 tests, committed at `3e08ff7` before a compiler existed on the
+machine), implementation judged against it after.
+
+**What ran.** `UppercutCore`, an Unreal C++ Runtime module in the sandbox
+(`sandbox/Source/UppercutCore/`), with `UUppercutCoreProbeCommandlet`: canon bytes in
+(`data/movement_model.json`, SHA-256 stated in the stream), the Phase D hysteresis walk
+in pure integer arithmetic (explicit 32-bit LCG, 1e-4 fixed-point band bounds), and a
+self-hashing marker stream out (FNV-1a 64). The same rule's **third independent
+implementation** — Python reference, Blueprint VM, now C++ — from the same canon bytes.
+
+**Toolchain.** VS 2022 Build Tools 17.14.37 (July 2026), MSVC 14.44.35207, Windows SDK
+10.0.26100.0, .NET Framework SDK 4.8 — installed 2026-08-04 on the Director's explicit
+license acceptance (runbook, "C++ toolchain for Phase H"). The staged source compiled
+clean on the first build: 71 s, zero errors, zero warnings surfaced by UBT.
+
+**The runs.** Seed 7777 × 400 steps: A1, A2 (independent processes), and A3 after a
+**full rebuild** — `sandbox/Binaries` and `sandbox/Intermediate` deleted, module
+recompiled from source, rerun. Seed 7778 × 400: B1.
+
+    A1 sha256 0cb2cb647cd2f4e381633d946a33114a6a54a2850f0d19703a976658d9a6e5e0
+    A2 sha256 0cb2cb647cd2f4e381633d946a33114a6a54a2850f0d19703a976658d9a6e5e0
+    A3 sha256 0cb2cb647cd2f4e381633d946a33114a6a54a2850f0d19703a976658d9a6e5e0   (rebuilt binary)
+    B1 sha256 c0f4709f5d65dca6be82d442e11ea6e40a40429487c9dfd7680beab80d0aa77b   (differs, as it must)
+
+Analyzer verdict: **ok on all four** — and "ok" here is the strong claim, because the
+analyzer recomputes the entire stream from canon in Python and compares **byte for
+byte**, then re-checks the properties independently (band never moves more than one step,
+hysteresis obeyed, stream self-hash valid, canon hash matches the local file). 167
+transitions on seed 7777, 196 on seed 7778: the rule was exercised, not idled past.
+Cross-language determinism is therefore not inferred from matching hashes alone — the
+C++ and the Python produced **identical bytes** from identical canon, including
+independently computed SHA-256 and FNV-1a values.
+
+**One wedge, already known.** The first commandlet launch stalled in
+`TurnkeySupport` spawning `Build.bat -Mode=ValidatePlatforms`, which hits Build.bat's
+lock-file wait loop — the exact wedge `tools/engine/wedge_watchdog.ps1` was built for
+during the Blueprint phases. The watchdog cleared it; no new rule needed, the old one
+held. (Same lock loop bit the first manual build; invoking UnrealBuildTool directly
+through the engine's bundled dotnet sidesteps the wrapper entirely and is now the
+runbook's documented build path.)
+
+### What this establishes, and what it does not
+
+Established: the C++ pipeline the fight core will live in — canon file to deterministic
+arithmetic to auditable evidence stream — reproduces byte-identically across processes
+and across a full rebuild, and agrees with the Python reference to the byte. The module,
+build path, run path, and analyzer discipline all exist and are proven.
+
+Not established: everything that matters about a fight. This is one rule walking alone —
+no fighters, no state, no collision, no cards. Slice item 4 (the two-fighter
+authoritative loop in C++) is where the core starts being a core. No gameplay is claimed
+(Rule 18).
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 04:52 UTC | END ] -->
