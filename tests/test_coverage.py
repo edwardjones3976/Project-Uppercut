@@ -101,5 +101,11 @@ def test_the_scope_list_is_deliberate():
         # failing on a scope change is the intended behaviour - widening or narrowing
         # the set is a design decision, so it has to be restated here on purpose.
         "attribute_effects.json",
+        # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | START edit ]
+        # Added 2026-08-04. referee_semantics entered scope when the bout began
+        # consuming officiating profiles (Decision 0012 slice item 2) - restated
+        # here on purpose, per this test's own rule.
+        "referee_semantics.json",
+        # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | END edit ]
     }
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 11:44 UTC | END ]

@@ -102,8 +102,17 @@ arithmetic — exactly as Rule 16 states.
 
 > **The Judge subsystem is extracted** (2026-08-04, `docs/phase1a/judge_subsystem.md`):
 > `tools/uppercut_sim/judge.py`, witnessed facts in, sealed cards out, five
-> source-relation checks in `cli all`, byte-identical over 72 bouts. Step B's
-> second half — referee-profile consumption — is the next slice item.
+> source-relation checks in `cli all`, byte-identical over 72 bouts.
+>
+> **Referee profiles are consumed** (2026-08-04, `docs/phase1a/referee_consumption.md`):
+> `data/referee_semantics.json` turns the seven philosophies into executed
+> enforcement — the clinch warning/deduction ladder, break patience, and the
+> `referee_judgement` stoppage — with the neutral official proven identical to
+> the incumbent engine (72/72) and the protective official genuinely stopping
+> fights the others let run (2/72). Named finding: no stress policy ever
+> clinches, so clinch-side tendencies are unreachable in natural play until
+> step C gives the CPU the clinch. **Step B is done.** Next slice item: the
+> C++ core scaffold (Phase H).
 
 **C. Re-open style balance with attributes in place.** After A, re-run the sweeps. If the
 drainer still floors out, the question is answerable from canon instead of from `BIAS`.

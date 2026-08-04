@@ -80,7 +80,9 @@ def main() -> int:
     next_step = "see docs/plans/next_steps.md"
     if plan.exists():
         txt = plan.read_text(encoding="utf-8")
-        if "The Judge subsystem is extracted" in txt:
+        if "Referee profiles are consumed" in txt:
+            next_step = "Phase H: the C++ core scaffold (Decision 0012 slice item 3)"
+        elif "The Judge subsystem is extracted" in txt:
             next_step = "B (remaining): consume referee profiles"
         elif "Step A is done" in txt:
             next_step = "B. Extract the Judge subsystem"

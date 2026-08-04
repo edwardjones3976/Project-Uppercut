@@ -103,6 +103,12 @@ SIMULATED = {
     # outside its scope because the original list stopped at combat models. The scope
     # line was the defect, not an oversight in the data.
     "attribute_effects.json",
+    # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | START edit ]
+    # Added 2026-08-04 with referee consumption (Decision 0012 slice item 2): the
+    # dictionary that turns officiating profiles into executed numbers claims the
+    # bout runs it, so it lives under this checker's law like every other claim.
+    "referee_semantics.json",
+    # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | END edit ]
 }
 
 

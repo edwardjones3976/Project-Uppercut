@@ -178,6 +178,19 @@ change, with `tools/uppercut_sim/policy.py` named as the real CPU consumer. The 
 counts and stoppages are ring facts, and referee-profile consumption is the next slice item.
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | START/END ] -->
 
+**Referee profiles officiate** (2026-08-04, Decision 0012 slice item 2). The seven philosophies stop
+being inert data: `data/referee_semantics.json` maps their categorical levels to executed numbers,
+and each official now differs in the clinch warning/deduction ladder (deductions reach the sealed
+card as witnessed facts, one point, exactly like a knockdown), break patience, and the
+`referee_judgement` stoppage — a stoppage condition canon declared at step 8 and nothing executed.
+The count arithmetic stays one code path for every official (Rule 16). Calibration proven: the
+default official reproduces the pre-consumption engine byte-for-byte over the 72-bout matrix, so
+every recorded balance figure still describes the current build; the protective official stops two
+of those 72 fights on observable evidence. Named finding carried to step C: no stress policy ever
+clinches, so clinch-side tendencies are unreachable in natural play until the CPU gets the clinch
+(`docs/phase1a/referee_consumption.md`).
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | START/END edit: referees consumed ] -->
+
 **Structural risk, and the first payment against it (Rule 18).** Definitions had outrun the engine
 seven to one: steps 1-7 defined, one engine slice. The Phase 1A gate does not ask for definitions,
 it asks for complete CPU-vs-CPU matches, and every further definition step widened a gap only

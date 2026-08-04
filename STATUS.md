@@ -5,17 +5,17 @@
 
 # Status
 
-Generated **2026-08-04 02:22 UTC** at `af087b0 Log Decision 0012: C++ fight core, slice-sprint document freeze`.
+Generated **2026-08-04 02:59 UTC** at `74c07d6 Extract the Judge subsystem: Rule 3 becomes a module boundary`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **488 passed** |
+| Test suite | **504 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase G — a scored bout (BP_FightWalker) |
 | Phase 0 | gate **PASSED** 2026-08-02 (`docs/phase0/phase0_status.md`) |
 | Phase 1A | definitions complete for all twelve steps; the quality gate is **not** passed - see `docs/phase1a/phase1a_status.md` |
-| Next step | B (remaining): consume referee profiles (`docs/plans/next_steps.md`) |
+| Next step | Phase H: the C++ core scaffold (Decision 0012 slice item 3) (`docs/plans/next_steps.md`) |
 
 Open findings, named rather than rounded away:
 

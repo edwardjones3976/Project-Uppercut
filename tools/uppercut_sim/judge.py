@@ -37,7 +37,7 @@ class SealedCardsError(RuntimeError):
 # The whole vocabulary of what a judge may be shown. The boundary validator
 # holds the engine to these exact keys, so widening what the judge sees is a
 # visible, reviewable act rather than an extra dict entry.
-FACT_TYPES = ("punch_landed", "knockdown")
+FACT_TYPES = ("punch_landed", "knockdown", "deduction")
 FACT_KEYS = frozenset({"type", "scorer", "fighter", "force"})
 
 
@@ -61,7 +61,11 @@ class Judge:
        Rule 14: what lands, and how well, decides - never a flat tally.
 
     Knockdowns are deducted the way a real card deducts them: one point per
-    knockdown suffered in the round, on top of losing it.
+    knockdown suffered in the round, on top of losing it. A referee deduction
+    (2026-08-04, slice item 2) is witnessed the same way a knockdown is - as a
+    public ring fact - and costs its point identically. The judge never asks
+    why the referee deducted; the reason is the referee's record, the point is
+    the card's.
     """
 
     def __init__(self, corners) -> None:
@@ -69,6 +73,7 @@ class Judge:
         self._cards = {n: 0.0 for n in self._corners}
         self._round_force = {n: 0.0 for n in self._corners}
         self._round_knockdowns = {n: 0 for n in self._corners}
+        self._round_deductions = {n: 0 for n in self._corners}
         self._rounds_sealed = 0
         self._final = False
 
@@ -88,6 +93,8 @@ class Judge:
             self._round_force[fact["scorer"]] += fact["force"]
         elif kind == "knockdown":
             self._round_knockdowns[fact["fighter"]] += 1
+        elif kind == "deduction":
+            self._round_deductions[fact["fighter"]] += 1
         else:
             raise ValueError(f"unknown fact type {kind!r}")
 
@@ -102,11 +109,12 @@ class Judge:
         win = a if fa > fb else b if fb > fa else None
         for n in self._corners:
             base = 10.0 if (win is None or n == win) else 9.0
-            self._cards[n] += base - self._round_knockdowns[n]
+            self._cards[n] += base - self._round_knockdowns[n] - self._round_deductions[n]
         self._rounds_sealed += 1
         for n in self._corners:
             self._round_force[n] = 0.0
             self._round_knockdowns[n] = 0
+            self._round_deductions[n] = 0
 
     def seal_final(self) -> None:
         self._final = True

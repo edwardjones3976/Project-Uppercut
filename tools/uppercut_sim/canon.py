@@ -60,6 +60,20 @@ def ability() -> dict:
     return _load("ability_model.json")
 
 
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | START edit: referee consumption ]
+def referee_semantics() -> dict:
+    return _load("referee_semantics.json")
+
+
+def referee(rid: str) -> dict:
+    return _load(f"referees/{rid}.json")
+
+
+def referee_ids() -> list:
+    return sorted(p.stem for p in (DATA / "referees").glob("*.json"))
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | END edit ]
+
+
 def combat_states() -> dict:
     return _load("combat_states.json")
 

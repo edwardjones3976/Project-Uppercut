@@ -7,7 +7,8 @@ from pathlib import Path
 
 from . import (ability, animation, attribute_effects, attributes, budget, camera, clock, collision,
                combat_states, condition, contracts, coverage, cpu, crowd, event, guard,
-               judge_boundary, movement, punches, replay, schema_check, score_isolation)
+               judge_boundary, movement, punches, referee_semantics, replay, schema_check,
+               score_isolation)
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -459,6 +460,24 @@ def cmd_judge_boundary() -> int:
           f"all speaking the {len(judge_boundary._fact_vocabulary()[1])}-type fact vocabulary; "
           f"cards unreadable before the final bell (Rule 3 as a checked relation)")
     return failures
+
+
+def cmd_referee_semantics() -> int:
+    """Rule 16: seven officiating philosophies, consumed rather than declared."""
+    doc = referee_semantics.load()
+    failures = 0
+    for name, fn in referee_semantics.ALL_CHECKS:
+        errs = fn(doc)
+        print(f"{'PASS' if not errs else 'FAIL'}  {name}")
+        for e in errs:
+            print(f"        {e}")
+        failures += len(errs)
+    tuples = {rid: referee_semantics.derived(doc, rid) for rid in sorted(doc["referees"])}
+    for rid, (w, g, p, s) in tuples.items():
+        print(f"INFO  {rid:<18} warning@{w:>2} entries, deduction gap {g}, "
+              f"break patience {p}, judgement stoppage "
+              f"{'off' if s is None else f'at {s} unanswered'}")
+    return failures
 # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | END edit ]
 
 
@@ -471,6 +490,8 @@ def main(argv: list) -> int:
         print("== Rule 3 score isolation ==");    total += cmd_isolation(); print()
     if cmd in ("all", "judge"):
         print("== Rule 3 judge boundary ==");     total += cmd_judge_boundary(); print()
+    if cmd in ("all", "refsem"):
+        print("== Rule 16 referee semantics =="); total += cmd_referee_semantics(); print()
     if cmd in ("all", "contracts"):
         print("== Rules 4/5/6/12/16 contracts =="); total += cmd_contracts(); print()
     if cmd in ("all", "docs"):

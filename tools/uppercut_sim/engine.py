@@ -88,7 +88,8 @@ class Bout:
     """One CPU-vs-CPU bout. Nothing here reads a scorecard."""
 
     def __init__(self, seed: int, profile_a: str, profile_b: str,
-                 rounds: int = 3, round_seconds: int = 180):
+                 rounds: int = 3, round_seconds: int = 180,
+                 referee: str = "hana_mori"):
         self.seed = seed
         self.rng = random.Random(seed)
         self.rounds = rounds
@@ -137,6 +138,34 @@ class Bout:
         self._judge = judging.Judge(f.name for f in self.fighters)
         self.stopped = False
         self.stop_reason = ""
+        self.stop_loser = ""
+        # The officiating profile (Rule 16, Decision 0012 slice item 2): one
+        # official, disclosed at the opening bell, applying one profile to both
+        # fighters, on observable evidence only. The categorical levels become
+        # numbers through data/referee_semantics.json - never through constants
+        # invented here. hana_mori is the default because her profile is the
+        # calibration point: 'moderate'/'standard' rows reproduce the constants
+        # this engine hardcoded before referees were consumed.
+        self.referee = canon.referee(referee)
+        sem = canon.referee_semantics()
+        enf = self.referee["enforcement"]
+
+        def _lv(rows: list, level: str):
+            return next(r["value"] for r in rows if r["level"] == level)
+        cl = sem["clinch"]
+        self._ref_warning_entries = max(1, _lv(
+            cl["warning_after_entries_by_clinch_tolerance"], enf["clinch_tolerance"])
+            + _lv(cl["warning_offset_by_warning_threshold"], enf["warning_threshold"]))
+        self._ref_deduction_gap = _lv(
+            cl["deduction_gap_entries_by_deduction_threshold"], enf["deduction_threshold"])
+        self._ref_break_patience = _lv(
+            cl["break_patience_by_clinch_tolerance"], enf["clinch_tolerance"])
+        self._ref_stop_unanswered = _lv(
+            sem["stoppage"]["unanswered_after_knockdown_by_stoppage_disposition"],
+            enf["stoppage_disposition"])
+        # Solid-or-clean punches taken since this fighter last landed anything -
+        # the observable half of the referee_judgement stoppage evidence.
+        self._unanswered = {f.name: 0 for f in self.fighters}
 
     # ---- event emission -------------------------------------------------
     def emit(self, etype: str, actor: str = "", target: str = "",
@@ -320,11 +349,23 @@ class Bout:
             f.out_of_range_attempts += 1
             return
         self.clinched = True
-        self.clinch_ticks = 90
+        # How long this official lets them work before the break - a tendency,
+        # in the unit the incumbent hardcoded (referee_semantics clinch).
+        self.clinch_ticks = self._ref_break_patience
         cs = self.emit("clinch_start", f.name, opp.name, {"entries": f.clinch_entries})
-        if f.clinch_entries >= 6:
+        # The enforcement ladder (Rule 16): warnings from this official's
+        # threshold onward, then a point deduction each deduction-gap past it.
+        # The judge witnesses the deduction exactly as it witnesses a knockdown:
+        # a public ring fact, no reason attached.
+        past = f.clinch_entries - self._ref_warning_entries
+        if past >= 0:
             self.emit("referee_warning", "referee", f.name,
                       {"reason": "clinch_abuse", "entries": f.clinch_entries}, [cs])
+            if past > 0 and past % self._ref_deduction_gap == 0:
+                self.emit("referee_deduction", "referee", f.name,
+                          {"reason": "clinch_abuse", "entries": f.clinch_entries,
+                           "official": self.referee["id"]}, [cs])
+                self._judge.witness({"type": "deduction", "fighter": f.name})
 
     # ---- the canonical collision pipeline -------------------------------
     def resolve(self, atk: Fighter, dfn: Fighter, move: dict, decision_seq: int,
@@ -622,6 +663,11 @@ class Bout:
             # else, cross the Rule 3 boundary.
             self._judge.witness({"type": "punch_landed", "scorer": atk.name,
                                  "force": force})
+            # The referee's observable ledger: landing anything answers back;
+            # taking a solid or clean punch is punishment absorbed unanswered.
+            self._unanswered[atk.name] = 0
+            if cls in ("solid", "clean"):
+                self._unanswered[dfn.name] += 1
         if cls == "blocked":
             dfn.blocked_taken += 1
             # Blocking is not free (condition_model.impairment): a blocked punch
@@ -644,6 +690,23 @@ class Bout:
         self._crowd_gain(atk, dfn, move, cls, out_seq)
         if landed:
             self._knockdown_check(atk, dfn, move, cls, out_seq, extent, a_imp)
+            # referee_judgement (condition_model.stoppage_conditions, executed at
+            # last): this official's threshold, met on observable evidence only -
+            # a fighter who has been down this bout and is absorbing solid or
+            # clean punishment without answering. A null threshold (standard and
+            # permissive dispositions) defers entirely to the count and the
+            # knockdown limits, which is the incumbent behaviour.
+            if (not self.stopped and self._ref_stop_unanswered is not None
+                    and dfn.knockdowns >= 1
+                    and self._unanswered[dfn.name] >= self._ref_stop_unanswered):
+                self.stopped = True
+                self.stop_reason = "referee_judgement"
+                self.stop_loser = dfn.name
+                self.emit("stoppage", "referee", dfn.name,
+                          {"condition": "referee_judgement",
+                           "official": self.referee["id"],
+                           "unanswered": self._unanswered[dfn.name],
+                           "knockdowns": dfn.knockdowns}, [out_seq])
         return cls
 
     def _crowd_gain(self, atk: Fighter, dfn: Fighter, move: dict, cls: str,
@@ -870,8 +933,11 @@ class Bout:
         interval = cpu["reaction"]["decision_interval_ticks"]
         for f in self.fighters:
             f.posture = policy.posture_for(f.profile)
+        # Disclosure before the fight (Rule 16): the official is part of the
+        # opening announcement, on the record and in the replay.
         self.emit("bout_start", "", "", {"seed": self.seed,
-                                         "profiles": [f.profile for f in self.fighters]})
+                                         "profiles": [f.profile for f in self.fighters],
+                                         "referee": self.referee["id"]})
         for rnd in range(1, self.rounds + 1):
             if self.stopped:
                 break
@@ -1036,6 +1102,9 @@ class Bout:
                   visibility="sealed")
         for f in self.fighters:
             f.round_knockdowns_suffered = 0
+            # The corner is an answer: the referee's unanswered-punishment
+            # ledger does not carry across the break.
+            self._unanswered[f.name] = 0
 
     def _final_card(self) -> None:
         self._judge.seal_final()
@@ -1050,6 +1119,13 @@ class Bout:
         """
         a, b = self.fighters
         if self.stopped:
+            # A referee_judgement stoppage is a TKO: the fighter the official
+            # waved off loses, whatever the knockdown ledger says. The
+            # knockdown-rule stoppages keep their incumbent tiebreak below -
+            # its equal-knockdowns oddity is a named finding, not an accident
+            # (docs/phase1a/referee_consumption.md).
+            if self.stop_reason == "referee_judgement" and self.stop_loser:
+                return b.name if self.stop_loser == a.name else a.name
             if a.knockdowns != b.knockdowns:
                 return b.name if a.knockdowns > b.knockdowns else a.name
         cards = self._judge.sealed_cards()      # raises before the final bell

@@ -1,0 +1,47 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Fable 5 (claude-fable-5)", "start": "2026-08-04 02:13 UTC", "end": "2026-08-04 02:13 UTC" },
+  "$comment": "What a referee profile's categorical enforcement levels mean, in the units the reference simulator executes (Rule 16, Decision 0012 slice item 2). The profiles in data/referees/ stay qualitative and per-official; this file is the shared dictionary that makes them consumable without the engine inventing constants beside them. Every number is a tuning hypothesis. The 'moderate'/'standard' rows reproduce the constants the engine hardcoded before referees were consumed (warning at 6 entries, break patience 90), so the neutral official IS the incumbent behaviour and every other official differs from it in a named, data-inspectable way. Levels are authored as {level, value} rows rather than level-keyed maps so the coverage checker's key discipline applies to the table names, not to the vocabulary of level words.",
+  "schema_version": "0.1.0-draft",
+  "clinch": {
+    "$comment": "Rule 16: tendencies may meaningfully affect clinches, warnings and deductions. The ladder is warnings from the threshold onward - which is what the incumbent behaviour did from entry six - then a point deduction each deduction-gap past the threshold, witnessed by the judge the way a knockdown is: as a public fact.",
+    "warning_after_entries_by_clinch_tolerance": [
+      { "level": "low", "value": 4 },
+      { "level": "moderate", "value": 6 },
+      { "level": "high", "value": 9 },
+      { "level": "very_high", "value": 13 }
+    ],
+    "warning_offset_by_warning_threshold": [
+      { "level": "early", "value": -1 },
+      { "level": "standard", "value": 0 },
+      { "level": "late", "value": 2 },
+      { "level": "very_late", "value": 4 }
+    ],
+    "deduction_gap_entries_by_deduction_threshold": [
+      { "level": "early", "value": 2 },
+      { "level": "standard", "value": 4 },
+      { "level": "late", "value": 6 },
+      { "level": "very_late", "value": 10 }
+    ],
+    "break_patience_by_clinch_tolerance": [
+      { "level": "low", "value": 60 },
+      { "level": "moderate", "value": 90 },
+      { "level": "high", "value": 120 },
+      { "level": "very_high", "value": 150 }
+    ],
+    "break_patience_units_note": "Decision-slot decrements, the same unit the incumbent hardcoded 90 used: the clinch counter steps down once per clinched decision slot, not per tick. Keeping the unit while naming it is deliberate - the incumbent behaviour is the calibration point."
+  },
+  "stoppage": {
+    "$comment": "condition_model.stoppage_conditions declares 'referee_judgement' - the officiating profile's stoppage threshold met on observable evidence - and until now nothing executed it. The evidence here is fully observable: knockdowns suffered this bout, and solid-or-clean punches taken since the fighter last landed anything (answering resets the count; the round break resets it too, because the corner is an answer). A null value means the official defers entirely to the count and the knockdown limits.",
+    "unanswered_after_knockdown_by_stoppage_disposition": [
+      { "level": "protective", "value": 6 },
+      { "level": "standard", "value": null },
+      { "level": "permissive", "value": null }
+    ],
+    "standard_is_null_note": "Deliberate, and a calibration choice rather than a claim about real refereeing: the incumbent engine stopped only on the count and the knockdown limits, so 'standard' keeps that exact behaviour and 'protective' is the first disposition to exceed it. Whether standard officials should also carry a finite threshold is a tuning question for after a rendered fight exists - it changes outcomes, so it moves with evidence, not by default."
+  },
+  "unconsumed_profile_fields_note": "Three enforcement fields on the referee profiles map to no mechanic yet, on the record here rather than silently: inside_work_tolerance (no legal/illegal inside-work distinction exists to tolerate - clinch-band punches are ordinary pipeline punches), injury_monitoring (medical stoppage authority belongs to the doctor per condition_model.stoppage_conditions, and no doctor exists in the reference model), and communication_style (presentation-facing - instructional versus minimal officials differ in what they say, not what they enforce). Each becomes a semantics table here when its mechanic exists.",
+  "reference_model_coverage": {
+    "reason": "Every table in this file is read by the bout: the four clinch tables feed the warning ladder, the deduction ladder and the break patience, and the stoppage table feeds the referee_judgement check. The registry is empty because the debt this file carries is named in unconsumed_profile_fields_note instead - those are fields of the PROFILES (data/referees/), which sit outside the coverage walk, not keys of this file.",
+    "not_yet_expressed": []
+  }
+}
