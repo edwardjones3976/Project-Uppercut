@@ -80,7 +80,15 @@ def main() -> int:
     next_step = "see docs/plans/next_steps.md"
     if plan.exists():
         txt = plan.read_text(encoding="utf-8")
-        if "Phase L is proven" in txt:
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 21:05 UTC | edit: Phase N ]
+        # The chain is ordered newest-first and must stay that way: an external
+        # review on 2026-08-04 found STATUS still naming slice item 8 as next
+        # AFTER Phase N had completed it, because the newest marker had no link.
+        # Adding a phase means adding its branch HERE, above the previous one.
+        if "Phase N is proven" in txt:
+            next_step = ("Slice item 9: one rendered round with knockdown, count, "
+                         "stoppage and decision (C++)")
+        elif "Phase L is proven" in txt:
             next_step = "Slice item 8: visible stamina and condition (C++)"
         elif "Phase K is proven" in txt:
             next_step = "Slice item 7: guard and slip (C++)"

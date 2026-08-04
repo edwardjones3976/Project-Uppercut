@@ -146,7 +146,8 @@ elbow vs body shots, step back vs uppercuts.
 
 ```text
 strong_head_protection
-moderate_body_protection
+body_coverage_from_guard_body_extent   # 0.55, under the 0.6 interception
+                                       # threshold: the body lane is OPEN
 weak_vs_upward_centerline_attacks
 offense_favors_straight_punching
 can_become_passive_if_overused
@@ -695,8 +696,8 @@ This makes boxing knowledge functional, not decorative.
 
 ## Reconciliation Log (deliberate design decisions)
 
-Items 1–3 record disagreements between two source references. Items 4–5 record
-contradictions this document produced internally, caught by a later review pass.
+Items 1–3 record disagreements between two source references. Items 4–6 record
+contradictions this document produced internally, caught by later review passes.
 All resolutions are intentional — do not "fix" them back without a design
 discussion.
 
@@ -731,6 +732,21 @@ discussion.
    `offense_launch_cost` that ringcraft reduces. Elite shell fighters do land
    it, so removing the punch outright would fail the coach test, while making
    it cheap would erase the structural cost of carrying the lead hand low.
+6. **High Guard "moderate body protection".** Caught by an external review pass,
+   2026-08-04. The High Guard summary block asserted `moderate_body_protection`
+   as a flat property, which contradicts the model twice over: `collision_model`
+   gives `guard_high` only head, jaw and the eyes — the torso belongs to
+   `guard_body` — and `pose_geometry` gives high_guard a guard_body extent of
+   0.55 against an interception threshold of 0.6, so the body lane is **open**,
+   not moderately covered. That opening is load-bearing: it is the whole reason
+   "body shots pay off against a high guard" emerges from posture data and one
+   threshold instead of being written down as a rule (Rule 4's counterplay
+   against passive high blocking). A flat "moderate" line quietly re-hardcodes
+   what Decision 0010 made emergent. Resolved by stating the extent and its
+   consequence rather than a verdict. If the tucked-elbow reading is wanted —
+   that a high guard buys *some* body coverage — the way to get it is to raise
+   that posture's guard_body extent in canon and let the threshold decide, not
+   to describe coverage the geometry does not produce.
 
 ---
 

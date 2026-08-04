@@ -32,8 +32,11 @@ fixed-tick resimulation (Decision 0002) is validated at seven levels — engine 
 tick, the canonical state machine, range-band resolution with hysteresis, the four-stage collision
 pipeline, the bout structure with sealed cards, and a scored bout — each byte-identical across
 same-seed processes and full asset regeneration, seed-sensitive, with zero mismatches against canon
-([evidence](docs/phase1a/determinism_probe_results.md)); the Rule 22 C++ decision for the fight core
-is with the Director ([next steps](docs/plans/next_steps.md)). **No playable boxing match or
+([evidence](docs/phase1a/determinism_probe_results.md)). The Rule 22 C++ decision for the fight core
+**fired on 2026-08-03** ([Decision 0012](docs/decisions/0012-cpp-fight-core-and-slice-sprint-freeze.md)):
+the authoritative simulation is C++, Blueprints carry presentation, Python keeps tooling. The current
+engine phase and slice item are generated into [STATUS.md](STATUS.md) rather than restated here.
+**No playable boxing match or
 completed gameplay implementation is claimed yet** (Rule 18). The Phase 1A quality gate is not
 passed; the distance between validated definitions and a running match remains the largest item on
 the board.

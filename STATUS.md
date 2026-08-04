@@ -5,17 +5,17 @@
 
 # Status
 
-Generated **2026-08-04 06:52 UTC** at `b4634f2 Adopt the reuse review: content reuse begins at the next visual pass`.
+Generated **2026-08-04 20:52 UTC** at `566fff9 fix(render): ring scale was 44% oversized - scale from the rope line, ropes to regulation`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **544 passed** |
+| Test suite | **568 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
-| Latest engine phase proven | Phase L — guard and slip (UppercutCoreGuard) |
+| Latest engine phase proven | Phase N — visible stamina and condition (UppercutCoreCondition) |
 | Phase 0 | gate **PASSED** 2026-08-02 (`docs/phase0/phase0_status.md`) |
 | Phase 1A | definitions complete for all twelve steps; the quality gate is **not** passed - see `docs/phase1a/phase1a_status.md` |
-| Next step | Slice item 8: visible stamina and condition (C++) (`docs/plans/next_steps.md`) |
+| Next step | Slice item 9: one rendered round with knockdown, count, stoppage and decision (C++) (`docs/plans/next_steps.md`) |
 
 Open findings, named rather than rounded away:
 
