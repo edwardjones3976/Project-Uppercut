@@ -134,6 +134,15 @@ drainer still floors out, the question is answerable from canon instead of from 
 > came back **bit-identical to CPython** on all checkpoints, so the reference
 > sim's float arithmetic has an evidenced road into C++. Next slice item:
 > **5. real movement and swept collision**.
+>
+> **Phase J is proven** (2026-08-04, same doc): punches have geometry. An
+> authored fist sweep (`data/pose_geometry.json`), live only during animation
+> active ticks, against the defender's real position — and the lane result is
+> emergent in the engine evidence: 132/132 jabs blocked by the closed high
+> lane, 114/114 body straights landed through the open one, written as a rule
+> nowhere. Byte-identical across a full rebuild, identical to the Python
+> recomputation. Next slice item: **6. the four punches animated on generic
+> fighters** — the first thing a spectator can see.
 
 **E. Housekeeping.** Four stale remote branches (`docs/boxing-punch-guard-reference`,
 `-v2`, `docs/confirmed-uppercut-direction-2026-08-02`, `docs/event-presentation-reference`)

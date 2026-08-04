@@ -1,0 +1,31 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Fable 5 (claude-fable-5)", "start": "2026-08-04 05:45 UTC", "end": "2026-08-04 05:45 UTC" },
+  "$comment": "Schematic reference-pose geometry in reach units, on the depth axis between two facing fighters (Phase J, Decision 0012 slice item 5). This is the 2D stand-in for authored animation clips: collision_model declares hitboxes attached to gloves with move_active_frames as their life, and animation_model fixes transforms to authored pose per tick - but no clips exist yet, so the fist's travel is authored HERE as a per-move extension profile, sampled per tick, swept as an interval, live only during active ticks. Consumed by the C++ core and its analyzer, deliberately NOT by the Python reference simulator, whose 1D model resolves contact through the staged pipeline's draws - that scoping is stated rather than implied, and Unreal's 3D authoritative implementation replaces this file's schematic when real clips land (Decision 0002). Every number is a tuning hypothesis.",
+  "schema_version": "0.1.0-draft",
+  "body": {
+    "half_depth_ru": 0.14,
+    "half_depth_note": "Twice this equals movement_model separation.min_center_distance_ru (0.28) on purpose: two bodies touch exactly when the separation clamp engages, so the movement model and the collision geometry describe the same pair of bodies rather than two that never meet."
+  },
+  "guard": {
+    "plane_offset_ru": 0.1,
+    "plane_interception_min_extent": 0.6,
+    "plane_note": "The guard is a plane sitting plane_offset_ru in front of the body surface. It intercepts an incoming sweep in a height class only when the posture's authored extent for the volume covering that class reaches plane_interception_min_extent - so with high_guard's extents (guard_high 0.95, guard_body 0.55), the head lane is closed and the body lane is open, and 'body shots pay off against a high guard' falls out of the posture data and one threshold rather than being written anywhere as a rule (the core combat design rule, and Rule 4's counterplay against passive high blocking)."
+  },
+  "fist": {
+    "retracted_ru": 0.15,
+    "extension_by_move": [
+      { "move_id": "jab_lead", "extended_ru": 1.05 },
+      { "move_id": "body_straight_rear", "extended_ru": 1.1 }
+    ],
+    "profile_note": "Extension interpolates linearly from retracted_ru to extended_ru over startup+active ticks (animation_model's per-move tick counts), so the fist is still travelling during its active window and the active-tick sweep is a genuinely moving interval. The hitbox is live only during active ticks (collision_model hitboxes.active_source = move_active_frames): startup is telegraph, not threat. Extensions sit just under each move's authored range band ceiling plus body reach, so a mid-band punch reaches through the mid band and whiffs beyond it - Rule 12's range gate expressed as geometry instead of a comparison."
+  },
+  "height_by_guard_interaction": [
+    { "guard_interaction": "blockable_high", "height_class": "high" },
+    { "guard_interaction": "blockable_low", "height_class": "low" }
+  ],
+  "height_note": "Height stays a discrete class (collision_model's height_class vocabulary), not a coordinate: what is real in this schematic is the depth sweep. Numeric heights arrive with actual clips.",
+  "invariants": [
+    "The fist sweep is evaluated against the defender's position at the evaluation tick, so footwork during an opponent's startup genuinely changes what the active window meets.",
+    "A guard plane never protects a height class whose covering volume the posture holds below the interception threshold - lanes are opened by structure, not by rule."
+  ]
+}

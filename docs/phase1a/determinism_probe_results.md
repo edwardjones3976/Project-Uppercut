@@ -627,3 +627,64 @@ an LCG schedule, not a mind. Slice item 5 (real movement and swept collision) is
 No gameplay is claimed (Rule 18).
 
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 05:25 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 06:15 UTC | START ] -->
+
+## Phase J — real movement and swept collision (UppercutCoreSweep): PASS
+
+**2026-08-04.** Decision 0012 slice item 5: punches acquire geometry. The fist is an
+authored extension profile (`data/pose_geometry.json`, new canon: schematic reference
+pose in reach units, the 2D stand-in until real clips exist), sampled per tick, swept
+as an interval, **live only during animation_model's active ticks** — startup is
+telegraph, not threat, exactly as collision_model's `active_source` has declared since
+step 5 — and evaluated against the defender's position AT THAT TICK, so footwork during
+an opponent's startup genuinely changes what the active window meets. Eight canon files
+consumed, each SHA-256-stated. Analyzer first: `tools/engine/analyze_core_sweep.py`,
+mutation-proven by 10 tests including the lane laws as independent properties.
+
+**The lane demonstration — the design promise as running geometry.** A guard plane
+sits `plane_offset_ru` in front of the body and intercepts a height class only when
+the posture's authored extent for the covering volume reaches one authored threshold.
+high_guard is authored 0.95 over `guard_high`, 0.55 over `guard_body`; the threshold
+is 0.6. Nothing anywhere says "body shots beat high guards." The run says it:
+
+    jab_lead            132 thrown into range, 132 blocked   (head lane closed)
+    body_straight_rear  114 reached the body,  114 landed    (body lane open)
+    whiffed               8 at range                          (Rule 12 as geometry)
+
+The core combat design rule — a guard protects lanes and exposes lanes — and Rule 4's
+counterplay against passive high blocking fall out of posture data plus one threshold,
+in C++, deterministically, with every contact's tip/plane/surface numbers in the
+evidence stream.
+
+**The runs.** Seed 4242 × 5,400 ticks: 2,954 evidence rows (2,700 decisions + 254
+resolved punches; one punch in flight at the final tick, counted thrown and honestly
+unresolved). A1, A2, A3 after a **full rebuild**; B1 at seed 4243 (269 resolutions).
+
+    A1 = A2 = A3   sha256 b59b6ff35db25b61…   (A3 from a rebuilt binary)
+    B1 differs     sha256 62de5ab295ab3ee0…
+
+Analyzer ok on all four — byte-for-byte against the Python recomputation, plus the
+independent lane laws (no jab through a closed lane, no body straight blocked by an
+extent below threshold, no resolution outside an active window, landed regions equal
+the move's leading target). Float probe: bit-identical to CPython again, all
+checkpoints. Third consecutive phase passing on the first *correct* run — the one
+defect en route was a PowerShell harness slip (an unquoted `-seed=` subexpression fed
+seed 0 to all three runs; caught because A1=A2=**B1** is exactly what the discipline
+exists to notice), not a C++ or contract error.
+
+### What this establishes, and what it does not
+
+Established: contact in the C++ core is now geometric — authored reach against real
+positions decides whether a punch is blocked, lands, or whiffs, with the guard's
+structure opening and closing lanes emergently. The animation frame-lock is consumed
+(startup/active/recovery ticks from `animation_model`), and the whole thing remains
+byte-identical across processes and a full rebuild.
+
+Not established: no damage, condition, knockdowns, or cards flow from a landed punch
+yet; one posture, two punches, depth-axis geometry with discrete height classes; no
+evasion; decisions are still an LCG schedule. Slice item 6 — the four punches animated
+on generic fighters — is where this stops being marker streams and starts being
+something a spectator can see. No gameplay is claimed (Rule 18).
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 06:15 UTC | END ] -->

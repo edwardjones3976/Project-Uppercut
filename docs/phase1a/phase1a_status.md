@@ -214,6 +214,19 @@ shape still gets its own probe as it ports. No collision, no condition, no judge
 the decision stream is a schedule, not a mind (`determinism_probe_results.md`, "Phase I").
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 05:25 UTC | START/END edit: Phase I proven ] -->
 
+**Punches have geometry (Phase J)** (2026-08-04, Decision 0012 slice item 5). The fist is an
+authored extension profile (`data/pose_geometry.json` — schematic reference pose, the 2D stand-in
+until real clips exist), swept per tick, live only during animation active ticks, against the
+defender's position at that tick. The lane result the whole design stands on is now emergent in
+engine evidence: with high_guard's authored extents against one interception threshold, 132 of 132
+jabs were blocked and 114 of 114 reachable body straights landed — "body shots pay off against a
+high guard" written as a rule nowhere, produced by structure everywhere. Eight canon files, animation
+frame-lock consumed, byte-identical across a full rebuild, float probe bit-identical to CPython
+again. No damage flows from a landed punch yet; slice item 6 (the four punches animated on generic
+fighters) is where evidence becomes something a spectator can see (`determinism_probe_results.md`,
+"Phase J").
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 06:15 UTC | START/END edit: Phase J proven ] -->
+
 **Structural risk, and the first payment against it (Rule 18).** Definitions had outrun the engine
 seven to one: steps 1-7 defined, one engine slice. The Phase 1A gate does not ask for definitions,
 it asks for complete CPU-vs-CPU matches, and every further definition step widened a gap only
