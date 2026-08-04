@@ -126,6 +126,14 @@ drainer still floors out, the question is answerable from canon instead of from 
 > identical bytes to the Python reference, analyzer-first as always. Next slice
 > item: **4. the two-fighter authoritative loop in C++** — where the core starts
 > being a core.
+>
+> **Phase I is proven** (2026-08-04, same doc): the two-fighter loop runs in
+> `UppercutCore` — five canon files, real ring positions, stamina economy,
+> commitment, band hysteresis from real separations — byte-identical across a
+> full rebuild and identical to the Python recomputation. And the float probe
+> came back **bit-identical to CPython** on all checkpoints, so the reference
+> sim's float arithmetic has an evidenced road into C++. Next slice item:
+> **5. real movement and swept collision**.
 
 **E. Housekeeping.** Four stale remote branches (`docs/boxing-punch-guard-reference`,
 `-v2`, `docs/confirmed-uppercut-direction-2026-08-02`, `docs/event-presentation-reference`)

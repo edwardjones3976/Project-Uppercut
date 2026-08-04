@@ -565,3 +565,65 @@ authoritative loop in C++) is where the core starts being a core. No gameplay is
 (Rule 18).
 
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 04:52 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 05:25 UTC | START ] -->
+
+## Phase I — the two-fighter authoritative loop (UppercutCoreLoop): PASS
+
+**2026-08-04.** Decision 0012 slice item 4: where the core starts being a core. Two
+fighters with authoritative state, one clock, decisions interleaved in fixed index
+order, consuming **five canon files at once** (movement, condition, guard_evasion,
+cpu_decision, moves — each SHA-256-stated in the stream). Analyzer first as always:
+`tools/engine/analyze_core_loop.py`, mutation-proven by 8 tests before the C++ existed.
+
+**What the loop executes**, in contract-defined integer arithmetic: positions on the
+ring track with the rope zone, `rope_retreat_multiplier` zeroing a backward step on the
+ropes, and the min-separation snap; footwork as boxing-steps stride × directional ×
+high-guard mobility × the exhausted multiplier below the canonical stamina fraction;
+band hysteresis driven by real separations rather than synthetic draws; the idle
+stamina economy (regen minus guard hold cost) with move costs and clamps; commitment
+from the move table's frames, a committed fighter taking no decisions; and Rule 12's
+range gate — a jab pays and commits regardless, and is only *delivered* from its
+authored band. One simplification is on the record in the contract itself: commitment
+is startup+recovery flat; the reference engine's arm/chain/fatigue arithmetic ports
+with the collision pipeline, not here.
+
+**The runs.** Seed 4242 × 5,400 ticks (2,700 decision rows: 18 delivered jabs, 202
+out-of-band whiffs, 669 steps, 1,578 held, 233 idles, 72 band transitions — every
+branch of the decision surface exercised, including rope-blocked retreats and min-sep
+snaps). A1, A2, then A3 after a **full rebuild**; B1 at seed 4243.
+
+    A1 = A2 = A3   sha256 1642531f3eb95530…   (A3 from a rebuilt binary)
+    B1 differs     sha256 9d36d13b68795b1e…
+
+Analyzer ok on all four — byte-for-byte against the Python recomputation from canon,
+plus independent property checks (band steps ≤ 1, separation never below
+min_center_distance, stamina within [0, max], full action coverage, valid self-hash).
+Second consecutive phase where the C++ compiled clean on the first build and passed on
+the first run: the contract-first discipline is doing exactly what it was adopted to do.
+
+**The float-conformance experiment — the finding that matters for everything after
+this.** Alongside the integer core, the stream carries an instrumented probe: a fixed
+`-`, `+`, `*`, `min` recipe over canon-derived doubles, 1,000 iterations, bit patterns
+emitted every 100. Deliberately *not* a pass criterion — an experiment whose answer is
+reported either way. The answer: **all 10 checkpoints bit-identical to CPython's
+doubles**, through UE's default optimized MSVC codegen, including a multiply-add shape
+that FMA contraction could have perturbed. This is evidence — not yet proof for every
+expression shape — that the reference simulator's float arithmetic can port to the C++
+core byte-comparably. The full port should still guard each new expression shape with
+the same probe pattern, but the road is open and the first toll is paid.
+
+### What this establishes, and what it does not
+
+Established: the C++ core's structural skeleton — two actors, shared authoritative
+state, fixed resolution order, an authoritative tick, multi-file canon consumption,
+auditable per-decision evidence — byte-identical across processes and a full rebuild,
+and identical to the Python reference recomputation. Plus the first recorded evidence
+of C++/CPython float bit-identity on this machine and toolchain.
+
+Not established: no collision resolution (a delivered jab meets no guard, no evasion,
+no outcome), no condition or knockdowns, no judge, no policies — the decision stream is
+an LCG schedule, not a mind. Slice item 5 (real movement and swept collision) is next.
+No gameplay is claimed (Rule 18).
+
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 05:25 UTC | END ] -->

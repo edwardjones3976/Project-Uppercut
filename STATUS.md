@@ -5,17 +5,17 @@
 
 # Status
 
-Generated **2026-08-04 04:47 UTC** at `3e08ff7 Stage Phase H: analyzer proven, C++ scaffold authored, toolchain named`.
+Generated **2026-08-04 05:05 UTC** at `367666f Phase H PASS: the fight core has a C++ home, byte-identical to Python`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **513 passed** |
+| Test suite | **521 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
-| Latest engine phase proven | Phase H — the C++ core scaffold (UppercutCoreProbe) |
+| Latest engine phase proven | Phase I — the two-fighter authoritative loop (UppercutCoreLoop) |
 | Phase 0 | gate **PASSED** 2026-08-02 (`docs/phase0/phase0_status.md`) |
 | Phase 1A | definitions complete for all twelve steps; the quality gate is **not** passed - see `docs/phase1a/phase1a_status.md` |
-| Next step | Slice item 4: the two-fighter authoritative loop in C++ (`docs/plans/next_steps.md`) |
+| Next step | Slice item 5: real movement and swept collision (C++) (`docs/plans/next_steps.md`) |
 
 Open findings, named rather than rounded away:
 

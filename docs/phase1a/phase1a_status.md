@@ -202,6 +202,18 @@ cards — and the next slice item, the two-fighter authoritative loop, is where 
 a core (`docs/phase1a/determinism_probe_results.md`, "Phase H").
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 04:52 UTC | START/END edit: Phase H proven ] -->
 
+**The core is a core (Phase I)** (2026-08-04, Decision 0012 slice item 4). The two-fighter
+authoritative loop runs in C++: real ring positions with ropes and the min-separation snap,
+directional footwork with the exhausted multiplier, band hysteresis from real separations, the
+stamina economy, move-table commitment, Rule 12's range gate — five canon files consumed at once,
+byte-identical across a full rebuild and identical to the Python recomputation, every branch of the
+decision surface exercised. Second consecutive phase compiling clean and passing on the first run.
+The instrumented float probe returned **bit-identical to CPython on every checkpoint**, putting the
+reference simulator's float arithmetic on an evidenced road into the C++ core — each new expression
+shape still gets its own probe as it ports. No collision, no condition, no judge, no policies yet;
+the decision stream is a schedule, not a mind (`determinism_probe_results.md`, "Phase I").
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 05:25 UTC | START/END edit: Phase I proven ] -->
+
 **Structural risk, and the first payment against it (Rule 18).** Definitions had outrun the engine
 seven to one: steps 1-7 defined, one engine slice. The Phase 1A gate does not ask for definitions,
 it asks for complete CPU-vs-CPU matches, and every further definition step widened a gap only
