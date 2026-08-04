@@ -56,7 +56,12 @@ def per_hand_extent(c, posture, incoming_height, vacated_height, gmult):
 
 
 def run(seed: int, rounds: int = 3) -> dict:
-    c = O.canon_pack()
+    return run_with(seed, O.canon_pack(), rounds, None)
+
+
+def run_with(seed: int, c: dict, rounds: int = 3, chooser=None) -> dict:
+    """`chooser(x) -> action` replaces the uniform coin when supplied, so a CPU
+    policy can be measured against the same fight without forking it."""
     st = [c["st_max"], c["st_max"]]
     cond = [{r: 0 for r in O.REGIONS}, {r: 0 for r in O.REGIONS}]
     committed = [0, 0]
@@ -139,7 +144,7 @@ def run(seed: int, rounds: int = 3) -> dict:
                 if T % c["interval"] or committed[i] > 0:
                     continue
                 x = (O.LCG_A * x + O.LCG_C) % O.LCG_M
-                action = O.ACTIONS[x % 11]
+                action = chooser(x) if chooser else O.ACTIONS[x % 11]
                 if action in O.PUNCHES:
                     mv = c["moves"][action]
                     st[i] = max(0, st[i] - mv["cost"])
