@@ -135,6 +135,25 @@ def canon_pack() -> dict:
     return c
 
 
+def coverage(c: dict, posture: str, incoming: str, vacated, gmult: int) -> int:
+    """Per-hand guard coverage - Phase P's rule, and the whole difference from
+    the flat model that held this phase.
+
+        before:  extent x gmult x 0.6   (both lanes, always, when committed)
+        now:     extent x gmult x 0.6   ONLY in the lane the hand left
+
+    `vacated` is the height class of the punch the DEFENDER threw and is still
+    inside; None when he is free. It lives here rather than in
+    analyze_core_hands so the dependency runs one way: the Phase P module reads
+    this contract, not the reverse.
+    """
+    e = c["posture"][posture]["ext"].get(incoming, 0)
+    e = (e * gmult) // 10000
+    if vacated is not None and vacated == incoming:
+        e = (e * c["cd_mult"]) // 10000
+    return e
+
+
 def grade(c: dict, align: int) -> tuple:
     """alignment -> (class, delivered_force_fraction). collision_model's own
     four bands and their thresholds; nothing invented."""
@@ -198,6 +217,11 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True) -> str
     pos = [c["axis"] // 2 - 4500, c["axis"] // 2 + 4500]
     st = [c["st_max"], c["st_max"]]
     cond = [{r: 0 for r in REGIONS}, {r: 0 for r in REGIONS}]
+    # Phase P, folded in: the lane each fighter's own punch took his hand out of.
+    # None when he is free. Phase O is HELD rather than sealed - it has no
+    # recorded hash - so the per-hand rule lands in its contract as the fix that
+    # unblocks it, not as an edit to a proven phase.
+    vacated = [None, None]
     committed = [0, 0]
     punch = [None, None]
     posture = ["high_guard", "high_guard"]
@@ -244,8 +268,12 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True) -> str
                         d_comm = committed[opp] > 0
                         d_slip = slip_from[opp] < T <= slip_until[opp]
                         gmult = N._guard_mult(cond[opp], c)
-                        dext = N._extent(c, posture[opp], mv["height"], gmult, d_comm)
-                        fresh = N._extent(c, posture[opp], mv["height"], 10000, d_comm)
+                        # Per-hand coverage: canon's committed multiplier applies
+                        # ONLY to the lane the defender's own hand vacated. The
+                        # lane his free hand still holds keeps its full extent.
+                        vac = vacated[opp] if d_comm else None
+                        dext = coverage(c, posture[opp], mv["height"], vac, gmult)
+                        fresh = coverage(c, posture[opp], mv["height"], vac, 10000)
                         dflags = (("c" if d_comm else "") + ("s" if d_slip else "")
                                   + GCHAR[posture[opp]])
                         result = region = None
@@ -321,6 +349,8 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True) -> str
                         punch[i] = None
                 if committed[i] > 0:
                     committed[i] -= 1
+                    if committed[i] == 0:
+                        vacated[i] = None       # the hand comes home
                     held = True
                 else:
                     st[i] = min(c["st_max"],
@@ -363,6 +393,7 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True) -> str
                     st[i] = max(0, st[i] - mv["cost"])
                     committed[i] = mv["frames"]
                     punch[i] = (action, T)
+                    vacated[i] = mv["height"]   # the hand that left, and where
                     counts["punches"] += 1
                 else:
                     mv = c["moves"][action]

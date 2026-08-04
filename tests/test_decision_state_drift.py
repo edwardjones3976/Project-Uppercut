@@ -20,7 +20,11 @@ import pytest
 REPO = Path(__file__).resolve().parents[1]
 DECISIONS = REPO / "docs" / "decisions"
 # Documents that describe the project's state to a reader arriving cold.
-STABLE_DOCS = ["README.md", "PROJECT_PLAN.md", "ROADMAP.md"]
+# VISION.md and near_future_objectives.md joined this list on 2026-08-04, the day
+# they landed: both make claims about project state, which is the exact surface
+# that drifted three times in twenty-four hours. Guard them before they age.
+STABLE_DOCS = ["README.md", "PROJECT_PLAN.md", "ROADMAP.md", "VISION.md",
+               "docs/plans/near_future_objectives.md"]
 # Phrasings that mean "nobody has decided this yet".
 PENDING = re.compile(
     r"(is|remains|stays|sits)\s+(with the Director|open|undecided|pending|unresolved)"

@@ -55,17 +55,11 @@ def vacated_lane(c: dict, move_id) -> str:
     return None if move_id is None else c["moves"][move_id]["height"]
 
 
-def coverage(c: dict, posture: str, incoming: str, vacated, gmult: int) -> int:
-    """Phase P in five lines, and the whole difference from Phase O.
-
-    Phase O:  extent x gmult x 0.6            (both lanes, always, when committed)
-    Phase P:  extent x gmult x 0.6 ONLY in the lane the hand left
-    """
-    e = c["posture"][posture]["ext"].get(incoming, 0)
-    e = (e * gmult) // 10000
-    if vacated is not None and vacated == incoming:
-        e = (e * c["cd_mult"]) // 10000
-    return e
+# The rule itself lives in analyze_core_round, which is the contract that
+# executes it - Phase O was HELD rather than sealed, so the per-hand fix belongs
+# in its stream rather than beside it. This module states and proves the rule;
+# the dependency runs one way.
+coverage = O.coverage
 
 
 def cliff_is_dissolved(c: dict) -> bool:
