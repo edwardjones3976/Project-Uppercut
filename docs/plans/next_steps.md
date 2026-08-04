@@ -152,6 +152,14 @@ drainer still floors out, the question is answerable from canon instead of from 
 > splits the high guard on screen exactly as the move table's blockable_low
 > says it must. Gate item 5 (visual readability) is now TESTABLE; the call is
 > the Director's. Next slice item: **7. guard and slip**.
+>
+> **Content reuse begins at the next visual pass** (2026-08-04, external reuse
+> review adopted — `docs/development-log/2026-08-04-reuse-review-intake.md`):
+> the cylinders retire in favour of the engine-bundled Epic mannequin (free,
+> on disk, through the asset-compatibility audit — its first completed entry),
+> Control Rig and IK Retargeter carry it, and a licensed boxing animation pack
+> is the Director's purchase decision when animation work begins. The C++ core
+> keeps deciding truth; clips only show it.
 
 **E. Housekeeping.** Four stale remote branches (`docs/boxing-punch-guard-reference`,
 `-v2`, `docs/confirmed-uppercut-direction-2026-08-02`, `docs/event-presentation-reference`)
