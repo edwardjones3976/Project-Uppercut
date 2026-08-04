@@ -33,3 +33,8 @@ sandbox/Content/Untitled.umap
 sandbox/Content/Untitled_HLOD0_Instancing.uasset
 sandbox/Content/__ExternalActors__/Untitled/
 sandbox/Content/__ExternalObjects__/Untitled/
+
+# Game Animation Sample: local asset library (Epic content license), 5.9 GB.
+# Stays OUT of the repo; selected assets migrate into sandbox/Content deliberately,
+# each migration audited (docs/phase0/asset_audits/) and committed on its own.
+GameAnimationSample/
