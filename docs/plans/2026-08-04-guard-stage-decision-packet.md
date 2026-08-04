@@ -72,16 +72,71 @@ information, as a prerequisite for judging any of these numbers — not as the n
 thing to build, necessarily, but as the thing that has to exist before the
 knockdown threshold means anything.
 
+## Candidate C — the Director's mechanic: WORKS, AND WITHOUT A DIE
+
+Proposed after A and B were measured, and it beats both.
+
+> "It depends on where the puncher's other hand is when getting countered. If
+> they are partially blocking and catch the punch with it, it should be degraded.
+> Otherwise, it should be removed."
+
+The insight is that **the hand is the unit, not the fighter.** A and B both
+treated "committed" as one state. It is two: a fighter mid-jab still has his rear
+hand home and that hand can catch; a fighter whose covering hand has left has
+nothing there. Same commitment, different defence.
+
+The nuance was already authored — only our core flattened it. `move.hand` is
+lead/rear on every punch, and `committed_defense` already answers "how much
+coverage survives commitment" with 0.6. What the current model does is apply that
+0.6 to **both lanes at once**, a whole-body dimmer, which is precisely why it
+turned out to be a switch with one meaningful position.
+
+Per hand, **with no new coefficient at all**:
+
+    the lane the defender's committed hand VACATED  ->  canon's 0.6 multiplier
+    the lane his free hand still covers             ->  full authored extent
+
+Which lane a hand vacated is derived rather than invented: the height class of
+the punch the defender himself threw. Throw upstairs and you are open upstairs;
+dig to the body and the head is the lane you left.
+
+| | hard threshold | probabilistic port (B) | **per-hand (C)** |
+|---|---|---|---|
+| blocks | 0 | 868 | **853** |
+| landings | — | 1,395 | 1,303 |
+| knockdowns | — | 106 | 99 |
+| decisions reached | 0 | 0 | 0 |
+| **dice added** | — | **one per arriving punch** | **none** |
+
+C matches B's defensive effectiveness — 853 blocks against 868 — while keeping
+the guard stage entirely deterministic geometry. B buys a working guard with a
+die; C gets one from a distinction the data already carried. It also dissolves
+the 0.6316 cliff: the surviving extent is the free hand's own authored value, so
+a jab and a cross produce genuinely different defensive states with nothing new
+to tune.
+
+**Known limit, stated up front.** Our lanes are high/low, not left/right, so this
+expresses "open where your hand went" and not yet "open on the *side* you punched
+from". The lateral half needs the 2D geometry `pose_geometry` already flags as
+pending for the hook. This is the vertical half of the mechanic, reachable today.
+
 ## Written default
 
-**Take Candidate B, and do not tune anything yet.**
+**Superseded — take Candidate C.** (The original default recommended B; it is left
+below so the reasoning that C beat is visible.)
 
-Porting the probabilistic guard is faithful, restores a mechanism that is
-currently inert, and costs one canon coefficient already in the repository. It
-should land as its own phase with its own contract, not as an edit to a sealed
-one. It will not revive the decision path on its own, and that is fine —
-correctness first, then the policy, then tuning against a fight that behaves like
-a fight.
+C should land as its own phase with its own contract, not as an edit to a sealed
+one. It will not revive the decision path, and that is fine — correctness first,
+then the policy, then tuning against a fight that behaves like a fight.
+
+> *Original default:* Take Candidate B, and do not tune anything yet. Porting the
+> probabilistic guard is faithful, restores a mechanism that is currently inert,
+> and costs one canon coefficient already in the repository.
+
+The reason C supersedes it is not that B failed — B works. It is that B pays a
+die for something the model could already tell us, and this project's whole
+argument is that a mechanic should fall out of the data rather than be bought.
+853 blocks with zero dice beats 868 blocks with one per punch.
 
 **What not to do:** soften the committed multiplier (Candidate A is a switch, and
 setting it above 0.6316 makes commitment cost nothing defensively, which deletes
