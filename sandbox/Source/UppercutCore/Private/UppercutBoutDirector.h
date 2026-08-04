@@ -7,6 +7,9 @@
 
 class AStaticMeshActor;
 class ACameraActor;
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: mannequin visual pass ]
+class ASkeletalMeshActor;
+class UAnimSequence;
 
 // Phase K: the authoritative sim (Phase J's, widened to the slice's four
 // named punches plus the body straight) advancing exactly one tick per
@@ -36,6 +39,14 @@ private:
     void StepSim();               // exactly one authoritative tick
     void UpdatePoses();
     void FinishRun();
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: mannequin visual pass ]
+    // Skeletal fighters layered OVER the primitive markers. Both read sim
+    // state; neither writes it. Animation is scrubbed to a sim-derived time -
+    // never advanced by DeltaSeconds - so a dropped frame cannot desync the
+    // picture from the fight.
+    void BuildMannequins();
+    void PoseMannequins();
+    UAnimSequence* Clip(const TCHAR* Rel);
 
     // scene
     AStaticMeshActor* Torso[2] = { nullptr, nullptr };
@@ -43,6 +54,11 @@ private:
     AStaticMeshActor* GloveLead[2] = { nullptr, nullptr };
     AStaticMeshActor* GloveRear[2] = { nullptr, nullptr };
     ACameraActor* Camera = nullptr;
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: mannequin visual pass ]
+    ASkeletalMeshActor* Fighter[2] = { nullptr, nullptr };
+    TMap<FString, UAnimSequence*> Clips;
+    bool bMannequins = false;   // set once the pack's mesh and clips all load
+    bool bShowMarkers = false;  // -markers restores the Phase K primitive view
     bool bViewSet = false;
     bool bReady = false;
     bool bDone = false;

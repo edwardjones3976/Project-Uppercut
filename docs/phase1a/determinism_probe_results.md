@@ -814,3 +814,93 @@ schedule. Slice item 8 — visible stamina and condition — is where landing st
 matter. No gameplay is claimed (Rule 18).
 
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 08:05 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | START ] -->
+
+## The mannequin visual pass — real boxing motion under the Phase K proof: PASS
+
+**2026-08-04.** The rendered slice stops being primitives. Two UE5 mannequins now
+fight in `AUppercutBoutDirector`, animated by the Director's purchased boxing pack
+(PAKPROD *Fighting Animations - Boxing*, audited in
+`docs/phase0/asset_audits/2026-08-04-pakprod-fighting-animations-boxing.md`), and the
+whole point of the exercise is what did **not** change.
+
+### The claim
+
+Putting real animation on screen is exactly the moment a presentation layer starts
+quietly owning the fight: a root-motion step nudges a fighter, an animation's own
+duration becomes the punch's timing, a blend eats a frame. So the pass was run as a
+falsification test, not a feature. The stream is the same stream:
+
+    mannequin R1  sha256 b6f1c24b62671b8dc81b37057f851f33e075f9280d34b68f5cdcc346c0276bda
+    mannequin R2  sha256 b6f1c24b62671b8dc81b37057f851f33e075f9280d34b68f5cdcc346c0276bda
+    Phase K R1    sha256 b6f1c24b62671b8dc81b37057f851f33e075f9280d34b68f5cdcc346c0276bda
+    Phase K R2    sha256 b6f1c24b62671b8dc81b37057f851f33e075f9280d34b68f5cdcc346c0276bda
+
+Four runs, two of them from before any of this existed, **byte-identical**: 2,700
+decision rows, 314 punch rows, analyzer-ok on both new streams, float probe again
+bit-identical to CPython at all ten checkpoints. The fight did not notice that it
+grew a body. That identity is the whole evidence: *rendering holds zero authority*
+stops being a design intention and becomes a measured property that survived
+contact with a real animation stack.
+
+### What the two rules were
+
+**In-Place clips only.** The pack ships root-motion variants of every step, and they
+are the better-looking option in isolation. They are rejected on principle: a
+root-motion step would let an animation move a fighter, and where a fighter stands
+is the sim's to own. The pack's `Root/` folder is deliberately unconsumed.
+
+**Clip time is a function of sim state, never of DeltaSeconds.** Nothing here plays.
+Each clip is *scrubbed* to the fighter's own progress through the move — his age in
+the move over his committed frames — so a twelve-frame jab shows a whole jab
+regardless of what duration the vendor authored. Our punch frames are the design;
+theirs is a shape to borrow. The idle loop indexes off the sim tick, and its
+two-fighter offset is the fighter's *index*, not a random number, because nothing in
+presentation may touch the RNG. A dropped frame therefore moves nothing.
+
+### What the picture shows that the primitives could not
+
+The reaction is chosen by **the lane the punch arrived in, not by which punch it
+was**: a punch stopped in a closed high lane plays a high block, a punch landing low
+plays a body hit. The guard model is now something an audience watches rather than
+something a stream reports — the uppercut coming up under a closed high guard and
+the body straight going under it are the same fourteen and twenty-seven landings the
+analyzer counts, with bodies attached.
+
+Screenshots: `sandbox/Saved/phaseM/shots_R1` (five fixed ticks, as Phase K). Two
+mannequins, correct scale and facing, in recognisable boxing stances at the
+broadcast angle; delivered to the Director in-session. Readability remains gate item
+5 and remains **his** call, not this record's.
+
+### Method notes worth keeping
+
+The visual pass was planned as Mixamo → IK Retargeter → Manny. It was not needed:
+reading the pack's asset headers showed every clip already referencing
+`SK_Mannequin`, so the retarget step — and its whole error surface — disappeared.
+The Mixamo set stays audited and on disk as the fallback library and as the source
+of the knockdown motions slice item 9 will need.
+
+One build lesson, now in `tools/engine/build_uppercut_core.ps1`: build the
+**editor** target. Every phase so far runs through the editor binary — commandlets
+natively, the rendered slice via `UnrealEditor.exe -game` — and the monolithic
+`UppercutSandbox` game target has never been linked here; it currently fails with
+nine unresolved Core externals. That is a packaging job, not an evidence blocker,
+and it is better to know now than at ship. Both the build and the run are scripts
+now (`run_render_probe.ps1`), because a run you cannot repeat exactly is not
+evidence — and this pass needed the same run repeated four times to say anything.
+
+### What this establishes, and what it does not
+
+Established: the fight core is indifferent to its presentation, measurably, with a
+real animation stack attached; the project's first content reuse is done and audited
+end to end; the lane model is visible.
+
+Not established: no damage, condition, knockdown or card flows from any of this —
+the mannequins take a body hit and are unharmed, because the core has no harm yet.
+No stance (SOUTHPAW is bought and unused until stance enters canon). No ring, gloves,
+crowd, sound or comedy. Presentation quality is placeholder tier by intent. Slice
+item 8 — visible stamina and condition — is next, and it is where landing starts to
+matter. No gameplay is claimed (Rule 18).
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | END ] -->

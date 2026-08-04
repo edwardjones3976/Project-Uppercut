@@ -169,6 +169,18 @@ drainer still floors out, the question is answerable from canon instead of from 
 > counters landed through degraded guards in the canonical run. Byte-identical
 > across a full rebuild, identical to the Python recomputation. Next slice
 > item: **8. visible stamina and condition** — where landing starts to matter.
+>
+> <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: visual pass ] -->
+> **The mannequin visual pass is proven** (2026-08-04, same doc): the rendered
+> slice has bodies. Two UE5 mannequins fight on the Director's purchased boxing
+> pack, In-Place clips only, each clip scrubbed to the sim's own progress
+> through the move rather than played on wall clock — and the marker stream is
+> **byte-identical to Phase K's, from before any of it existed**
+> (`b6f1c24b…`, four runs). Reactions are chosen by the lane a punch arrived
+> in, so the guard model is now visible. The planned Mixamo retarget proved
+> unnecessary: the pack is authored on UE5 Manny. Content reuse is done and
+> audited end to end. Next slice item is unchanged: **8. visible stamina and
+> condition (C++)**.
 
 **E. Housekeeping.** Four stale remote branches (`docs/boxing-punch-guard-reference`,
 `-v2`, `docs/confirmed-uppercut-direction-2026-08-02`, `docs/event-presentation-reference`)

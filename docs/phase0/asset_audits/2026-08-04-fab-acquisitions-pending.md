@@ -14,6 +14,14 @@ content lands.
 project. That is a Director click — the launcher runs under the Director's
 Epic account.
 
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: item 1 landed ] -->
+> **Item 1 is no longer pending.** The PAKPROD pack was already added to the
+> sandbox project when this file was written, and it is now fully audited and in
+> use: `2026-08-04-pakprod-fighting-animations-boxing.md`. Its skeleton question
+> resolved the best possible way — the clips are authored on UE5 Manny, so the
+> planned Mixamo retarget was not needed at all. Items 2 and 3 remain pending.
+<!-- [ edit end ] -->
+
 ## 1. Fighting Animations - Boxing — PAKPROD (**purchased, $24.99**)
 
 Role: primary boxing animation tier, superseding Mixamo clips per-move where its

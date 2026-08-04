@@ -45,3 +45,17 @@ GameAnimationSample/
 # animation files themselves - so the raw FBX never enters the repo. Imported/retargeted
 # uassets land in sandbox/Content during the mannequin pass, citing the audit.
 mixamo_boxing/
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: licensed pack content ]
+# PAKPROD "Fighting Animations - Boxing" (Director's Fab purchase) landed in the
+# project as 458 MB / 435 files - 382 MB of it 4K demo-mannequin textures. It stays
+# OUT of the repo, for two reasons that point the same way: a paid vendor pack is
+# not ours to store, and .git is 1.4 MB today. The repo keeps what IS ours - the
+# Director code that consumes it, and an audit naming every clip path by name
+# (docs/phase0/asset_audits/2026-08-04-pakprod-fighting-animations-boxing.md), so a
+# fresh machine restores the dependency from Fab and knows exactly what to expect.
+# Nothing here holds authority over the fight: the rendered stream is byte-identical
+# with these assets present or absent.
+sandbox/Content/BoxingAttacks/
+sandbox/Content/__ExternalActors__/BoxingAttacks/
+sandbox/Content/__ExternalObjects__/BoxingAttacks/

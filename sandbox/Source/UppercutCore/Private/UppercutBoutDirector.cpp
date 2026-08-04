@@ -2,6 +2,13 @@
 #include "UppercutBoutDirector.h"
 
 #include "Camera/CameraActor.h"
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: mannequin visual pass ]
+#include "Animation/AnimSequence.h"
+#include "Animation/AnimSingleNodeInstance.h"
+#include "Animation/SkeletalMeshActor.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/SkeletalMesh.h"
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit end ]
 #include "Components/StaticMeshComponent.h"
 #include "Dom/JsonObject.h"
 #include "Engine/DirectionalLight.h"
@@ -131,6 +138,16 @@ struct AUppercutBoutDirector::FImpl
     TArray<int32> ShotTicks;
     int32 ShotsTaken = 0;
 
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: pose-only mirrors ]
+    // Write-only from the sim's point of view: StepSim records what it just
+    // decided, PoseMannequins reads it. NOTHING in the sim's arithmetic ever
+    // reads these fields, and nothing here reaches the evidence stream - the
+    // byte-identical re-run against Phase K's canon is the proof of both.
+    FString LastAction[2];
+    int32 ActionT0[2] = { 0, 0 };
+    FString ReactClip[2];      // block/hit reaction chosen at the moment of contact
+    int32 ReactT0[2] = { -1000, -1000 };
+
     void Emit(const FString& Row)
     {
         Out += Row;
@@ -187,6 +204,9 @@ bool AUppercutBoutDirector::LoadCanonAndParams()
     FParse::Value(Cmd, TEXT("repo="), Repo);
     FParse::Value(Cmd, TEXT("out="), OutPath);
     FParse::Value(Cmd, TEXT("shots="), ShotDir);
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: marker view ]
+    bShowMarkers = FParse::Param(Cmd, TEXT("markers"));
+    // [ edit end ]
     if (Ticks <= 0 || Repo.IsEmpty() || OutPath.IsEmpty()) { return false; }
 
     const TCHAR* Rel[8] = { TEXT("data/movement_model.json"), TEXT("data/condition_model.json"),
@@ -418,7 +438,178 @@ void AUppercutBoutDirector::BuildScene()
     // broadcast camera, side-on
     Camera = World->SpawnActor<ACameraActor>(
         FVector(MidCm, -620.0, 200.0), FRotator(-8.0, 90.0, 0));
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: mannequin visual pass ]
+    BuildMannequins();
+    if (bMannequins && !bShowMarkers)
+    {
+        // The primitives stop being the picture and become the instrument: still
+        // spawned, still posed, still exactly where they were - just not drawn.
+        // -markers brings the Phase K view back for anyone auditing the poses.
+        for (int32 i = 0; i < 2; ++i)
+        {
+            if (Torso[i]) { Torso[i]->SetActorHiddenInGame(true); }
+            if (Head[i]) { Head[i]->SetActorHiddenInGame(true); }
+            if (GloveLead[i]) { GloveLead[i]->SetActorHiddenInGame(true); }
+            if (GloveRear[i]) { GloveRear[i]->SetActorHiddenInGame(true); }
+        }
+    }
+    // [ edit end ]
 }
+
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | START ]
+// The mannequin visual pass. Two rules hold the truth boundary in place here:
+//
+//   1. Only In-Place clips are consumed. The pack ships root-motion variants of
+//      every step; taking them would let an animation move a fighter, and a
+//      fighter's position is the sim's to own. The rejection is on principle,
+//      not preference - a root-motion step would be presentation writing to the
+//      fight.
+//   2. Clip time is a function of sim state, never of DeltaSeconds. Each clip is
+//      SCRUBBED to the sim's own progress through the move (age / commit frames),
+//      so the vendor's authored timing is stretched onto our timing. Our punch
+//      frames are the design; theirs are a shape to borrow. A dropped frame moves
+//      nothing, because nothing here integrates over wall clock.
+//
+// SOUTHPAW clips exist in the pack and are deliberately unused: stance is not in
+// the sim's state model yet, and presentation does not get to invent a fact the
+// fight does not have.
+UAnimSequence* AUppercutBoutDirector::Clip(const TCHAR* Rel)
+{
+    const FString Path = FString(TEXT("/Game/BoxingAttacks/TRADITIONAL/")) + Rel;
+    const FString Full = Path + TEXT(".") + FPaths::GetCleanFilename(Path);
+    UAnimSequence* A = LoadObject<UAnimSequence>(nullptr, *Full);
+    if (!A)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UppercutBoutDirector: clip missing: %s"), *Full);
+        return nullptr;
+    }
+    A->AddToRoot();   // the map below is not a UPROPERTY; keep GC off the clips
+    return A;
+}
+
+void AUppercutBoutDirector::BuildMannequins()
+{
+    UWorld* World = GetWorld();
+    // Manny and Quinn: the two fighters must be told apart at a glance, and the
+    // pack ships both on the one skeleton, so distinguishing them costs nothing.
+    const TCHAR* MeshPath[2] = {
+        TEXT("/Game/BoxingAttacks/Demo/Mannequins/Meshes/SKM_Manny.SKM_Manny"),
+        TEXT("/Game/BoxingAttacks/Demo/Mannequins/Meshes/SKM_Quinn.SKM_Quinn") };
+
+    // sim action (and lane-derived reaction) -> the clip that shows it
+    static const TCHAR* Map[][2] = {
+        { TEXT("jab_lead"),           TEXT("Attacks/In-Place/KB_Jab-L_T_IP") },
+        { TEXT("cross_rear"),         TEXT("Attacks/In-Place/KB_Cross-R_T_IP") },
+        { TEXT("hook_lead"),          TEXT("Attacks/In-Place/KB_Hook-L_T_IP") },
+        { TEXT("uppercut_rear"),      TEXT("Attacks/In-Place/KB_Uppercut-R_T_IP") },
+        { TEXT("body_straight_rear"), TEXT("Attacks/In-Place/KB_Cross-RB_T_IP") },
+        { TEXT("step_in"),            TEXT("Common/In-Place/KB_Walk-F_T") },
+        { TEXT("step_out"),           TEXT("Common/In-Place/KB_Walk-B_T") },
+        { TEXT("step_lateral"),       TEXT("Common/In-Place/KB_Walk-L_T") },
+        { TEXT("guard"),              TEXT("Defence/In-Place/KB_Guard_T") },
+        { TEXT("block_high"),         TEXT("Reactions/In-Place/KB_Block-H_T_IP") },
+        { TEXT("block_body"),         TEXT("Reactions/In-Place/KB_Block-B_T_IP") },
+        { TEXT("hit_high"),           TEXT("Reactions/In-Place/KB_Hit-H_T_IP") },
+        { TEXT("hit_body"),           TEXT("Reactions/In-Place/KB_Hit-B_T_IP") },
+    };
+    for (int32 n = 0; n < UE_ARRAY_COUNT(Map); ++n)
+    {
+        UAnimSequence* A = Clip(Map[n][1]);
+        if (!A)
+        {
+            // All or nothing: a half-clothed fighter is worse evidence than a
+            // primitive one, and the primitives are still standing behind this.
+            UE_LOG(LogTemp, Warning,
+                   TEXT("UppercutBoutDirector: mannequins OFF (clip load failed)"));
+            return;
+        }
+        Clips.Add(Map[n][0], A);
+    }
+    for (int32 i = 0; i < 2; ++i)
+    {
+        USkeletalMesh* Mesh = LoadObject<USkeletalMesh>(nullptr, MeshPath[i]);
+        if (!Mesh)
+        {
+            UE_LOG(LogTemp, Warning,
+                   TEXT("UppercutBoutDirector: mannequins OFF (mesh %s missing)"),
+                   MeshPath[i]);
+            return;
+        }
+        Mesh->AddToRoot();
+        ASkeletalMeshActor* A = World->SpawnActor<ASkeletalMeshActor>(
+            FVector::ZeroVector, FRotator::ZeroRotator);
+        if (!A) { return; }
+        USkeletalMeshComponent* C = A->GetSkeletalMeshComponent();
+        // ASkeletalMeshActor has no SetMobility of its own (unlike AStaticMeshActor);
+        // mobility lives on the component, which is also the actor's root here.
+        C->SetMobility(EComponentMobility::Movable);
+        C->SetSkeletalMeshAsset(Mesh);
+        C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        C->VisibilityBasedAnimTickOption =
+            EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+        C->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+        Fighter[i] = A;
+    }
+    bMannequins = true;
+    UE_LOG(LogTemp, Display, TEXT("UppercutBoutDirector: mannequins ON (%d clips)"),
+           Clips.Num());
+}
+
+void AUppercutBoutDirector::PoseMannequins()
+{
+    if (!bMannequins) { return; }
+    const FImpl& S = *Impl;
+    const int32 T = SimTick;
+    const int32 ReactFrames = 20;   // how long a reaction reads for, in sim ticks
+    for (int32 i = 0; i < 2; ++i)
+    {
+        if (!Fighter[i]) { continue; }
+        const double Xcm = S.Pos[i] / 10000.0 * S.RuToCm;
+        Fighter[i]->SetActorLocation(FVector(Xcm, 0.0, 0.0));
+        Fighter[i]->SetActorRotation(FRotator(0.0, (i == 0) ? 0.0 : 180.0, 0.0));
+
+        UAnimSequence* A = nullptr;
+        double Alpha = 0.0;
+        bool bLoop = false;
+
+        // A reaction outranks the fighter's own last decision only if it is newer:
+        // getting hit interrupts what you were doing, but throwing after you were
+        // hit means you have recovered.
+        const int32 ReactAge = T - S.ReactT0[i];
+        if (!S.ReactClip[i].IsEmpty() && ReactAge >= 0 && ReactAge < ReactFrames
+            && S.ReactT0[i] >= S.ActionT0[i])
+        {
+            A = Clips.FindRef(S.ReactClip[i]);
+            Alpha = (double)ReactAge / (double)ReactFrames;
+        }
+        if (!A && !S.LastAction[i].IsEmpty())
+        {
+            const FKMove* Mv = S.Moves.Find(S.LastAction[i]);
+            const int32 Age = T - S.ActionT0[i];
+            if (Mv && Mv->Frames > 0 && Age >= 0 && Age <= Mv->Frames)
+            {
+                A = Clips.FindRef(S.LastAction[i]);   // "idle" has no clip: falls through
+                Alpha = (double)Age / (double)Mv->Frames;
+            }
+        }
+        if (!A) { A = Clips.FindRef(TEXT("guard")); bLoop = true; }
+        if (!A) { continue; }
+
+        USkeletalMeshComponent* C = Fighter[i]->GetSkeletalMeshComponent();
+        const double Len = FMath::Max(0.0001, (double)A->GetPlayLength());
+        // The idle offset is the fighter's INDEX, not a random number: two boxers
+        // breathing in lockstep looks wrong, and nothing here may consume the RNG.
+        const double Time = bLoop
+            ? FMath::Fmod(T / 60.0 + i * 0.37, Len)
+            : FMath::Clamp(Alpha, 0.0, 1.0) * Len;
+        UAnimSingleNodeInstance* SN = C->GetSingleNodeInstance();
+        if (!SN || SN->GetAnimationAsset() != A) { C->SetAnimation(A); }
+        C->SetPosition((float)Time, false);
+        C->TickAnimation(0.0f, false);
+        C->RefreshBoneTransforms();
+    }
+}
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | END ]
 
 void AUppercutBoutDirector::StepSim()
 {
@@ -470,6 +661,21 @@ void AUppercutBoutDirector::StepSim()
                     ++S.Rows;
                     S.Emit(FString::Printf(TEXT("P|%d|%d|%s|%s|%s|%d|%lld|%lld|%lld\n"),
                         T, I, *S.PunchMove[I], Result, *Region, Kk, Tip, Plane, Surface));
+                    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: pose-only ]
+                    // The DEFENDER reacts, and which reaction he plays is decided by the
+                    // lane the punch arrived in - not by which punch it was. A blocked
+                    // high punch is a high block; a landed body punch is a body hit. The
+                    // guard model is what the audience sees.
+                    const int32 D = 1 - I;
+                    if (Result[0] != TEXT('w'))
+                    {
+                        const bool bLow = (Mv.Height == TEXT("low"));
+                        S.ReactClip[D] = FString::Printf(TEXT("%s_%s"),
+                            (Result[0] == TEXT('b')) ? TEXT("block") : TEXT("hit"),
+                            bLow ? TEXT("body") : TEXT("high"));
+                        S.ReactT0[D] = T;
+                    }
+                    // [ edit end ]
                     S.PunchMove[I].Reset();
                 }
             }
@@ -565,6 +771,10 @@ void AUppercutBoutDirector::StepSim()
         S.Emit(FString::Printf(TEXT("D|%d|%d|%s|%u|%lld|%lld|%lld|%d|%lld|%lld|%s\n"),
             T, I, ActionName[Choice], S.X, S.Pos[0], S.Pos[1], S.Pos[1] - S.Pos[0], S.Band,
             S.St[0], S.St[1], Flags.IsEmpty() ? TEXT("-") : *Flags));
+        // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: pose-only ]
+        S.LastAction[I] = ActionName[Choice];
+        S.ActionT0[I] = T;
+        // [ edit end ]
     }
 }
 // [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 06:25 UTC | continued ]
@@ -599,6 +809,9 @@ void AUppercutBoutDirector::UpdatePoses()
         GloveRear[i]->SetActorLocation(FVector(
             Xcm + Facing * (18.0 + RearExt), 14.0, RearExt > 0 ? PunchZ : 140.0));
     }
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: mannequin visual pass ]
+    PoseMannequins();
+    // [ edit end ]
 }
 
 void AUppercutBoutDirector::FinishRun()
