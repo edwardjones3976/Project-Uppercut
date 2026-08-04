@@ -38,3 +38,10 @@ sandbox/Content/__ExternalObjects__/Untitled/
 # Stays OUT of the repo; selected assets migrate into sandbox/Content deliberately,
 # each migration audited (docs/phase0/asset_audits/) and committed on its own.
 GameAnimationSample/
+
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 17:32 UTC | edit: Mixamo source library ]
+# Mixamo FBX source library (28 clips, audited: docs/phase0/asset_audits/2026-08-04-mixamo-boxing-set.md).
+# Mixamo terms permit shipping clips embedded in the game but not redistributing the
+# animation files themselves - so the raw FBX never enters the repo. Imported/retargeted
+# uassets land in sandbox/Content during the mannequin pass, citing the audit.
+mixamo_boxing/
