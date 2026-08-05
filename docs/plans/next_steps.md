@@ -219,6 +219,24 @@ drainer still floors out, the question is answerable from canon instead of from 
 > exist in `collision_model` (brushed 0.15, grazed 0.40, solid 0.75, clean 1.00)
 > and the missing input is alignment, which is the collision pipeline's next
 > piece. Slice item 9 resumes behind it.
+>
+> <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 03:25 UTC | edit: Phase O blocker identified ] -->
+> **Superseded, 2026-08-05.** Grading was built and did not revive the decision
+> path; nor did the CPU policy, the difficulty tiers, decision cadence,
+> commitment frames or the guard's hold cost. Four of those six were buried on a
+> confounded metric and were re-measured — cadence and commitment are in fact
+> strongly connected to the clock (1.88× and 2.18× in time-to-stoppage). The
+> guard itself is fixed: the Director's per-hand mechanic took blocks from 0 to
+> 853 across the sweep.
+>
+> **What holds Phase O is conversion.** Knockdowns per eligible landing sits at
+> 0.25–0.31 no matter which dial moves. A bout reaches the cards at 32,400 ticks
+> and the furthest any dial pairing reaches is 7,049. Stated as a rate, a full
+> bout contains ~216 eligible landings and fewer than three may convert: a
+> required 0.0139 against a measured 0.2654, a gap of **19.1×**. The remaining
+> surface is `kd_threshold`, the pressure terms feeding it, and the condition
+> erosion that inflates them. Workings in
+> `tools/engine/experiment_decision_path.py`.
 
 **E. Housekeeping.** Four stale remote branches (`docs/boxing-punch-guard-reference`,
 `-v2`, `docs/confirmed-uppercut-direction-2026-08-02`, `docs/event-presentation-reference`)

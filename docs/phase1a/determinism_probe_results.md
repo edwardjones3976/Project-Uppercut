@@ -1117,3 +1117,49 @@ lands, `test_the_decision_path_is_currently_dead` fails on purpose and forces th
 record to be rewritten rather than quietly outgrown.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 21:40 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 03:20 UTC | Phase O status, third revision START ] -->
+
+### Third revision: the guard was fixed, the phase is still held, and the reason is now a number
+
+**2026-08-05.** Two things above are now out of date and are corrected here
+rather than edited away.
+
+**The zero-blocks problem is solved.** The Director's per-hand mechanic replaced
+the whole-body dimmer: canon's 0.6 `committed_defense` multiplier applies only to
+the lane the defender's own hand vacated, derived from the height class of the
+punch he himself threw. No new coefficient was invented. Blocks across the
+24-seed sweep went from 0 to **853**. The guard works.
+
+**The decision path is still dead, and not for any reason previously named.**
+Six hypotheses were tested and buried after this section was written — contact
+grading, CPU policy, difficulty tiers, decision cadence, commitment frames, and
+the posture hold cost. Four of those were buried on a confounded metric (bout
+totals compared across bouts that all end on the three-knockdown rule) and had to
+be re-measured; when they were, cadence and commitment turned out to be strongly
+connected to the clock, spanning 1.88× and 2.18× in time-to-stoppage.
+
+What no dial moved, in any sweep, is **conversion**: knockdowns per landing
+eligible to cause one sits at 0.25–0.31 regardless of tier, cadence or
+commitment. That is what holds the phase, and it can now be stated as arithmetic
+instead of a hypothesis:
+
+    a bout reaches the cards at            32,400 ticks (3 x 10,800)
+    the furthest any dial pairing reaches   7,049 ticks (22% of it)
+    eligible landings in a full bout          ~216
+    conversion required for a decision      0.0139
+    conversion the model produces           0.2654
+    the gap                                  19.1x  (6.6x at the extreme corner)
+
+**Phase O is held on a conversion problem, not a pacing one.** The surface where
+the fix has to live is `kd_threshold`, the pressure terms feeding it, and the
+condition erosion that inflates them — not the volume side of the model, which is
+where every one of the six dead hypotheses was looking. Full workings in
+`docs/development-log/2026-08-05-the-dials-were-never-inert-and-the-blocker-has-a-number.md`
+and `tools/engine/experiment_decision_path.py`.
+
+This does not say canon's 0.57 threshold is wrong either. It says the threshold
+is now the only remaining candidate that has not been eliminated, and that it can
+finally be judged, because the fighter it is measured against is defending.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 03:20 UTC | Phase O status, third revision END ] -->
