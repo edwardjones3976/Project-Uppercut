@@ -1300,3 +1300,54 @@ nothing to do with range — and a port proven against a stream that moves for
 unrelated reasons is not really proven. This one does not move.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 22:50 UTC | Phase Q proof END ] -->
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 02:10 UTC | Decision 0014 re-proof START ] -->
+
+## Re-proof under Decision 0014 — Phases K, N and Q, 2026-08-05
+
+Not a new phase. A **re-run of three proven ones** after a canon ruling moved the
+ground under them, recorded here because a pin that is edited rather than
+re-earned is worse than no pin at all.
+
+Decision 0014 (gate G1) repriced ordinary movement by displacement. Three step
+entries in `data/moves/generic_sandbox_moves.json` changed, and every phase that
+hashes that file into its marker stream header therefore produced a different
+stream — Phase K, Phase N and Phase Q. **None of their fights changed.** Phase Q
+spends no stamina at all; Phases K and N read the table but were re-run against
+the same repriced canon on both sides. Only the hashes moved.
+
+Each was re-run and re-compared byte for byte:
+
+    Phase N   UppercutCoreCondition, seed 4242, 5400 ticks     identical
+              88af6f3011b93c12540ead0c016062425e20abf9c7cda994322d1a98c14ddc37  (2026-08-04)
+           -> 7b2b90001b541b8e145ab4fe501de15e45b3780b3c1e821a866a3b4786cea1ff  (2026-08-05)
+
+    Phase K   UppercutRenderGameMode, seed 4242, 5400 ticks    identical
+              b6f1c24b62671b8dc81b37057f851f33e075f9280d34b68f5cdcc346c0276bda  (2026-08-04)
+           -> 4826e82c532b98e481080b8603321e2e406c4f706681361b7a1996ff153b36ce  (2026-08-05)
+
+    Phase Q   UppercutCoreRange, three runs                    identical
+              4242/5400  32fb81853e8e961525664ecd98fc0f39fae50d2a184769457e6151af66b22faf
+               777/5400  02f3832ed95e77e75ff2166cac62baa1bd973aa43f3662041517c159bbd47360
+              4242/900   b8acb84ee9c1eaefd1c0575c8794abb9825506e632e13fc39edb438418d9a006
+
+`tests/test_phase_evidence_pins.py` carries the new hashes with the superseded
+ones beside them.
+
+### A correction, made where it will be read
+
+When Phase Q was ported earlier the same day, its record claimed the pin "will
+survive the open gates" because the slice spends no stamina. **That was too
+strong**, and the Phase Q golden failed within hours of being written.
+
+The behaviour claim was right; the bytes claim was not. Phase Q reads the move
+table for range bands and hashes it, so a change to a step's *price* — a field
+Phase Q never reads — still moved its stream. The distinction that survives is:
+a canon ruling on stamina cannot change the Phase Q **fight**, but any edit to a
+file Phase Q hashes will change its **stream**.
+
+This is the pin behaving exactly as designed. It failed the moment canon moved,
+which is the alarm that says *re-prove the port before re-blessing* — and that is
+what happened here rather than a quiet regeneration.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 02:10 UTC | Decision 0014 re-proof END ] -->

@@ -15,14 +15,18 @@ decided thing as open; this file is the inverse and needs the same care.
 
 ## Status
 
+**All six gates were ruled on by the Director on 2026-08-05 and are CLOSED.** The
+rows stay, as this file's own rules require; each now names the decision that
+closed it. New gates are added below the table when work next stops on a call.
+
 | # | Gate | Blocks | State | Evidence |
 |---|---|---|---|---|
-| G1 | **Normal-step cost authority** — `movement_model.locomotion` says 0.132 per step; the move table says 0.600 flat, 4.55× apart, core reads the higher | the whole stamina economy, and every Phase Q/R/S number downstream of footwork | **OPEN** | packet §Item 1 |
-| G2 | **Rest / no-action semantics** — nothing in canon authors doing nothing; four of six non-offensive choices charge stamina | action count, which is the stamina economy's actual problem | **OPEN** | packet §Item 3 |
-| G3 | **`aggression_bias` semantics** — intent, attempt, or throw probability; as read today it produces 175–219 punches per fighter-round against a professional 55–78 | CPU policy, and any style balance conclusion | **OPEN** | packet §Item 2 |
-| G4 | **Decision 0013 ratification** — lateral guard geometry in the model, discrete controls at the controller | hooks and side-specific exposure; the ten-guards drift | **PROPOSED, awaiting ratification** | `docs/decisions/0013-*.md` |
-| G5 | **Declare the default ruleset** — the three-knockdown rule is currently canon and is the termination condition in every measurement | what "a bout ended correctly" means; every stoppage figure quoted this week | **OPEN** | see below |
-| G6 | **Guard lanes authored exactly on the interception threshold** — `philly_shell` body and `active_hands` head both sit at 0.60 | two of ten guards open on the first point of arm damage | **OPEN, and a fix rather than a judgement** | `2026-08-05-ten-guards-two-volumes-four-behaviours.md` |
+| G1 | **Normal-step cost authority** — `movement_model.locomotion` says 0.132 per step; the move table says 0.600 flat, 4.55× apart, core reads the higher | the whole stamina economy, and every Phase Q/R/S number downstream of footwork | **CLOSED** — movement is priced by displacement; the flat fee is re-homed to named explosive actions | `0014-movement-costs-displacement.md` |
+| G2 | **Rest / no-action semantics** — nothing in canon authors doing nothing; four of six non-offensive choices charge stamina | action count, which is the stamina economy's actual problem | **CLOSED** — thinking is free; Observe, HoldPosition and Rest are first-class outcomes | `0015-rest-and-no-action-are-first-class.md` |
+| G3 | **`aggression_bias` semantics** — intent, attempt, or throw probability; as read today it produces 175–219 punches per fighter-round against a professional 55–78 | CPU policy, and any style balance conclusion | **CLOSED** — it is intent at the intent stage, not throw rate; the authored numbers stand | `0016-aggression-is-intent-not-throw-rate.md` |
+| G4 | **Decision 0013 ratification** — lateral guard geometry in the model, discrete controls at the controller | hooks and side-specific exposure; the ten-guards drift | **CLOSED** — ratified in principle, scheduled after the live round; the ten-guards drift stays open | `0017-ratification-of-0013.md` |
+| G5 | **Declare the default ruleset** — the three-knockdown rule is currently canon and is the termination condition in every measurement | what "a bout ended correctly" means; every stoppage figure quoted this week | **CLOSED** — versioned rulesets; professional default, three-knockdown becomes an arcade modifier | `0018-versioned-rulesets-and-the-professional-default.md` |
+| G6 | **Guard lanes authored exactly on the interception threshold** — `philly_shell` body and `active_hands` head both sit at 0.60 | two of ten guards open on the first point of arm damage | **CLOSED** — a canon authoring margin, enforced for every posture | `0019-no-coverage-value-sits-on-the-threshold.md` |
 
 The packet for G1–G3 is
 `docs/plans/2026-08-05-three-canon-quantities-decision-packet.md`, with three
@@ -75,6 +79,18 @@ should be re-run rather than re-read.
 
 ## Closed gates
 
-None yet.
+All six, on 2026-08-05, by Director ruling. Decisions 0014 through 0019. The
+rulings and their consequences are in those records; what belongs here is the
+one line each that a reader scanning for "is this still blocking anything"
+needs, and that is the `State` column above.
+
+Two consequences travel with the closures and are recorded here so they are not
+discovered later as surprises:
+
+- **Measurements taken before 2026-08-05 must be re-run rather than re-read**
+  wherever they depended on the flat step cost (G1), on a fighter who could not
+  stand still (G2), or on the three-knockdown termination (G5).
+- **The Phase Q port is unaffected.** Its slice reads no stamina and no ruleset,
+  which was the reason for that scope call; the pinned bytes and the proof stand.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 19:00 UTC | END ] -->

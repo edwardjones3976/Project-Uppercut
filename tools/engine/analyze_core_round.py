@@ -120,6 +120,14 @@ def canon_pack() -> dict:
     c["region_recovery"] = {d["region"]: q(d["recovers_between_rounds"])
                             for d in cm["damage_regions"]}
     c["kd_regions"] = ("jaw_chin", "head")
+    # Decision 0014 (gate G1). The ONE authority for what movement costs. The
+    # move table's step entries are a validated echo of this and are not read
+    # here, which is the whole point of the ruling: there is no second opinion
+    # left to read by accident.
+    mvj = json.loads(io.open(os.path.join(REPO, CANON["movement"]), "rb").read())
+    c["step_per_ru"] = q(next(m["stamina_cost_per_ru"]
+                              for m in mvj["locomotion"]["modes"]
+                              if m["posture_mode"] == "boxing_steps"))
 
     errs = list(c["canon_errors"])
     if c["max_per_round"] > c["max_per_bout"]:
@@ -426,8 +434,14 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True,
                     vacated[i] = mv["height"]   # the hand that left, and where
                     counts["punches"] += 1
                 else:
+                    # Decision 0014 (gate G1): movement is priced by
+                    # displacement, so the stride has to be resolved BEFORE the
+                    # stamina comes off. The exhausted test therefore reads the
+                    # stamina a fighter starts the step with rather than what he
+                    # has left after paying for it, which is also the more
+                    # defensible reading: your legs are gone, or they are not,
+                    # when you push off.
                     mv = c["moves"][action]
-                    st[i] = max(0, st[i] - mv["cost"])
                     committed[i] = mv["frames"]
                     counts["steps"] += 1
                     mul = {"step_in": c["dir"]["advance"],
@@ -437,14 +451,23 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True,
                     if st[i] < c["exhausted_q"]:
                         mul = (mul * c["dir"]["exhausted"]) // 10000
                         flags += "e"
+                    on_ropes = min(pos[i], c["axis"] - pos[i]) <= c["ropes"]
+                    if on_ropes and action == "step_out":
+                        mul = (mul * c["rope_retreat"]) // 10000
+                        flags += "r"
+                    # Distance travelled, not distance gained, and it is resolved
+                    # here so that BOTH the movement and its price come off the
+                    # same number. A lateral step displaces a fighter even though
+                    # this model's one axis has nowhere to put the angle, so
+                    # circling is not free; a retreat with your back on the ropes
+                    # travels nothing, so it costs nothing (Decision 0014's
+                    # "zero displacement costs zero", which is what stops the
+                    # anti-running rule doubling as a stamina tax).
+                    mag = (c["stride"] * mul) // 10000
+                    st[i] = max(0, st[i] - (mag * c["step_per_ru"]) // 10000)
                     if action != "step_lateral":
                         toward = 1 if i == 0 else -1
                         sign = toward if action == "step_in" else -toward
-                        on_ropes = min(pos[i], c["axis"] - pos[i]) <= c["ropes"]
-                        if on_ropes and action == "step_out":
-                            mul = (mul * c["rope_retreat"]) // 10000
-                            flags += "r"
-                        mag = (c["stride"] * mul) // 10000
                         pos[i] = min(max(pos[i] + sign * mag, 0), c["axis"])
                         if pos[1] - pos[0] < c["min_sep"]:
                             if i == 0:

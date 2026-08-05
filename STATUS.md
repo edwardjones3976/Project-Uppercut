@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-05 21:03 UTC** at `8bea15b Pin the Phase O golden stream as the C++ port target`.
+Generated **2026-08-05 21:48 UTC** at `926fafc feat(core): Phase Q proven in C++ - the fight gets a distance`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **733 passed** |
+| Test suite | **745 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase Q — the fight gets a distance (UppercutCoreRange) |

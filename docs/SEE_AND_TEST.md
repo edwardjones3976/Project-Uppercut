@@ -52,7 +52,7 @@ unfixed, so you are not seeing them for the first time in a screenshot:
 ## Test it
 
 ```
-python -m pytest -q                            # 733 tests, ~2 minutes
+python -m pytest -q                            # 745 tests, ~2 minutes
 python -m tools.uppercut_validate.cli all      # canon validators, ~10 seconds
 ```
 

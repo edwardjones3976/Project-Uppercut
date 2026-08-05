@@ -36,13 +36,27 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
     __file__))), "tools", "engine"))
 
+# RE-PINNED 2026-08-05 under Decision 0014 (gate G1), which is the case this
+# file's docstring describes as the legitimate one: a formal decision changed
+# canon, so the phases were RE-RUN and RE-PROVEN rather than having their pins
+# quietly edited to match. Both C++ artifacts still reproduce their analyzers
+# byte for byte against the repriced move table; the streams moved only because
+# both phases hash that file into their headers, not because either fight
+# changed. The superseded hashes are kept beside the new ones so the record of
+# what was proven when survives, which is the whole point of pinning.
+#
+#   Phase N  88af6f30... (2026-08-04, flat step cost)
+#            -> 7b2b9000... (2026-08-05, displacement pricing)
+#   Phase K  b6f1c24b... (2026-08-04)
+#            -> 4826e82c... (2026-08-05, same cause)
+#
 # (module, callable args, the hash the phase record swears to, where it is recorded)
 PINS = [
     ("analyze_core_condition", (4242, 5400),
-     "88af6f3011b93c12540ead0c016062425e20abf9c7cda994322d1a98c14ddc37",
+     "7b2b90001b541b8e145ab4fe501de15e45b3780b3c1e821a866a3b4786cea1ff",
      "Phase N - visible stamina and condition"),
     ("analyze_render_probe", (4242, 5400),
-     "b6f1c24b62671b8dc81b37057f851f33e075f9280d34b68f5cdcc346c0276bda",
+     "4826e82c532b98e481080b8603321e2e406c4f706681361b7a1996ff153b36ce",
      "Phase K / the rendered slice - primitives, mannequins and the arena alike"),
 ]
 
