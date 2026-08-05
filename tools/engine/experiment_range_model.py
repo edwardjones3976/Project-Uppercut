@@ -272,9 +272,18 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
                     # arrived. Both are `observable_inputs` under Rule 3/4; no
                     # card, no RNG state, no future tick is read.
                     inc = punch[1 - i]
-                    band_ref[1] = bool(
-                        inc is not None
-                        and (T - inc[1]) <= c["moves"][inc[0]]["startup"])
+                    # How long the incoming punch has been VISIBLE, in ticks.
+                    # Phase R read this as a boolean and slipped the instant a
+                    # punch appeared, which canon forbids outright ("react
+                    # faster than the reaction floor at any difficulty, at any
+                    # time"). Phase S needs the number, so the number is what is
+                    # published; a boolean consumer still reads non-zero as
+                    # "something is coming", which is what Phase R meant.
+                    band_ref[1] = 0
+                    if inc is not None:
+                        seen = T - inc[1]
+                        if seen <= c["moves"][inc[0]]["startup"]:
+                            band_ref[1] = seen
                 x = (O.LCG_A * x + O.LCG_C) % O.LCG_M
                 action = chooser(x) if chooser else O.ACTIONS[x % 11]
                 if action in O.PUNCHES:
