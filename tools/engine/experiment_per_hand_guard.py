@@ -55,7 +55,8 @@ def per_hand_extent(c, posture, incoming_height, vacated_height, gmult):
     return e
 
 
-def _terms(c, mv, cond, stamina, committed, extent, kd_force, pr, tick) -> dict:
+def _terms(c, mv, cond, stamina, committed, extent, kd_force, pr, tick,
+           mid="?") -> dict:
     """`O.pressure` taken apart into the four multiplicands it applies, in the
     same order and with the same integer arithmetic.
 
@@ -77,7 +78,7 @@ def _terms(c, mv, cond, stamina, committed, extent, kd_force, pr, tick) -> dict:
     p = (p * balance) // 10000
     p = (p * guard) // 10000
     assert p == pr, "term decomposition drifted from the analyzer's pressure"
-    return {"tick": tick, "move": mv.get("id", "?"), "pressure": pr,
+    return {"tick": tick, "move": mid, "pressure": pr,
             "force": force, "condition": c["baseline"] + accumulated,
             "accumulated": accumulated, "stamina": 14000 - stamina_frac,
             "stamina_frac": stamina_frac, "balance": balance, "guard": guard,
@@ -89,7 +90,7 @@ def run(seed: int, rounds: int = 3) -> dict:
 
 
 def run_with(seed: int, c: dict, rounds: int = 3, chooser=None,
-             on_eligible=None) -> dict:
+             on_eligible=None, on_event=None) -> dict:
     """`chooser(x) -> action` replaces the uniform coin when supplied, so a CPU
     policy can be measured against the same fight without forking it.
 
@@ -97,6 +98,11 @@ def run_with(seed: int, c: dict, rounds: int = 3, chooser=None,
     cause a knockdown, with that landing's pressure terms already decomposed.
     It cannot draw from the LCG and cannot alter state, so a measurement taken
     through it is a measurement of this exact fight and not of a fork of it.
+
+    `on_event(kind, row)` is the same contract one stage earlier: it sees every
+    punch thrown, every punch that reached the interception plane, every block
+    and every landing, so the funnel from decision to eligible landing can be
+    counted rather than inferred from the aggregate counters.
     """
     st = [c["st_max"], c["st_max"]]
     cond = [{r: 0 for r in O.REGIONS}, {r: 0 for r in O.REGIONS}]
@@ -156,8 +162,25 @@ def run_with(seed: int, c: dict, rounds: int = 3, chooser=None,
                         dext = per_hand_extent(
                             c, posture[opp], mv["height"],
                             vacated[opp] if d_comm else None, gmult)
+                        if on_event is not None and (ap or asf):
+                            # t0 and the thrower identify the PUNCH INSTANCE. A
+                            # punch is evaluated on every active frame, so a
+                            # consumer counting rows here counts frames, not
+                            # punches, unless it dedupes on (fighter, t0).
+                            on_event("reached", {"tick": T, "t0": t0, "by": i,
+                                                 "move": mid,
+                                                 "height": mv["height"],
+                                                 "region": mv["region"],
+                                                 "extent": dext,
+                                                 "threshold": c["thr"],
+                                                 "committed": d_comm,
+                                                 "surface": asf})
                         if ap and dext >= c["thr"]:
                             blocked += 1
+                            if on_event is not None:
+                                on_event("blocked", {"tick": T, "move": mid,
+                                                     "height": mv["height"],
+                                                     "extent": dext})
                             punch[i] = None
                             continue
                         if asf:
@@ -169,6 +192,11 @@ def run_with(seed: int, c: dict, rounds: int = 3, chooser=None,
                                                     cond[opp][region] + force * 6)
                             landed += 1
                             punch[i] = None
+                            if on_event is not None:
+                                on_event("landed", {"tick": T, "move": mid,
+                                                    "height": mv["height"],
+                                                    "region": region, "grade": cls,
+                                                    "stamina": st[i]})
                             if region in c["kd_regions"] and cls in c["kd_force"]:
                                 eligible += 1
                                 pr = O.pressure(c, mv, cond[opp], st[opp], d_comm,
@@ -176,7 +204,8 @@ def run_with(seed: int, c: dict, rounds: int = 3, chooser=None,
                                 if on_eligible is not None:
                                     on_eligible(_terms(c, mv, cond[opp], st[opp],
                                                        d_comm, dext,
-                                                       c["kd_force"][cls], pr, T))
+                                                       c["kd_force"][cls], pr, T,
+                                                       mid))
                                 if pr >= c["kd_threshold"]:
                                     kd += 1
                                     if first_kd_tick is None:
@@ -214,6 +243,11 @@ def run_with(seed: int, c: dict, rounds: int = 3, chooser=None,
                     committed[i] = mv["frames"]
                     punch[i] = (action, T)
                     thrown += 1
+                    if on_event is not None:
+                        on_event("thrown", {"tick": T, "move": action,
+                                            "height": mv["height"],
+                                            "region": mv["region"],
+                                            "stamina": st[i]})
                     vacated[i] = mv["height"]   # <- the hand that left, and where
                 elif action == "switch_guard":
                     posture[i] = "tight_elbow" if posture[i] == "high_guard" \
