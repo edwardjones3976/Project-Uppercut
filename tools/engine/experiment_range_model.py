@@ -47,7 +47,7 @@ START_SEP = 9000                      # 0.90 ru, the fixed separation of Phase H
 def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
               chooser=None, gate: bool = True, footwork: bool = True,
               band_ref: list = None, ec: dict = None,
-              on_eligible=None) -> dict:
+              on_eligible=None, recovery: dict = None) -> dict:
     """Phase O's fight with separation as state, and optionally with evasion.
 
     `gate` and `footwork` are switches so the two halves of the phase can be
@@ -80,6 +80,11 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
     evaded = mistimed = 0
     eligible = 0
     committed_ticks = [0, 0]
+    # Where the pool actually goes, by category. Never measured before: the
+    # earlier stamina budget compared the guard hold against punching only,
+    # because footwork and evasion cost nothing in a core that had neither.
+    spend = {"punch": 0, "step": 0, "evade": 0, "hold": 0}
+    regen_paid = 0
     band_ticks = {k: 0 for k, _, _ in rc["bands"]}
     thrown_in_band = {}
     kd_round = [0, 0]
@@ -238,10 +243,26 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
                     committed[i] -= 1
                     if committed[i] == 0:
                         vacated[i] = None
+                    # CANDIDATE A only. Canon pays regen in the free branch and
+                    # nowhere else; `recovery["while_committed"]` is a candidate
+                    # under measurement, not a rule, and it is off by default so
+                    # every earlier phase's evidence stands.
+                    if recovery and recovery.get("while_committed"):
+                        st[i] = min(c["st_max"], st[i]
+                                    + (c["regen"]
+                                       * O.N._regen_mult(cond[i], c)
+                                       * recovery["while_committed"])
+                                    // 100000000)
                 else:
+                    scale = (recovery or {}).get("free_scale", 10000)
+                    was = st[i]
                     st[i] = min(c["st_max"], st[i]
-                                + (c["regen"] * O.N._regen_mult(cond[i], c)) // 10000)
-                    st[i] = max(0, st[i] - c["posture"][posture[i]]["hold"])
+                                + (c["regen"] * O.N._regen_mult(cond[i], c)
+                                   * scale) // 100000000)
+                    regen_paid += st[i] - was
+                    hold_cost = c["posture"][posture[i]]["hold"]
+                    spend["hold"] += min(hold_cost, st[i])
+                    st[i] = max(0, st[i] - hold_cost)
                 if T % c["interval"] or committed[i] > 0:
                     continue
                 if band_ref is not None and len(band_ref) > 1:
@@ -258,6 +279,7 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
                 action = chooser(x) if chooser else O.ACTIONS[x % 11]
                 if action in O.PUNCHES:
                     mv = c["moves"][action]
+                    spend["punch"] += min(mv["cost"], st[i])
                     st[i] = max(0, st[i] - mv["cost"])
                     committed[i] = mv["frames"]
                     ok = Q.in_band(rc, action, band) if gate else True
@@ -271,6 +293,7 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
                 elif ec is not None and action in ec["evasions"] \
                         and ec["evasions"][action]["kind"] == "active_window":
                     ev = ec["evasions"][action]
+                    spend["evade"] += min(ev["cost"], st[i])
                     st[i] = max(0, st[i] - ev["cost"])
                     committed[i] = ev["startup"] + ev["active"] + ev["recovery"]
                     evading[i] = (action, T)
@@ -282,6 +305,7 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
                 elif action != "idle":
                     mv = c["moves"].get(action)
                     if mv:
+                        spend["step"] += min(mv["cost"], st[i])
                         st[i] = max(0, st[i] - mv["cost"])
                         committed[i] = mv["frames"]
                     if footwork:
@@ -302,7 +326,8 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
             "end_stamina": [st[0] / 10000.0, st[1] / 10000.0],
             "band_ticks": band_ticks, "thrown_in_band": thrown_in_band,
             "end_sep": sep, "roped": roped,
-            "committed_ticks": committed_ticks}
+            "committed_ticks": committed_ticks,
+            "spend": spend, "regen_paid": regen_paid}
 
 
 def band_aware(rc: dict, band_ref: list, ec: dict = None,
