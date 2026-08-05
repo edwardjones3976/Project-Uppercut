@@ -133,4 +133,46 @@ def test_relief_is_partial_not_a_fresh_fighter():
     c = O.canon_pack()
     assert 0 < c["cond_relief"] < 10000
     assert 0 < c["stam_relief"] < 10000
+
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 22:10 UTC | edit: E rows ]
+def test_the_terms_diagnostic_cannot_change_the_canonical_stream():
+    """`with_terms=True` adds `E` rows and must change NOTHING else.
+
+    The diagnostic exists because the conversion gap could not be decomposed
+    without the pressure terms of eligible landings that did not convert. It is
+    opt-in precisely so the stream a phase is judged by stays fixed - and that
+    is worth asserting rather than trusting, because the first version leaked:
+    the trailer's row count and self-hash both covered the E rows, so switching
+    the diagnostic on silently changed two fields of the canonical output.
+    """
+    for seed, rounds in ((4242, 1), (4240, 3), (4255, 2)):
+        plain = O.expected_stream(seed, rounds, with_floats=False)
+        rich = O.expected_stream(seed, rounds, with_floats=False,
+                                 with_terms=True)
+        stripped = [l for l in rich.splitlines() if not l.startswith("E|")]
+        assert stripped == plain.splitlines(), (
+            "seed %d: with_terms changed a canonical row" % seed)
+        assert any(l.startswith("E|") for l in rich.splitlines()), \
+            "seed %d: with_terms emitted no E rows at all" % seed
+
+
+def test_every_knockdown_has_a_terms_row_that_agrees_with_it():
+    """The E rows and the K rows are two views of the same event, so where they
+    overlap they must agree exactly - otherwise the diagnostic is describing a
+    different fight from the one the phase records."""
+    rich = O.expected_stream(4240, 3, with_floats=False, with_terms=True)
+    ks, es = {}, {}
+    for l in rich.splitlines():
+        f = l.split("|")
+        if f[0] == "K":
+            ks[(int(f[1]), int(f[2]))] = int(f[4])
+        elif f[0] == "E" and f[12] == "1":
+            es[(int(f[1]), int(f[2]))] = int(f[5])
+    assert ks, "no knockdowns in this stream to check against"
+    assert set(ks) == set(es), "converted E rows and K rows disagree on which " \
+                               "landings dropped a man"
+    for k in ks:
+        assert ks[k] == es[k], "pressure disagrees at %r: K=%d E=%d" % (
+            k, ks[k], es[k])
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 21:40 UTC | END ]

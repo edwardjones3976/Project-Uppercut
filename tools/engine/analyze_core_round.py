@@ -205,7 +205,8 @@ def pressure(c: dict, mv: dict, cond: dict, stamina: int, committed: bool,
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 21:40 UTC | continued ]
 
 
-def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True) -> str:
+def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True,
+                    with_terms: bool = False) -> str:
     c = canon_pack()
     lines = ["H|phase=O"]
     lines += ["H|canon_%s=%s" % (k, c["sha"][k]) for k in CANON_ORDER]
@@ -317,6 +318,35 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True) -> str
                                     and cls in c["kd_force"]:
                                 pr = pressure(c, mv, cond[opp], st[opp], d_comm, dext,
                                               c["kd_force"][cls])
+                                if with_terms:
+                                    # EVERY eligible landing, converted or not,
+                                    # with its five multiplicands. Default OFF:
+                                    # the canonical stream is unchanged byte for
+                                    # byte, and a test asserts that every row it
+                                    # already had is identical with this on.
+                                    #
+                                    # This exists because the conversion gap
+                                    # (2.78x against the reference) cannot be
+                                    # decomposed without the terms of the
+                                    # landings that did NOT convert, and neither
+                                    # this stream nor the reference's event log
+                                    # carried them. C and D rows are emitted on
+                                    # decision ticks only, so 84% of eligible
+                                    # landings have no state row to read.
+                                    e_acc = ((cond[opp]["jaw_chin"] * 6000
+                                              + cond[opp]["head"] * 4000) // 10000) \
+                                        * 10000 // c["cap"]["head"]
+                                    rows.append(
+                                        "E|%d|%d|%s|%s|%d|%d|%d|%d|%d|%d|%d|%d"
+                                        % (T, opp, mid, cls, pr, c["kd_threshold"],
+                                           (c["kd_force"][cls] * mv["impact"]) // 10000,
+                                           c["baseline"] + e_acc,
+                                           14000 - (st[opp] * 10000) // c["st_max"],
+                                           c["caught"] if d_comm else c["balanced"],
+                                           10000 + (c["open_lane"]
+                                                    * (10000 - max(0, min(10000, dext))))
+                                           // 10000,
+                                           1 if pr >= c["kd_threshold"] else 0))
                                 if pr >= c["kd_threshold"]:
                                     kd_total[opp] += 1
                                     kd_round[opp] += 1
@@ -458,7 +488,13 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True) -> str
         committed = [0, 0]
         punch = [None, None]
 
-    h = fnv1a64("".join(l + "\n" for l in rows).encode("utf-8"))
+    # The trailer's count and self-hash cover the CANONICAL rows only. `E` rows
+    # are an opt-in diagnostic (`with_terms`), and if they entered either, then
+    # switching the diagnostic on would change the stream a phase is judged by -
+    # which is the whole thing the default-off design exists to prevent. A test
+    # asserts every non-E row is identical with the flag on and off.
+    canon_rows = [l for l in rows if not l.startswith("E|")]
+    h = fnv1a64("".join(l + "\n" for l in canon_rows).encode("utf-8"))
     lines += rows
     if with_floats:
         lines += N.float_probe(c)
@@ -479,7 +515,7 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True) -> str
         "S|rows=%d|punches=%d|blocked=%d|landed=%d|whiffed=%d|dodged=%d|steps=%d"
         "|switches=%d|slips=%d|held=%d|idles=%d|transitions=%d|damage=%d|opened=%d"
         "|knockdowns=%d|rounds=%d|stopped=%s|fnv1a64=%016x"
-        % (len(rows), counts["punches"], counts["blocked"], counts["landed"],
+        % (len(canon_rows), counts["punches"], counts["blocked"], counts["landed"],
            counts["whiffed"], counts["dodged"], counts["steps"], counts["switches"],
            counts["slips"], counts["held"], counts["idles"], transitions,
            damage_total, opened, kd_total[0] + kd_total[1], rounds_done,
