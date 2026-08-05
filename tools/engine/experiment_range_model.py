@@ -46,7 +46,8 @@ START_SEP = 9000                      # 0.90 ru, the fixed separation of Phase H
 
 def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
               chooser=None, gate: bool = True, footwork: bool = True,
-              band_ref: list = None, ec: dict = None) -> dict:
+              band_ref: list = None, ec: dict = None,
+              on_eligible=None) -> dict:
     """Phase O's fight with separation as state, and optionally with evasion.
 
     `gate` and `footwork` are switches so the two halves of the phase can be
@@ -78,6 +79,7 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
     blocked = landed = kd = thrown = whiffed = 0
     evaded = mistimed = 0
     eligible = 0
+    committed_ticks = [0, 0]
     band_ticks = {k: 0 for k, _, _ in rc["bands"]}
     thrown_in_band = {}
     kd_round = [0, 0]
@@ -125,6 +127,13 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
                 sep = max(rc["min_sep"], pos[1] - pos[0])
                 band = Q.resolve_band(rc, band, sep)
             band_ticks[band] += 1
+            # Regeneration accrues ONLY on uncommitted ticks - canon charges the
+            # guard hold and pays the idle regen in the same branch, and a
+            # committed fighter is in neither. So how often a fighter is free is
+            # the stamina economy's real clock, and it has never been counted.
+            for i_ in (0, 1):
+                if committed[i_] > 0:
+                    committed_ticks[i_] += 1
             if band_ref is not None:
                 band_ref[0] = band      # what a band-aware policy observes
 
@@ -185,6 +194,10 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
                                 eligible += 1
                                 pr = O.pressure(c, mv, cond[opp], st[opp], d_comm,
                                                 dext, c["kd_force"][cls])
+                                if on_eligible is not None:
+                                    on_eligible(H._terms(
+                                        c, mv, cond[opp], st[opp], d_comm, dext,
+                                        c["kd_force"][cls], pr, T, mid))
                                 if pr >= c["kd_threshold"]:
                                     kd += 1
                                     if first_kd_tick is None:
@@ -288,7 +301,8 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
             "total_ticks": total_ticks, "stamina_gauges": stamina_gauges,
             "end_stamina": [st[0] / 10000.0, st[1] / 10000.0],
             "band_ticks": band_ticks, "thrown_in_band": thrown_in_band,
-            "end_sep": sep, "roped": roped}
+            "end_sep": sep, "roped": roped,
+            "committed_ticks": committed_ticks}
 
 
 def band_aware(rc: dict, band_ref: list, ec: dict = None,
