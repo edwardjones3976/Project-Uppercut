@@ -68,3 +68,15 @@ sandbox/Content/__ExternalObjects__/BoxingAttacks/
 # every consumed path. The 5,400-tick stream is byte-identical with these assets
 # present or absent, so nothing here can be load-bearing.
 sandbox/Content/FabImports/
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 03:35 UTC | edit: scratch ]
+# Commit-message scratch file. The tool layer strips $ and newlines out of
+# PowerShell arguments, so commit bodies are written to a file and passed with
+# `git commit -F`. It has shown up as untracked noise in every status since.
+_commitmsg.txt
+
+# UE writes one-file-per-actor stubs into the level's external-actor folder on
+# every editor open, including for actors the Director spawns at runtime and
+# never persists. They carry no authority - the marker stream is byte-identical
+# without them - and they churn on every session.
+sandbox/Content/__ExternalActors__/
