@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-04 20:52 UTC** at `566fff9 fix(render): ring scale was 44% oversized - scale from the rope line, ropes to regulation`.
+Generated **2026-08-05 18:51 UTC** at `8bb39b2 docs: the pinned guard drift, surfaced as arithmetic - ten guards, two volumes, four behaviours`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **568 passed** |
+| Test suite | **714 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase N — visible stamina and condition (UppercutCoreCondition) |
