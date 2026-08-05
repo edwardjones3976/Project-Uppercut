@@ -1,0 +1,51 @@
+{
+  "id": "an-analysis-of-the-three-dimensional-kinetics-and-2018-24748668201",
+  "title": "An analysis of the three-dimensional kinetics and kinematics of maximal effort punches among amateur boxers",
+  "authors": [
+    "Edward Stanley",
+    "Edward Thomson",
+    "Grace Smith",
+    "Kevin Lamb"
+  ],
+  "year": 2018,
+  "source_url": "https://openalex.org/W2894000878",
+  "accessed_at": "2026-08-05T22:01:49Z",
+  "document_type": "article",
+  "peer_review_status": "likely",
+  "tier": 2,
+  "research_lane": [
+    "punch_biomechanics"
+  ],
+  "canon_status": "reviewed",
+  "confidence": "moderate",
+  "doi": "10.1080/24748668.2018.1525651",
+  "journal_or_venue": "International Journal of Performance Analysis in Sport",
+  "publisher": "Taylor & Francis",
+  "full_text_url": "http://hdl.handle.net/10034/621889",
+  "open_access_status": "green",
+  "retraction_or_correction_status": "no retraction or correction recorded in OpenAlex at accessed_at",
+  "notes": "cited_by_count 57 at harvest; a citation count is a measure of attention, not of correctness",
+  "methodology": "3D motion capture of the upper body plus two force plates under lead and rear legs; maximal-effort punches into a suspended bag; six punch types compared.",
+  "study_population": "amateur male boxers, mean 6.3 years experience",
+  "sample_size": "n = 15",
+  "main_findings": [
+    "Straight, hook and uppercut differ significantly on every measured variable except elbow angular velocity - the three families are not the same action at different speeds.",
+    "The lead hook carried the highest peak fist velocity and the jab the shortest delivery time, so speed of hand and speed of arrival are different quantities.",
+    "Ground reaction force differed significantly between rear and lead legs for the jab only, which places the legs inside the punch rather than under it."
+  ],
+  "limitations": [
+    "bag work at maximal effort, not an opponent under exchange",
+    "amateur cohort; no fatigue condition",
+    "descriptive, so it ranks punches without predicting outcome"
+  ],
+  "quoted_evidence": [
+    {
+      "quote": "The lead hook exhibited the greatest peak fist velocity (11.95 m/s), the jab the shortest delivery time (405 ms)",
+      "locator": "abstract"
+    }
+  ],
+  "project_implications": [
+    "Supports the move table treating startup and delivery separately from reach and force rather than deriving one from the other.",
+    "A question for the animation model, not an answer: if the jab is the fastest to arrive but not the fastest hand, our startup frames and our tip-extension ramp are describing two different real quantities and should not be tuned as one."
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "id": "combined-effects-of-rhodiola-rosea-and-caffeine-supplementation-2025-metabo150402",
+  "title": "Combined Effects of Rhodiola Rosea and Caffeine Supplementation on Straight Punch Explosive Power in Untrained and Trained Boxing Volunteers: A Synergistic Approach",
+  "authors": [
+    "Biaoxu Tao",
+    "Hao Sun",
+    "Huixin Li",
+    "Zhiqin Xu",
+    "Yuan Xu",
+    "Liqi Chen",
+    "Chenchen Ma",
+    "Xiaoyu Zhang",
+    "Longqi Yu",
+    "Shanjun Bao",
+    "Chang Liu"
+  ],
+  "year": 2025,
+  "source_url": "https://openalex.org/W4409334283",
+  "accessed_at": "2026-08-05T22:01:49Z",
+  "document_type": "article",
+  "peer_review_status": "likely",
+  "tier": 2,
+  "research_lane": [
+    "punch_biomechanics"
+  ],
+  "canon_status": "rejected",
+  "confidence": "low",
+  "doi": "10.3390/metabo15040262",
+  "journal_or_venue": "Metabolites",
+  "publisher": "Multidisciplinary Digital Publishing Institute",
+  "full_text_url": "https://www.mdpi.com/2218-1989/15/4/262/pdf?version=1744277554",
+  "open_access_status": "gold",
+  "retraction_or_correction_status": "no retraction or correction recorded in OpenAlex at accessed_at",
+  "notes": "cited_by_count 3 at harvest; a citation count is a measure of attention, not of correctness",
+  "rejected_because": "Supplementation study. Nothing in this project models an athlete's nutrition, and a supplement effect on output cannot be distinguished from any other output change in our model."
+}

@@ -1,0 +1,27 @@
+{
+  "id": "biomechanical-characteristics-of-taekwondo-athletes-kicks-and-punches-2018-bhk2018001",
+  "title": "Biomechanical characteristics of Taekwondo athletes: kicks and punches vs. laboratory tests",
+  "authors": [
+    "Krzysztof Buśko",
+    "Pantelis Τ. Nikolaidis"
+  ],
+  "year": 2018,
+  "source_url": "https://openalex.org/W2809885542",
+  "accessed_at": "2026-08-05T22:01:49Z",
+  "document_type": "article",
+  "peer_review_status": "likely",
+  "tier": 2,
+  "research_lane": [
+    "punch_biomechanics"
+  ],
+  "canon_status": "rejected",
+  "confidence": "low",
+  "doi": "10.1515/bhk-2018-0013",
+  "journal_or_venue": "Biomedical Human Kinetics",
+  "publisher": "De Gruyter Open",
+  "full_text_url": "https://content.sciendo.com/downloadpdf/journals/bhk/10/1/article-p81.pdf",
+  "open_access_status": "gold",
+  "retraction_or_correction_status": "no retraction or correction recorded in OpenAlex at accessed_at",
+  "notes": "cited_by_count 20 at harvest; a citation count is a measure of attention, not of correctness",
+  "rejected_because": "Taekwondo cohort. The kicking-dominant kinetic chain and stance differ enough that the punch data cannot be read across to boxing, and the abstract does not separate them. Adjacent, not usable."
+}

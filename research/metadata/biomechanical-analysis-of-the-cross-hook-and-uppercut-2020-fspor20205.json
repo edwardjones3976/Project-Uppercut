@@ -1,0 +1,49 @@
+{
+  "id": "biomechanical-analysis-of-the-cross-hook-and-uppercut-2020-fspor20205",
+  "title": "Biomechanical Analysis of the Cross, Hook, and Uppercut in Junior vs. Elite Boxers: Implications for Training and Talent Identification",
+  "authors": [
+    "Daniel Dinu",
+    "Julien Louis"
+  ],
+  "year": 2020,
+  "source_url": "https://openalex.org/W3109838275",
+  "accessed_at": "2026-08-05T22:01:49Z",
+  "document_type": "article",
+  "peer_review_status": "likely",
+  "tier": 2,
+  "research_lane": [
+    "punch_biomechanics"
+  ],
+  "canon_status": "reviewed",
+  "confidence": "moderate",
+  "doi": "10.3389/fspor.2020.598861",
+  "journal_or_venue": "Frontiers in Sports and Active Living",
+  "publisher": "Frontiers Media",
+  "full_text_url": "https://www.frontiersin.org/articles/10.3389/fspor.2020.598861/pdf",
+  "open_access_status": "gold",
+  "retraction_or_correction_status": "no retraction or correction recorded in OpenAlex at accessed_at",
+  "notes": "cited_by_count 43 at harvest; a citation count is a measure of attention, not of correctness",
+  "methodology": "17-unit inertial measurement suit; standardised maximal cross, hook and uppercut; elite versus junior comparison of velocity, stability, force and joint contribution.",
+  "study_population": "15 potential Olympic medallists, 8 well-trained juniors",
+  "sample_size": "n = 23",
+  "main_findings": [
+    "Elite boxers produced more force at higher velocity than juniors on all three punch types - the gap is not one punch, it is the whole set.",
+    "Juniors leaned more on the shoulder; the difference between levels is where the punch comes from, not how hard the arm is thrown.",
+    "A front-versus-rear ground reaction force imbalance appeared in the cross only, in both groups."
+  ],
+  "limitations": [
+    "standardised punches on command, not chosen in an exchange",
+    "small elite sample",
+    "IMU-derived force rather than direct force-plate impact"
+  ],
+  "quoted_evidence": [
+    {
+      "quote": "Juniors presenting a higher contribution of the shoulder for the three punch types",
+      "locator": "abstract"
+    }
+  ],
+  "project_implications": [
+    "Skill differences in canon are currently expressed as attributes that scale output. This says the real difference is which segments contribute - a shape difference, not a multiplier.",
+    "If a fighter profile ever wants to model \"trained\", the honest handle is the kinetic chain, not a damage number."
+  ]
+}

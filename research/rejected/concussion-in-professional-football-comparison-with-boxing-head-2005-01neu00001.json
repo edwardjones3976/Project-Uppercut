@@ -1,0 +1,31 @@
+{
+  "id": "concussion-in-professional-football-comparison-with-boxing-head-2005-01neu00001",
+  "title": "Concussion in Professional Football: Comparison with Boxing Head Impacts—Part 10",
+  "authors": [
+    "David C. Viano",
+    "Ira R. Casson",
+    "Elliot J. Pellman",
+    "Cynthia Bir",
+    "Liying Zhang",
+    "Donald Sherman",
+    "M. A. Boitano"
+  ],
+  "year": 2005,
+  "source_url": "https://openalex.org/W2045833046",
+  "accessed_at": "2026-08-05T22:01:49Z",
+  "document_type": "article",
+  "peer_review_status": "likely",
+  "tier": 2,
+  "research_lane": [
+    "knockdowns_and_stoppages"
+  ],
+  "canon_status": "rejected",
+  "confidence": "low",
+  "doi": "10.1227/01.neu.0000187541.87937.d9",
+  "journal_or_venue": "Neurosurgery",
+  "publisher": "Lippincott Williams & Wilkins",
+  "open_access_status": "closed",
+  "retraction_or_correction_status": "no retraction or correction recorded in OpenAlex at accessed_at",
+  "notes": "cited_by_count 203 at harvest; a citation count is a measure of attention, not of correctness",
+  "rejected_because": "Wrong lane rather than a bad source: head impact and concussion belong to knockdowns_and_stoppages. Re-harvest it there rather than carrying it here, so the lane counts mean what they say."
+}

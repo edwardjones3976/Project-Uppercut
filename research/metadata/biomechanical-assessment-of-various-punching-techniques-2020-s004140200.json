@@ -1,0 +1,52 @@
+{
+  "id": "biomechanical-assessment-of-various-punching-techniques-2020-s004140200",
+  "title": "Biomechanical assessment of various punching techniques",
+  "authors": [
+    "J. Adamec",
+    "Peter Höfer",
+    "Stefan Pittner",
+    "Fabio Monticelli",
+    "Matthias Graw",
+    "J. Schöpfer"
+  ],
+  "year": 2020,
+  "source_url": "https://openalex.org/W3093160967",
+  "accessed_at": "2026-08-05T22:01:49Z",
+  "document_type": "article",
+  "peer_review_status": "likely",
+  "tier": 2,
+  "research_lane": [
+    "punch_biomechanics"
+  ],
+  "canon_status": "reviewed",
+  "confidence": "moderate",
+  "doi": "10.1007/s00414-020-02440-8",
+  "journal_or_venue": "International Journal of Legal Medicine",
+  "publisher": "Springer Science+Business Media",
+  "full_text_url": "https://link.springer.com/content/pdf/10.1007/s00414-020-02440-8.pdf",
+  "open_access_status": "hybrid",
+  "retraction_or_correction_status": "no retraction or correction recorded in OpenAlex at accessed_at",
+  "notes": "cited_by_count 30 at harvest; a citation count is a measure of attention, not of correctness",
+  "methodology": "Kistler force plate at 10 kHz with 2 kHz high-speed video; fist, hand-edge and open-hand strikes, dominant and non-dominant, randomised order; force, impulse, impact duration and effective mass.",
+  "study_population": "untrained volunteers, 29 male and 21 female",
+  "sample_size": "n = 50",
+  "main_findings": [
+    "Reports impulse, impact duration and EFFECTIVE MASS alongside peak force - the quantity that separates a fast hand from a heavy one.",
+    "Untrained population, which makes it a floor rather than a ceiling for human punch output."
+  ],
+  "limitations": [
+    "forensic rather than sporting context",
+    "untrained volunteers; no boxers",
+    "strikes into a wall-mounted pad, so no opponent motion"
+  ],
+  "quoted_evidence": [
+    {
+      "quote": "the effective mass of the punch (the ratio between impulse and velocity)",
+      "locator": "abstract, methods summary"
+    }
+  ],
+  "project_implications": [
+    "Our impact model derives delivered force from stamina cost. Effective mass and impulse are the measured quantities that would let that be checked against something real rather than internally consistent.",
+    "Impact duration is a number we do not model at all and animation currently implies."
+  ]
+}
