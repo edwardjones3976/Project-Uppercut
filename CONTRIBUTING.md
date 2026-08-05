@@ -28,6 +28,24 @@ commits and artifacts, or say "not started".
 - A commit that introduces an asset cites its completed compatibility audit.
 - A commit that changes a tuning number states whether the number is still a hypothesis.
 
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 19:45 UTC | edit: measure the contract ] -->
+## A harness may explore. Only the contract may conclude.
+
+A finding about a phase must be measured on **that phase's contract** — the
+analyzer that emits the marker stream a C++ port has to reproduce. Experiment
+harnesses in `tools/engine/experiment_*.py` are for exploring cheaply; they are
+simplifications, and a number taken from one describes the harness.
+
+Recorded because it was broken expensively on 2026-08-05: a day of measurement
+was taken on `experiment_per_hand_guard.run_with` and written up as though it
+described the Phase O contract. The contract already had footwork, slips and
+whiffs — 42.5% connect against the reference's 42.4% — and the harness had none
+of them, so several headline conclusions were about an artifact nobody ships.
+See `docs/development-log/2026-08-05-i-measured-the-wrong-artifact.md`.
+
+Before quoting a number in a document or a commit, state which artifact produced
+it. If it was a harness, say so in the same sentence.
+
 ## Contribution tagging
 
 Required. See `CONTRIBUTION_TAGGING.md`.
