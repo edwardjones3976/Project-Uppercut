@@ -1202,14 +1202,101 @@ those is answered. The phase contracts and their 641 tests are unaffected: they
 encode rules, not quantities.
 
 **SCOPE, stated plainly because the commit subjects invite the wrong reading.**
-Phases Q, R and S are **contracts and measurements only. No C++ was written for
-any of them.** Their commits are labelled `feat(core)` in the repository's usual
+Phases Q, R and S were, when this paragraph was written, **contracts and
+measurements only. No C++ was written for any of them.** Superseded for Q later
+the same day: `UppercutCoreRangeCommandlet` was written and proven, and the
+section at the end of this file records it. **R and S remain contracts only.** Their commits are labelled `feat(core)` in the repository's usual
 style, and that label does NOT mean an engine phase was proven — under this
 repository's own discipline a phase is proven when the C++ artifact's marker
-stream is byte-identical to the analyzer's across a full rebuild, and none of
-Q, R or S has been through that. `STATUS.md` remains correct and should be read
-in preference to any commit subject: **the latest engine phase proven is Phase
-N.** Rule 18 governs here — design documentation is not implementation evidence —
+stream is byte-identical to the analyzer's across a full rebuild, and at the time
+of writing none of Q, R or S had been through that — Q since has, R and S have
+not. `STATUS.md` is generated from this file's `PASS` headings and should be read
+in preference to any commit subject. Rule 18 governs here — design documentation is not implementation evidence —
 and this note exists so nobody has to infer the distinction from a label.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 13:30 UTC | Phase O status, fourth revision END ] -->
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 22:50 UTC | Phase Q proof START ] -->
+
+## Phase Q — the fight gets a distance (UppercutCoreRange): PASS
+
+**2026-08-05.** The contract written earlier today became an engine phase.
+`UppercutCoreRangeCommandlet` reproduces `analyze_core_range.expected_stream`
+byte for byte, which under this repository's discipline is what "proven" means.
+
+Phase Q is the range pipeline the core had been missing while it implemented the
+reference simulator's resolution pipeline: five contiguous bands with 0.05 ru
+hysteresis, a 0.22 ru stride delivered over several ticks by canon's 0.14 ru
+per-frame displacement cap, a 0.28 ru body floor, the ring as a bound with
+`rope_retreat_multiplier` 0.0, and Rule 12's range gate tested at **throw** time.
+
+### The proof
+
+    seed 4242, 5400 ticks
+        sha256 f040fced729434ce0324f131c804b17fa96258910f0ef10db12e47afb8e508d1
+    seed 777, 5400 ticks
+        sha256 3fc7092dcff9f9f85460c9f0a6e741b5148de1d5e27c40ce2e2f6a20538e6581
+    seed 4242, 900 ticks
+        sha256 650bb52c1409861e3c2c509bbe75e24df27bb686773e88985651767f647a6326
+
+Each is byte-equality between the commandlet's stream and the Python
+recomputation from canon — not a similarity score, and not a trailer comparison.
+Each stream is then read back cold by `analyze_core_range.analyse`, which
+re-derives the trailer from the rows and re-checks the invariants (nothing moves
+further than the cap in a tick, separation never falls inside the body floor, no
+landing is recorded from a band the move does not declare, no band is skipped
+without passing through the one between). Zero errors on all three.
+
+Re-run it with `python -m tools.engine.prove_core_range`. The pinned bytes for
+the long run are committed at `docs/phase1a/golden/phase_q_4242_5400.stream`, so
+a contract edit that would break this parity is caught by the ordinary test
+suite, with no engine and no two-minute wait.
+
+### What the proof says about the fight
+
+At seed 4242 over 5400 ticks: 594 decisions, 343 punches, **111 landed, 231
+whiffed on the band, 1 whiffed on reach**, 90 band transitions, 16 body clamps,
+one rope-blocked retreat, separation ranging from the 0.28 floor out to 2.00 ru.
+
+Two thirds of all punches are thrown from the wrong band and travel their full
+arc into empty air. That is not a defect in this phase; it is the defect this
+phase makes **visible**, and it is the same thing measured earlier today as
+`uppercut_rear`: 532 thrown, 0 landed, from a mid-range stance that had been
+frozen since Phase H. A flat nine-way draw has no idea where it is standing. What
+happens to that number when a policy that can read the band chooses instead is
+Phase S's business, and the two contracts now exist side by side to answer it.
+
+### The finding: the band gate is doing nearly all of the work
+
+The gate and the geometric tip-versus-surface test are both applied, and the
+stream says the band is by far the tighter of the two: in 5400 ticks exactly
+**one** punch passed its band and still failed geometrically —
+
+    P|1104|1|cross_rear|whiffed|reach|11|19860|19120|mid|1
+
+a rear cross thrown legally from mid, whose fist finished 0.074 ru short of the
+opponent's surface. Canon says why in `pose_geometry.fist.profile_note`:
+extensions are authored to sit just under each move's band ceiling plus body
+reach. So the two tests are meant to agree almost everywhere, and where they part
+company the geometry is the stricter one at the top of a band.
+
+Worth stating plainly because it would be easy to conclude the opposite: this is
+**not** an argument for deleting the geometric test. A port that checked only the
+band would be right 342 times in 343 and wrong in the one case that matters —
+the case where a fighter is at the far edge of a legal band, which is exactly
+where a boxer's judgement of distance is supposed to be tested.
+
+### Scope, and why this pin will survive the open gates
+
+This phase reads four canon files and no more: movement, moves, animation and
+pose geometry. There is deliberately **no stamina, no guard, no condition and no
+damage** in it. Those belong to N, L and O, which are already proven, and a
+contract that re-implements a proven phase is a second place for it to be wrong.
+
+The load-bearing half of that decision is G1. The step cost is priced twice in
+canon, 4.55× apart, and that is a Director call. A Phase Q stream that spent
+stamina would have to be re-blessed the day G1 is ruled on, for a reason having
+nothing to do with range — and a port proven against a stream that moves for
+unrelated reasons is not really proven. This one does not move.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 22:50 UTC | Phase Q proof END ] -->

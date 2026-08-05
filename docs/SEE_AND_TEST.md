@@ -52,11 +52,25 @@ unfixed, so you are not seeing them for the first time in a screenshot:
 ## Test it
 
 ```
-python -m pytest -q                            # 716 tests, ~2 minutes
+python -m pytest -q                            # 733 tests, ~2 minutes
 python -m tools.uppercut_validate.cli all      # canon validators, ~10 seconds
 ```
 
 Both must be clean before anything is pushed. CI runs the same two.
+
+### Prove the engine still matches the contract
+
+```
+python -m tools.engine.prove_core_range        # Phase Q, ~2 minutes, needs UE
+python -m tools.engine.golden --diff           # every pinned stream, no UE needed
+```
+
+The first runs the C++ commandlet three times and compares its marker stream to
+the Python contract **byte for byte** — that is what "proven" means here. The
+second compares the contracts against their committed golden files and, when
+something has moved, prints the drift as a fight: which punch, at which tick,
+with what result. Run the second constantly; it costs a second. Run the first
+after touching either side of Phase Q.
 
 ### Watch the fight as numbers
 
@@ -100,7 +114,8 @@ lock-file wait loop in this spawn context.
 | | |
 |---|---|
 | UE project | `sandbox\UppercutSandbox.uproject` |
-| C++ module | `sandbox\Source\UppercutCore` — six commandlets and the render Director |
+| C++ module | `sandbox\Source\UppercutCore` — seven commandlets and the render Director |
+| Pinned streams | `docs\phase1a\golden\` — the exact bytes a port must reproduce |
 | Levels | `sandbox\Content\{BoutWalk,FightWalk,PipeWalk,RangeWalk,StateWalk,Determinism}` |
 | Screenshots | `docs\visuals\` |
 | Run output | `sandbox\Saved\phaseM\` — marker streams, logs, all frames |
@@ -116,13 +131,19 @@ your machine does not.
 
 ## What is proven, and what is not
 
-**Phase N is the latest engine phase proven in C++.** Phases O, P, Q, R and S
-exist as Python contracts with tests and no C++ at all. A `feat(core)` commit
-subject does not mean an engine phase shipped — `STATUS.md` is the authority and
-a test enforces that it cannot name a contract-only phase.
+**Phase Q is the latest engine phase proven in C++** (2026-08-05:
+`UppercutCoreRangeCommandlet` reproduces its contract byte for byte at
+4242/5400, 777/5400 and 4242/900). Phases O, P, R and S exist as Python
+contracts with tests and no C++ at all. A `feat(core)` commit subject does not
+mean an engine phase shipped — `STATUS.md` is the authority, it is generated
+from the `PASS` headings in `docs/phase1a/determinism_probe_results.md`, and a
+test enforces that it cannot name a contract-only phase.
 
-So: the numbers you can run above are real and the pictures are real, but they
-are two different things that have not met yet. Closing that gap is the port of
-Q, R and S into the module.
+So: the numbers you can run above are real and the pictures are real, and as of
+Phase Q they have started to meet — the range pipeline exists on both sides of
+the line and agrees with itself to the byte. What has not met yet is the rest:
+closing the gap is the port of R (evasion) and S (policy), and before either of
+those is worth much, the Director's ruling on G1, G2 and G3
+(`docs/decisions/OPEN_GATES.md`).
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 20:35 UTC | END ] -->

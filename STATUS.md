@@ -5,14 +5,14 @@
 
 # Status
 
-Generated **2026-08-05 18:51 UTC** at `8bb39b2 docs: the pinned guard drift, surfaced as arithmetic - ten guards, two volumes, four behaviours`.
+Generated **2026-08-05 21:03 UTC** at `8bea15b Pin the Phase O golden stream as the C++ port target`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **714 passed** |
+| Test suite | **733 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
-| Latest engine phase proven | Phase N — visible stamina and condition (UppercutCoreCondition) |
+| Latest engine phase proven | Phase Q — the fight gets a distance (UppercutCoreRange) |
 | Phase 0 | gate **PASSED** 2026-08-02 (`docs/phase0/phase0_status.md`) |
 | Phase 1A | definitions complete for all twelve steps; the quality gate is **not** passed - see `docs/phase1a/phase1a_status.md` |
 | Next step | Slice item 9: one rendered round with knockdown, count, stoppage and decision (C++) (`docs/plans/next_steps.md`) |

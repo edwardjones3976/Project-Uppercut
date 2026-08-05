@@ -106,7 +106,11 @@ def test_status_does_not_overclaim_an_engine_phase():
     phase = m.group(1)
     # Phases with a contract but no C++ must NOT appear in that field. Update
     # this set when a phase is genuinely ported and proven byte-identical.
-    contract_only = {"P", "Q", "R", "S"}
+    # Q left this set on 2026-08-05, the day UppercutCoreRangeCommandlet
+    # reproduced analyze_core_range.expected_stream byte for byte at 4242/5400,
+    # 777/5400 and 4242/900 (docs/phase1a/determinism_probe_results.md, "Phase
+    # Q ... PASS"). Re-provable with `python -m tools.engine.prove_core_range`.
+    contract_only = {"P", "R", "S"}
     assert phase not in contract_only, (
         "STATUS.md claims Phase %s is the latest proven engine phase, but that "
         "phase is contract-only: no C++ artifact has been proven byte-identical "

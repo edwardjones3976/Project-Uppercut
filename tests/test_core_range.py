@@ -173,3 +173,118 @@ def test_a_gated_punch_still_costs_its_commitment(rc):
     assert on["whiffed"] + on["blocked"] + on["landed"] <= on["thrown"]
     assert on["thrown"] - (on["whiffed"] + on["blocked"] + on["landed"]) <= 2
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 07:50 UTC | END ]
+
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 21:05 UTC | START ]
+"""Phase Q marker stream - the tests that make the C++ port provable.
+
+The tests above prove the rules. These prove the ARTIFACT: that the stream is a
+function of nothing but seed and ticks, that it is internally coherent when read
+back cold, and - the two that would catch a plausible port - that the band gate
+and the per-tick displacement cap are both load-bearing, demonstrated by
+breaking each one and watching the stream change.
+"""
+import io as _io
+
+SEED, TICKS = 4242, 900
+
+
+@pytest.fixture(scope="module")
+def qs():
+    return Q.expected_stream(SEED, TICKS)
+
+
+def test_the_stream_is_a_function_of_its_arguments(qs):
+    """No clock, no path, no dict ordering: same arguments, same bytes."""
+    assert Q.expected_stream(SEED, TICKS) == qs
+
+
+def test_the_header_names_every_canon_file_the_phase_reads(qs):
+    named = {l.split("=")[0][len("H|canon_"):] for l in qs.splitlines()
+             if l.startswith("H|canon_")}
+    assert named == {"movement", "moves", "animation", "pose"}
+
+
+def test_a_stream_read_back_cold_is_coherent(qs, tmp_path):
+    """`analyse` re-derives the trailer from the rows. It must agree."""
+    p = os.path.join(str(tmp_path), "q.stream")
+    with _io.open(p, "w", encoding="utf-8", newline="") as fh:
+        fh.write(qs)
+    assert Q.analyse(p)["errors"] == []
+
+
+def test_a_landing_is_never_recorded_from_an_undeclared_band(qs):
+    for line in qs.splitlines():
+        if line.startswith("P|") and line.split("|")[4] == "landed":
+            assert line.split("|")[10] == "1", line
+
+
+def test_nothing_ever_moves_further_than_the_cap_in_one_tick(qs):
+    cap = Q.stream_pack()["cap"]
+    for line in qs.splitlines():
+        if line.startswith("X|"):
+            assert abs(int(line.split("|")[3])) <= cap, line
+
+
+def test_separation_never_falls_inside_the_body_floor(qs):
+    # The separation field sits in a different column in the two row kinds: an
+    # X row carries `applied` ahead of the positions and a D row carries the
+    # action and the LCG word. Reading column 6 in both would test pos1 in one
+    # of them and pass for the wrong reason.
+    floor = Q.stream_pack()["min_sep"]
+    for line in qs.splitlines():
+        f = line.split("|")
+        if f[0] == "X":
+            assert int(f[6]) >= floor, line
+        elif f[0] == "D":
+            assert int(f[7]) >= floor, line
+
+
+def _trailer(stream: str) -> dict:
+    s = next(l for l in stream.splitlines() if l.startswith("S|"))
+    return dict(kv.split("=", 1) for kv in s.split("|")[1:])
+
+
+def test_the_band_gate_is_load_bearing(monkeypatch, qs):
+    """Break the gate and the fight must change.
+
+    A port that evaluated geometry first and treated the band as advisory would
+    pass every test above. It would not pass this one: with the gate stuck open
+    every wrong-band punch that arrives becomes a landing, so `whiff_band` must
+    empty and `landed` must rise.
+    """
+    before = _trailer(qs)
+    monkeypatch.setattr(Q, "in_band", lambda c, mid, band: True)
+    after = _trailer(Q.expected_stream(SEED, TICKS))
+    assert int(before["whiff_band"]) > 0, "the honest stream has no gate to break"
+    assert int(after["whiff_band"]) == 0
+    assert int(after["landed"]) > int(before["landed"])
+
+
+def test_the_displacement_cap_is_load_bearing(monkeypatch, qs):
+    """A stride delivered in one tick is a teleport, and it is a different fight.
+
+    Canon's cap is per frame and sits below every stride, which is what lets a
+    fighter be caught mid-step. Remove it and the stream must differ - if it did
+    not, the cap would be decoration.
+    """
+    monkeypatch.setattr(Q, "drain", lambda c, pending: (pending, 0))
+    assert Q.expected_stream(SEED, TICKS) != qs
+
+
+def test_the_properties_are_carried_inside_the_hash(qs):
+    """A port has to prove the properties, not merely append them.
+
+    The V rows sit above the trailer and inside its self-hash, so a port that
+    printed `V|running_is_finite|1` without the model that makes it true would
+    still have to match every row that model produced.
+    """
+    rows = [l for l in qs.splitlines()
+            if not l.startswith(("H|", "B|", "K|", "M|", "S|"))]
+    props = {l.split("|")[1]: l.split("|")[2] for l in rows if l.startswith("V|")}
+    assert props == {"footwork_is_not_inert": "1", "uppercut_is_reachable": "1",
+                     "hysteresis_kills_flicker": "1", "running_is_finite": "1",
+                     "canon_errors": "0"}
+    h = Q.fnv1a64("".join(r + "\n" for r in rows).encode("utf-8"))
+    assert "%016x" % h == _trailer(qs)["fnv1a64"]
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 21:05 UTC | END ]
