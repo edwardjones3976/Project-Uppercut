@@ -2,6 +2,8 @@
 """The research pipeline's front door.
 
     python -m tools.research.cli harvest <lane> [--limit N]
+    python -m tools.research.cli ingest <record-id> --via <fetcher> \
+        --url <url> --text-file <path>
     python -m tools.research.cli validate
     python -m tools.research.cli index
     python -m tools.research.cli summary
@@ -108,6 +110,26 @@ def main(argv) -> int:
             limit = int(argv[argv.index("--limit") + 1])
         res = h.harvest(argv[1], limit)
         print("harvested %(lane)s: %(written)d new record(s), %(skipped)d skipped"
+              % res)
+        return 0
+    if cmd == "ingest":
+        from . import ingest as ing
+        import io as _io
+        if len(argv) < 2:
+            print("usage: ingest <record-id> --via <fetcher> --url <url> "
+                  "--text-file <path>")
+            return 1
+        def opt(name, default=None):
+            return argv[argv.index(name) + 1] if name in argv else default
+        text_file = opt("--text-file")
+        if not text_file:
+            print("--text-file is required; provenance without content is a note")
+            return 1
+        with _io.open(text_file, encoding="utf-8") as fh:
+            text = fh.read()
+        res = ing.ingest(argv[1], opt("--url", ""), text,
+                         opt("--via", "manual"))
+        print("ingested %(chars)d chars for %(record)s via %(via)s -> %(raw)s"
               % res)
         return 0
     if cmd == "validate":
