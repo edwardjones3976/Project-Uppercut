@@ -77,21 +77,23 @@ def main() -> int:
     out = {}
     for tier in TIERS:
         agg = {"blocked": 0, "landed": 0, "knockdowns": 0, "stopped": 0,
-               "rounds": 0, "seeds": len(seeds)}
+               "rounds": 0, "seeds": len(seeds), "thrown": 0, "end_stamina": 0.0}
         for s in seeds:
             r = run(s, tier)
-            for k in ("blocked", "landed", "knockdowns", "rounds"):
+            for k in ("blocked", "landed", "knockdowns", "rounds", "thrown"):
                 agg[k] += r[k]
+            agg["end_stamina"] += sum(r["end_stamina"]) / 2.0
             agg["stopped"] += 1 if r["stopped"] else 0
+        agg["end_stamina"] = round(agg["end_stamina"] / len(seeds), 1)
         agg["decisions"] = agg["seeds"] - agg["stopped"]
         agg["reaction_ticks"] = tier["reaction_ticks"]
         agg["aggression_bias"] = tier["aggression_bias"]
         out[tier["id"]] = agg
-        print("%-10s cadence=%-3d aggression=%.2f  blocks=%-5d landed=%-5d "
-              "kd=%-4d stopped=%d/%d decisions=%d"
+        print("%-10s cadence=%-3d aggr=%.2f  thrown=%-6d end_stam=%-6.1f "
+              "kd=%-4d stopped=%d/%d"
               % (tier["id"], agg["reaction_ticks"], agg["aggression_bias"],
-                 agg["blocked"], agg["landed"], agg["knockdowns"],
-                 agg["stopped"], agg["seeds"], agg["decisions"]))
+                 agg["thrown"], agg["end_stamina"], agg["knockdowns"],
+                 agg["stopped"], agg["seeds"]))
     p = os.path.join(O.REPO, "sandbox", "Saved", "cpu_tier_experiment.json")
     os.makedirs(os.path.dirname(p), exist_ok=True)
     io.open(p, "w", encoding="utf-8").write(json.dumps(out, indent=1))

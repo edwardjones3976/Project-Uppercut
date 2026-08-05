@@ -70,7 +70,7 @@ def run_with(seed: int, c: dict, rounds: int = 3, chooser=None) -> dict:
     posture = ["high_guard", "high_guard"]
     pos = [c["axis"] // 2 - 4500, c["axis"] // 2 + 4500]
     x = seed % O.LCG_M
-    blocked = landed = kd = 0
+    blocked = landed = kd = thrown = 0
     kd_round = [0, 0]
     kd_bout = [0, 0]
     stopped = False
@@ -150,6 +150,7 @@ def run_with(seed: int, c: dict, rounds: int = 3, chooser=None) -> dict:
                     st[i] = max(0, st[i] - mv["cost"])
                     committed[i] = mv["frames"]
                     punch[i] = (action, T)
+                    thrown += 1
                     vacated[i] = mv["height"]   # <- the hand that left, and where
                 elif action == "switch_guard":
                     posture[i] = "tight_elbow" if posture[i] == "high_guard" \
@@ -168,7 +169,8 @@ def run_with(seed: int, c: dict, rounds: int = 3, chooser=None) -> dict:
             for rg in O.REGIONS:
                 cond[n][rg] -= (cond[n][rg] * c["region_recovery"][rg]) // 10000
     return {"blocked": blocked, "landed": landed, "knockdowns": kd,
-            "stopped": stopped, "rounds": rounds_done}
+            "stopped": stopped, "rounds": rounds_done, "thrown": thrown,
+            "end_stamina": [st[0] / 10000.0, st[1] / 10000.0]}
 
 
 def main() -> int:
