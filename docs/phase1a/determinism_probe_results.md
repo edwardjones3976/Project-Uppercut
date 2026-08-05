@@ -1163,3 +1163,42 @@ is now the only remaining candidate that has not been eliminated, and that it ca
 finally be judged, because the fighter it is measured against is defending.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 03:20 UTC | Phase O status, third revision END ] -->
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 13:30 UTC | Phase O status, fourth revision START ] -->
+
+### Fourth revision: it is not the knockdown model, and it is not one number
+
+**2026-08-05, later the same day.** The third revision above named `kd_threshold`,
+the pressure terms and condition erosion as "the surface where the fix has to
+live." **That is wrong and is withdrawn.** Four more phases were built after it,
+and every one of those three was eliminated:
+
+The threshold would have to sit at **1.0268** for a bout to reach the cards —
+1.80× canon's 0.57, above the 99th percentile of observed pressure and near the
+observed ceiling of 1.1262. That is not a higher bar, it is knockdowns switched
+off. And the reference simulator meets `decision_path_must_survive` in **20 of 24
+bouts** using the same 0.57. The threshold was never mistuned.
+
+What was actually missing was a *pipeline*, in three parts, each now contracted:
+
+- **Phase Q, range** — `movement_model.range_bands`, footwork, the ring track.
+  Closed four defects: inert step actions, `uppercut_rear` landing 0 of 532,
+  `hook_lead` landing from the wrong band, and nothing ever missing.
+- **Phase R, evasion** — `guard_evasion_model.evasions`, geometric, no dice.
+  Closed the accuracy factor: connect rate 60% → 41–46% against the reference's
+  42.4%.
+- **Phase S, policy** — canon's difficulty tiers, and the distinction between the
+  decision interval (4 ticks) and per-tier reaction time (6–20). Nobody can react
+  to a 4-frame jab; only a champion answers a cross.
+
+**Phase O remains held**, and the reason is now three canon *quantities* rather
+than any model: a step priced twice 4.55× apart, an `aggression_bias` roughly 7×
+too high, and nothing anywhere authoring "do nothing." All three are Director
+calls and are set out in
+`docs/plans/2026-08-05-three-canon-quantities-decision-packet.md`.
+
+Nothing further should be built on the current stamina numbers until the first of
+those is answered. The phase contracts and their 641 tests are unaffected: they
+encode rules, not quantities.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 13:30 UTC | Phase O status, fourth revision END ] -->

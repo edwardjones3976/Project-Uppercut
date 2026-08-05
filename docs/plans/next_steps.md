@@ -237,6 +237,21 @@ drainer still floors out, the question is answerable from canon instead of from 
 > surface is `kd_threshold`, the pressure terms feeding it, and the condition
 > erosion that inflates them. Workings in
 > `tools/engine/experiment_decision_path.py`.
+>
+> <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 13:30 UTC | edit: it is not the knockdown model ] -->
+> **Superseded again, same day.** The threshold, the pressure terms and the
+> condition erosion are all eliminated: the threshold would have to sit at 1.0268
+> (1.80× canon's, above the 99th percentile of observed pressure) and the
+> reference simulator reaches the cards in 20 of 24 bouts using canon's 0.57.
+> What was missing was a pipeline — range (Phase Q), evasion (Phase R) and a
+> policy (Phase S), all now contracted with 641 tests passing.
+>
+> **Phase O is held on three canon QUANTITIES, all Director calls:** a step
+> priced twice 4.55× apart, an `aggression_bias` roughly 7× too high, and nothing
+> authoring "do nothing." Set out with evidence and options in
+> `docs/plans/2026-08-05-three-canon-quantities-decision-packet.md`. Nothing
+> further should be built on the current stamina numbers until the first is
+> answered.
 
 **E. Housekeeping.** Four stale remote branches (`docs/boxing-punch-guard-reference`,
 `-v2`, `docs/confirmed-uppercut-direction-2026-08-02`, `docs/event-presentation-reference`)
