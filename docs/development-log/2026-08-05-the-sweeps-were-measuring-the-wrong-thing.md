@@ -68,4 +68,13 @@ event, immune to this confound.
 conversion rate and ticks-to-stoppage, and re-read the "inert dial" conclusions
 against the results. I would not act on any of them until that is done.
 
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 03:10 UTC | resolution START ] -->
+**RESOLVED, same night.** The re-run is done, in
+`2026-08-05-the-dials-were-never-inert-and-the-blocker-has-a-number.md`. Three of
+the four "inert dial" conclusions were artifacts: cadence spans 1.88× and
+commitment 2.18× in ticks-to-stoppage. What is actually flat across every sweep
+is `kd/eligible`, which is why no volume dial could ever have reached the cards —
+the bout needs a conversion of 0.0139 and the model produces 0.2654.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 03:10 UTC | resolution END ] -->
+
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 01:45 UTC | END ] -->

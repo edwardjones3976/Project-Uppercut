@@ -2,6 +2,17 @@
 
 # The CPU policy is not the blocker either — I was wrong, four times running
 
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 02:21 UTC | QA: superseded in part START ] -->
+> **QA correction, added after the fact.** A confound found later the same night
+> invalidates the *conclusion* below, though not its measurements. Every sweep in
+> this entry compared TOTALS across bouts that all end on the three-knockdown
+> rule, so bout length was set by the outcome being measured. Totals were
+> therefore normalised by their own result, and any claim here of the form
+> "pacing is not the driver" is unsafe.
+> Read `2026-08-05-the-sweeps-were-measuring-the-wrong-thing.md` before acting on
+> anything in this entry. The original text below is left unedited on purpose.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 02:21 UTC | QA: superseded in part END ] -->
+
 **2026-08-05.** Since the first Phase O sweep I have said, in three commits and a
 decision record, that the dead decision path would come back once fighters
 stopped choosing uniformly at random. Canon's own note supported it: the 0.57

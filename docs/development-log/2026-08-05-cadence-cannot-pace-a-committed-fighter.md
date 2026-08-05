@@ -2,6 +2,17 @@
 
 # Resolved: decision cadence cannot pace a fighter that commitment already paces
 
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 02:21 UTC | QA: superseded in part START ] -->
+> **QA correction, added after the fact.** A confound found later the same night
+> invalidates the *conclusion* below, though not its measurements. Every sweep in
+> this entry compared TOTALS across bouts that all end on the three-knockdown
+> rule, so bout length was set by the outcome being measured. Totals were
+> therefore normalised by their own result, and any claim here of the form
+> "reaction_ticks is inert as a pacing control" is unsafe.
+> Read `2026-08-05-the-sweeps-were-measuring-the-wrong-thing.md` before acting on
+> anything in this entry. The original text below is left unedited on purpose.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 02:21 UTC | QA: superseded in part END ] -->
+
 **2026-08-05.** The previous entry left an open contradiction: punching empties
 the tank (155.7 stamina a round against a 100 pool), yet slowing a fighter from a
 champion's six-tick reaction to a novice's twenty changed knockdowns not at all.

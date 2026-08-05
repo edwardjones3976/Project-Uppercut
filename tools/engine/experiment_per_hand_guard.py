@@ -76,12 +76,31 @@ def run_with(seed: int, c: dict, rounds: int = 3, chooser=None) -> dict:
     stopped = False
     rounds_done = 0
 
+    # Confound-free instrumentation, added 2026-08-05 02:40 UTC. Every sweep
+    # before this compared TOTALS across bouts that all terminate on the
+    # three-knockdown rule, so bout length was set by the outcome being
+    # measured. These five record RATES and TIMES instead, and none of them
+    # draws from the LCG, so the fight itself is bit-for-bit unchanged.
+    eligible = 0          # landings that could have knocked a man down
+    first_kd_tick = None  # when the fight first turned
+    stop_tick = None      # when it ended, if it ended
+    total_ticks = 0       # how long it actually ran
+    # Stamina read at fixed wall-clock ticks, NOT at the end. "End stamina" is
+    # stamina at the moment the fight happened to stop, which is the confound
+    # again wearing a different hat. A gauge is only recorded if the fight was
+    # still running when it passed, so a missing gauge is itself a reading.
+    gauges = (600, 1200, 1800, 2400, 3600)
+    stamina_gauges = {}
+
     for _r in range(rounds):
         kd_round = [0, 0]
         for t in range(1, c["round_ticks"] + 1):
             if stopped:
                 break
             T = _r * c["round_ticks"] + t
+            total_ticks = T
+            if T in gauges:
+                stamina_gauges[T] = [st[0] / 10000.0, st[1] / 10000.0]
             for i in (0, 1):
                 if punch[i] is not None:
                     mid, t0 = punch[i]
@@ -115,10 +134,13 @@ def run_with(seed: int, c: dict, rounds: int = 3, chooser=None) -> dict:
                             landed += 1
                             punch[i] = None
                             if region in c["kd_regions"] and cls in c["kd_force"]:
+                                eligible += 1
                                 pr = O.pressure(c, mv, cond[opp], st[opp], d_comm,
                                                 dext, c["kd_force"][cls])
                                 if pr >= c["kd_threshold"]:
                                     kd += 1
+                                    if first_kd_tick is None:
+                                        first_kd_tick = T
                                     kd_round[opp] += 1
                                     kd_bout[opp] += 1
                                     committed[opp] = c["count_ticks"]
@@ -131,6 +153,7 @@ def run_with(seed: int, c: dict, rounds: int = 3, chooser=None) -> dict:
                                     if kd_round[opp] >= c["max_per_round"] \
                                             or kd_bout[opp] >= c["max_per_bout"]:
                                         stopped = True
+                                        stop_tick = T
                     elif k > mv["startup"] + mv["active"]:
                         punch[i] = None
                 if committed[i] > 0:
@@ -170,7 +193,12 @@ def run_with(seed: int, c: dict, rounds: int = 3, chooser=None) -> dict:
                 cond[n][rg] -= (cond[n][rg] * c["region_recovery"][rg]) // 10000
     return {"blocked": blocked, "landed": landed, "knockdowns": kd,
             "stopped": stopped, "rounds": rounds_done, "thrown": thrown,
-            "end_stamina": [st[0] / 10000.0, st[1] / 10000.0]}
+            "end_stamina": [st[0] / 10000.0, st[1] / 10000.0],
+            # Rates and times. Safe to compare across sweeps; the totals above
+            # are not, because every bout ends where the outcome puts it.
+            "eligible": eligible, "first_kd_tick": first_kd_tick,
+            "stop_tick": stop_tick, "total_ticks": total_ticks,
+            "stamina_gauges": stamina_gauges}
 
 
 def main() -> int:

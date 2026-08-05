@@ -75,25 +75,72 @@ def run(seed: int, tier: dict, rounds: int = 3) -> dict:
 def main() -> int:
     seeds = list(range(4240, 4264))
     out = {}
+    print("Metrics are RATES and TIMES. Totals are reported but must not be")
+    print("compared across tiers: every bout ends on the three-knockdown rule,")
+    print("so its length is set by the outcome. See the 2026-08-05 confound entry.")
+    print()
+    print("  %-10s %7s %7s %9s %9s %9s %9s"
+          % ("tier", "cadence", "aggr", "kd/elig", "t_1stKD", "t_stop", "stam@r1"))
     for tier in TIERS:
         agg = {"blocked": 0, "landed": 0, "knockdowns": 0, "stopped": 0,
-               "rounds": 0, "seeds": len(seeds), "thrown": 0, "end_stamina": 0.0}
+               "rounds": 0, "seeds": len(seeds), "thrown": 0, "end_stamina": 0.0,
+               "eligible": 0, "ticks": 0}
+        firsts, stops = [], []
+        gauge_at = {g: [] for g in (600, 1200, 1800, 2400, 3600)}
         for s in seeds:
             r = run(s, tier)
-            for k in ("blocked", "landed", "knockdowns", "rounds", "thrown"):
+            for k in ("blocked", "landed", "knockdowns", "rounds", "thrown",
+                      "eligible"):
                 agg[k] += r[k]
+            agg["ticks"] += r["total_ticks"]
             agg["end_stamina"] += sum(r["end_stamina"]) / 2.0
             agg["stopped"] += 1 if r["stopped"] else 0
+            if r["first_kd_tick"] is not None:
+                firsts.append(r["first_kd_tick"])
+            if r["stop_tick"] is not None:
+                stops.append(r["stop_tick"])
+            for g, pair in r["stamina_gauges"].items():
+                gauge_at[g].append(sum(pair) / 2.0)
         agg["end_stamina"] = round(agg["end_stamina"] / len(seeds), 1)
         agg["decisions"] = agg["seeds"] - agg["stopped"]
         agg["reaction_ticks"] = tier["reaction_ticks"]
         agg["aggression_bias"] = tier["aggression_bias"]
+        # The four confound-free readings.
+        agg["kd_per_eligible"] = (round(agg["knockdowns"] / float(agg["eligible"]), 4)
+                                  if agg["eligible"] else None)
+        agg["mean_ticks_to_first_kd"] = (round(sum(firsts) / float(len(firsts)), 1)
+                                         if firsts else None)
+        agg["mean_ticks_to_stoppage"] = (round(sum(stops) / float(len(stops)), 1)
+                                         if stops else None)
+        agg["stamina_at"] = {str(g): (round(sum(v) / float(len(v)), 2) if v else None)
+                             for g, v in gauge_at.items()}
+        agg["seeds_reaching"] = {str(g): len(v) for g, v in gauge_at.items()}
+        agg["punches_per_1000_ticks"] = round(
+            1000.0 * agg["thrown"] / float(agg["ticks"]), 1) if agg["ticks"] else None
         out[tier["id"]] = agg
-        print("%-10s cadence=%-3d aggr=%.2f  thrown=%-6d end_stam=%-6.1f "
-              "kd=%-4d stopped=%d/%d"
+        print("  %-10s %7d %7.2f %9s %9s %9s %9s"
               % (tier["id"], agg["reaction_ticks"], agg["aggression_bias"],
-                 agg["thrown"], agg["end_stamina"], agg["knockdowns"],
-                 agg["stopped"], agg["seeds"]))
+                 agg["kd_per_eligible"], agg["mean_ticks_to_first_kd"],
+                 agg["mean_ticks_to_stoppage"], agg["stamina_at"]["1200"]))
+    print()
+    print("  %-10s %9s %9s %9s" % ("tier", "thrown/1k", "eligible", "stopped"))
+    for tier in TIERS:
+        a = out[tier["id"]]
+        print("  %-10s %9.1f %9d %5d/%-3d"
+              % (tier["id"], a["punches_per_1000_ticks"], a["eligible"],
+                 a["stopped"], a["seeds"]))
+    print()
+    print("  stamina at fixed ticks (n = seeds still fighting at that tick)")
+    print("  %-10s %14s %14s %14s %14s"
+          % ("tier", "t=600", "t=1200", "t=1800", "t=2400"))
+    for tier in TIERS:
+        a = out[tier["id"]]
+        cells = []
+        for g in ("600", "1200", "1800", "2400"):
+            v, n = a["stamina_at"][g], a["seeds_reaching"][g]
+            cells.append("--" if v is None else "%.1f (n=%d)" % (v, n))
+        print("  %-10s %14s %14s %14s %14s" % (tier["id"], cells[0], cells[1],
+                                               cells[2], cells[3]))
     p = os.path.join(O.REPO, "sandbox", "Saved", "cpu_tier_experiment.json")
     os.makedirs(os.path.dirname(p), exist_ok=True)
     io.open(p, "w", encoding="utf-8").write(json.dumps(out, indent=1))
