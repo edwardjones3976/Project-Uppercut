@@ -155,4 +155,13 @@ answered. The phase contracts (P, Q, R, S) and their 641 tests are unaffected �
 they encode rules, not quantities — and the C++ implementation should wait for all
 three.
 
+**Scope, so no reader has to infer it from a commit subject.** Phases Q, R and S
+are contracts and measurements only: **no C++ exists for any of them.** Their
+commits carry the repository's usual `feat(core)` label, which does not mean an
+engine phase was proven — a phase is proven here when the C++ artifact's marker
+stream is byte-identical to the analyzer's across a full rebuild, and none of the
+three has been through that. `STATUS.md` is correct and outranks any commit
+subject: the latest engine phase proven is **Phase N**. Rule 18 — design
+documentation is not implementation evidence.
+
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 13:20 UTC | END ] -->

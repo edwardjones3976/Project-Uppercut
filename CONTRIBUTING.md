@@ -41,6 +41,28 @@ python3 -m tools.uppercut_validate.cli all
 
 Both must be clean. CI runs the same two commands.
 
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 14:10 UTC | edit: push directive ] -->
+### Agents push. All of it.
+
+**Director directive, 2026-08-05.** An agent working in a local clone pushes its
+own work to `origin` — past, present and future. This replaces the earlier
+standing instruction to hand back `git format-patch` output instead of pushing;
+that instruction described a sandbox with no access to the remote and does not
+apply to an agent working in the Director's own checkout.
+
+What "everything necessary" means in practice, so it does not become an excuse to
+push half a thought:
+
+- Both commands above run clean FIRST. A push is not the moment to discover a
+  failing validator. (Recorded because the 2026-08-05 push ran the test suite and
+  not the validator; it passed on a later check, but the order was wrong.)
+- Work is pushed at the point it is coherent — a phase, a finding, a correction —
+  not at the end of a session. A local-only commit is a commit nobody else can
+  read.
+- Nothing is force-pushed and nothing already on `main` is rewritten. A published
+  mistake is corrected by a commit that supersedes it, exactly as a superseded
+  claim in a document is left in place with the correction beside it.
+
 ## Issue labels
 
 One per workstream — `ws0-repo`, `ws1-schemas`, `ws2-validators`, `ws3-acceptance`, `ws4-combat`,

@@ -1201,4 +1201,15 @@ Nothing further should be built on the current stamina numbers until the first o
 those is answered. The phase contracts and their 641 tests are unaffected: they
 encode rules, not quantities.
 
+**SCOPE, stated plainly because the commit subjects invite the wrong reading.**
+Phases Q, R and S are **contracts and measurements only. No C++ was written for
+any of them.** Their commits are labelled `feat(core)` in the repository's usual
+style, and that label does NOT mean an engine phase was proven — under this
+repository's own discipline a phase is proven when the C++ artifact's marker
+stream is byte-identical to the analyzer's across a full rebuild, and none of
+Q, R or S has been through that. `STATUS.md` remains correct and should be read
+in preference to any commit subject: **the latest engine phase proven is Phase
+N.** Rule 18 governs here — design documentation is not implementation evidence —
+and this note exists so nobody has to infer the distinction from a label.
+
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 13:30 UTC | Phase O status, fourth revision END ] -->
