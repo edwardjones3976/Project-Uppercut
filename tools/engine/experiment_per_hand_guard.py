@@ -55,13 +55,49 @@ def per_hand_extent(c, posture, incoming_height, vacated_height, gmult):
     return e
 
 
+def _terms(c, mv, cond, stamina, committed, extent, kd_force, pr, tick) -> dict:
+    """`O.pressure` taken apart into the four multiplicands it applies, in the
+    same order and with the same integer arithmetic.
+
+    This is deliberately a re-derivation and not a refactor of `O.pressure`:
+    the analyzer's expression is pinned evidence and must not be reshaped to
+    make a measurement convenient. `product` below is checked against the
+    analyzer's own `pr` on every call, so a drift between the two is a crash
+    rather than a quietly wrong table.
+    """
+    force = (kd_force * mv["impact"]) // 10000
+    accumulated = ((cond["jaw_chin"] * 6000 + cond["head"] * 4000) // 10000) \
+        * 10000 // c["cap"]["head"]
+    stamina_frac = (stamina * 10000) // c["st_max"]
+    balance = c["caught"] if committed else c["balanced"]
+    guard = 10000 + (c["open_lane"]
+                     * (10000 - max(0, min(10000, extent)))) // 10000
+    p = (force * (c["baseline"] + accumulated)) // 10000
+    p = (p * (14000 - stamina_frac)) // 10000
+    p = (p * balance) // 10000
+    p = (p * guard) // 10000
+    assert p == pr, "term decomposition drifted from the analyzer's pressure"
+    return {"tick": tick, "move": mv.get("id", "?"), "pressure": pr,
+            "force": force, "condition": c["baseline"] + accumulated,
+            "accumulated": accumulated, "stamina": 14000 - stamina_frac,
+            "stamina_frac": stamina_frac, "balance": balance, "guard": guard,
+            "extent": extent, "committed": committed}
+
+
 def run(seed: int, rounds: int = 3) -> dict:
     return run_with(seed, O.canon_pack(), rounds, None)
 
 
-def run_with(seed: int, c: dict, rounds: int = 3, chooser=None) -> dict:
+def run_with(seed: int, c: dict, rounds: int = 3, chooser=None,
+             on_eligible=None) -> dict:
     """`chooser(x) -> action` replaces the uniform coin when supplied, so a CPU
-    policy can be measured against the same fight without forking it."""
+    policy can be measured against the same fight without forking it.
+
+    `on_eligible(row)` is a read-only hook called at every landing eligible to
+    cause a knockdown, with that landing's pressure terms already decomposed.
+    It cannot draw from the LCG and cannot alter state, so a measurement taken
+    through it is a measurement of this exact fight and not of a fork of it.
+    """
     st = [c["st_max"], c["st_max"]]
     cond = [{r: 0 for r in O.REGIONS}, {r: 0 for r in O.REGIONS}]
     committed = [0, 0]
@@ -137,6 +173,10 @@ def run_with(seed: int, c: dict, rounds: int = 3, chooser=None) -> dict:
                                 eligible += 1
                                 pr = O.pressure(c, mv, cond[opp], st[opp], d_comm,
                                                 dext, c["kd_force"][cls])
+                                if on_eligible is not None:
+                                    on_eligible(_terms(c, mv, cond[opp], st[opp],
+                                                       d_comm, dext,
+                                                       c["kd_force"][cls], pr, T))
                                 if pr >= c["kd_threshold"]:
                                     kd += 1
                                     if first_kd_tick is None:
