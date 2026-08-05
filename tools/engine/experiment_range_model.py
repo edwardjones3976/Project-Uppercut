@@ -33,6 +33,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import analyze_core_evade as E  # noqa: E402
 import analyze_core_range as Q  # noqa: E402
 import analyze_core_round as O  # noqa: E402
 import experiment_per_hand_guard as H  # noqa: E402
@@ -45,12 +46,17 @@ START_SEP = 9000                      # 0.90 ru, the fixed separation of Phase H
 
 def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
               chooser=None, gate: bool = True, footwork: bool = True,
-              band_ref: list = None) -> dict:
-    """Phase O's fight with separation as state.
+              band_ref: list = None, ec: dict = None) -> dict:
+    """Phase O's fight with separation as state, and optionally with evasion.
 
     `gate` and `footwork` are switches so the two halves of the phase can be
     attributed separately. Turning both off must reproduce the Phase O numbers
     exactly, and the caller checks that rather than trusting it.
+
+    `ec` is Phase R's evasion pack, or None. Passing None leaves the Phase Q
+    numbers exactly as they were measured and committed - a later phase must not
+    silently rewrite an earlier phase's evidence, which is why this arrives as a
+    default-off argument rather than as an edit to the fight.
     """
     st = [c["st_max"], c["st_max"]]
     cond = [{r: 0 for r in O.REGIONS}, {r: 0 for r in O.REGIONS}]
@@ -66,8 +72,11 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
     sep = pos[1] - pos[0]
     band = Q.band_at(rc, sep)
     roped = 0
+    evading = [None, None]        # (evasion id, tick it started)
+    caught = [False, False]       # did this window actually catch anything
     x = seed % O.LCG_M
     blocked = landed = kd = thrown = whiffed = 0
+    evaded = mistimed = 0
     eligible = 0
     band_ticks = {k: 0 for k, _, _ in rc["bands"]}
     thrown_in_band = {}
@@ -139,6 +148,21 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
                         gap = sep - c["half_depth"]
                         ap = tip_ext >= gap - c["plane_off"]
                         asf = tip_ext >= gap
+                        # Stage 1: active evasion, ranked ABOVE the guard
+                        # because canon's `evasion_economy.outranks_guard` says
+                        # so - a slipped punch is never also a blocked punch.
+                        # No die: the head is either in the lane or it is not.
+                        if ec is not None and evading[opp] is not None \
+                                and (ap or asf):
+                            eid, e0 = evading[opp]
+                            ev = ec["evasions"][eid]
+                            k_e = T - e0
+                            if ev["startup"] < k_e <= ev["startup"] + ev["active"] \
+                                    and E.evades(ec, eid, mid, mv["region"]):
+                                evaded += 1
+                                caught[opp] = True
+                                punch[i] = None
+                                continue
                         d_comm = committed[opp] > 0
                         gmult = O.N._guard_mult(cond[opp], c)
                         dext = H.per_hand_extent(
@@ -182,6 +206,21 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
                         if not ok:
                             whiffed += 1
                         punch[i] = None
+                # The price of the active answer. `evasion_economy.
+                # mistime_penalty_ticks`: a committed evasion whose window
+                # closes without catching anything leaves the defender in
+                # recovery with no structure up. Slipping is better than
+                # blocking when it works and worse when it does not, which is
+                # what makes it a decision rather than a free action.
+                if ec is not None and evading[i] is not None:
+                    eid, e0 = evading[i]
+                    ev = ec["evasions"][eid]
+                    if T - e0 > ev["startup"] + ev["active"]:
+                        if not caught[i]:
+                            committed[i] += ec["mistime_ticks"]
+                            mistimed += 1
+                        evading[i] = None
+                        caught[i] = False
                 if committed[i] > 0:
                     committed[i] -= 1
                     if committed[i] == 0:
@@ -192,6 +231,16 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
                     st[i] = max(0, st[i] - c["posture"][posture[i]]["hold"])
                 if T % c["interval"] or committed[i] > 0:
                     continue
+                if band_ref is not None and len(band_ref) > 1:
+                    # What this fighter can legally observe about the man in
+                    # front of him at this instant: is a punch on its way, and
+                    # is it still in startup - i.e. has it been SEEN but not yet
+                    # arrived. Both are `observable_inputs` under Rule 3/4; no
+                    # card, no RNG state, no future tick is read.
+                    inc = punch[1 - i]
+                    band_ref[1] = bool(
+                        inc is not None
+                        and (T - inc[1]) <= c["moves"][inc[0]]["startup"])
                 x = (O.LCG_A * x + O.LCG_C) % O.LCG_M
                 action = chooser(x) if chooser else O.ACTIONS[x % 11]
                 if action in O.PUNCHES:
@@ -206,6 +255,13 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
                     if ok:
                         d[1] += 1
                     vacated[i] = mv["height"]
+                elif ec is not None and action in ec["evasions"] \
+                        and ec["evasions"][action]["kind"] == "active_window":
+                    ev = ec["evasions"][action]
+                    st[i] = max(0, st[i] - ev["cost"])
+                    committed[i] = ev["startup"] + ev["active"] + ev["recovery"]
+                    evading[i] = (action, T)
+                    caught[i] = False
                 elif action == "switch_guard":
                     posture[i] = "tight_elbow" if posture[i] == "high_guard" \
                         else "high_guard"
@@ -227,6 +283,7 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
     return {"blocked": blocked, "landed": landed, "knockdowns": kd,
             "stopped": stopped, "rounds": rounds_done, "thrown": thrown,
             "whiffed": whiffed, "eligible": eligible,
+            "evaded": evaded, "mistimed": mistimed,
             "first_kd_tick": first_kd_tick, "stop_tick": stop_tick,
             "total_ticks": total_ticks, "stamina_gauges": stamina_gauges,
             "end_stamina": [st[0] / 10000.0, st[1] / 10000.0],
@@ -234,7 +291,8 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
             "end_sep": sep, "roped": roped}
 
 
-def band_aware(rc: dict, band_ref: list):
+def band_aware(rc: dict, band_ref: list, ec: dict = None,
+               reactive: bool = False, aggression: int = None):
     """The reference simulator's policy discipline, in one sentence.
 
     The reference logs ZERO out-of-range attempts across 24 bouts - not because
@@ -261,29 +319,72 @@ def band_aware(rc: dict, band_ref: list):
             # distance that was already closed, forever.
             here = order.index(band)
             return "step_out" if here < punch_bands[0] else "step_in"
+        if ec is not None and reactive and len(band_ref) > 1 and band_ref[1]:
+            # A punch has been SEEN and has not yet arrived. That is when a
+            # boxer slips, and it outranks the aggression roll below because
+            # reacting to a punch in flight is not an offensive choice.
+            seen = [k for k, v in ec["evasions"].items()
+                    if v["kind"] == "active_window" and v["band"] == band]
+            if seen:
+                return seen[(x // 10000) % len(seen)]
+        if aggression is not None and (x % 10000) >= aggression:
+            # Deciding is not the same act as throwing. Canon's
+            # `cpu_decision_model` authors BOTH `reaction_ticks` and
+            # `aggression_bias`, and this core has only ever used the first as
+            # if it were both. Separating them is what lets a fighter decide ten
+            # times a second - fast enough to react to a 4-frame jab - while
+            # still throwing at a professional's work rate.
+            nonoff = ["step_in", "step_out", "step_lateral", "switch_guard",
+                      "idle"]
+            if ec is not None:
+                nonoff += [k for k, v in ec["evasions"].items()
+                           if v["kind"] == "active_window" and v["band"] == band]
+            return nonoff[(x // 10000) % len(nonoff)]
         pool = list(legal) + ["step_in", "step_out", "step_lateral",
                               "switch_guard", "idle"]
+        if ec is not None:
+            # Evasions the band permits join the pool at the same weight as
+            # everything else. No timing intelligence unless `reactive`: the
+            # fighter is otherwise choosing to slip as often as he chooses to
+            # jab. Whether an UNTIMED slip is worth its mistime penalty is the
+            # measurement, and pre-judging it in the policy would answer the
+            # question somewhere other than in the data.
+            here = [k for k, v in ec["evasions"].items()
+                    if v["kind"] == "active_window" and v["band"] == band]
+            if reactive and len(band_ref) > 1 and band_ref[1] and here:
+                # A punch has been seen and has not yet arrived. THIS is when a
+                # boxer slips. Geometric evasion makes timing a skill instead of
+                # a dice roll, so a policy that cannot time cannot evade - which
+                # is a property of the model, not a defect in it.
+                return here[(x // 10000) % len(here)]
+            pool += here
         return pool[(x // 10000) % len(pool)]
     return choose
 
 
 def sweep(gate: bool, footwork: bool, policy: bool = False,
-          interval: int = None) -> dict:
+          interval: int = None, evade: bool = False,
+          reactive: bool = False, aggression: int = None) -> dict:
     c = dict(O.canon_pack())
     if interval:
         c["interval"] = interval
     rc = Q.range_pack()
+    ec = E.evade_pack() if evade else None
     agg = {"thrown": 0, "landed": 0, "blocked": 0, "whiffed": 0, "eligible": 0,
-           "kd": 0, "ticks": 0, "cards": 0, "roped": 0}
+           "kd": 0, "ticks": 0, "cards": 0, "roped": 0, "evaded": 0,
+           "mistimed": 0}
     stops, g18 = [], []
     bands = {k: 0 for k, _, _ in rc["bands"]}
     per_move = {}
     for s in SEEDS:
-        ref = [Q.band_at(rc, START_SEP)]
-        chooser = band_aware(rc, ref) if policy else None
+        ref = [Q.band_at(rc, START_SEP), False]
+        chooser = band_aware(rc, ref, ec, reactive, aggression) \
+            if policy else None
         r = run_range(s, c, rc, 3, chooser, gate=gate, footwork=footwork,
-                      band_ref=ref if policy else None)
+                      band_ref=ref if policy else None, ec=ec)
         agg["roped"] += r["roped"]
+        agg["evaded"] += r["evaded"]
+        agg["mistimed"] += r["mistimed"]
         for a, b in (("thrown", "thrown"), ("landed", "landed"),
                      ("blocked", "blocked"), ("whiffed", "whiffed"),
                      ("eligible", "eligible")):
@@ -308,7 +409,8 @@ def sweep(gate: bool, footwork: bool, policy: bool = False,
     conv = agg["kd"] / float(agg["eligible"]) if agg["eligible"] else 0.0
     need = 3.0 / elig_full if elig_full else None
     return {"gate": gate, "footwork": footwork, "policy": policy,
-            "roped": agg["roped"],
+            "evade": evade, "roped": agg["roped"],
+            "evaded": agg["evaded"], "mistimed": agg["mistimed"],
             "thrown": agg["thrown"], "landed": agg["landed"],
             "blocked": agg["blocked"], "whiffed": agg["whiffed"],
             "eligible": agg["eligible"], "knockdowns": agg["kd"],
@@ -340,16 +442,38 @@ def main() -> int:
         print("  %-32s %s" % (name, "yes" if fn(rc) else "NO"))
     print()
 
+    for name, fn in (("a body shot beats the slip", E.a_body_shot_beats_the_slip),
+                     ("the uppercut beats the roll", E.the_uppercut_beats_the_roll),
+                     ("the slip evades a straight", E.the_slip_evades_a_straight),
+                     ("no evasion is strictly better",
+                      E.no_evasion_is_strictly_better)):
+        print("  %-32s %s" % (name, "yes" if fn(E.evade_pack()) else "NO"))
+    print()
+
     rows = {}
-    for label, gate, foot, pol, iv in (
-            ("neither (= Phase O)", False, False, False, None),
-            ("Rule 12 gate only", True, False, False, None),
-            ("footwork only", False, True, False, None),
-            ("the phase, coin", True, True, False, None),
-            ("the phase, a fighter", True, True, True, None),
-            ("+ boxer's cadence 20", True, True, True, 20),
-            ("+ boxer's cadence 48", True, True, True, 48)):
-        rows[label] = sweep(gate, foot, pol, iv)
+    for label, gate, foot, pol, iv, ev in (
+            ("neither (= Phase O)", False, False, False, None, False),
+            ("Rule 12 gate only", True, False, False, None, False),
+            ("footwork only", False, True, False, None, False),
+            ("the phase, coin", True, True, False, None, False),
+            ("the phase, a fighter", True, True, True, None, False),
+            ("+ boxer's cadence 20", True, True, True, 20, False),
+            ("+ boxer's cadence 48", True, True, True, 48, False),
+            ("+ evasion, untimed", True, True, True, 48, True),
+            ("+ evasion, timed", True, True, True, 48, True),
+            ("timed, cadence 20", True, True, True, 20, True)):
+        rows[label] = sweep(gate, foot, pol, iv, ev,
+                            reactive="timed" in label)
+    # Reaction and work rate are DIFFERENT dials. Canon authors both; this core
+    # has only ever had one. A fighter who decides ten times a second can react
+    # to a 4-frame jab; an aggression bias keeps his throw rate professional.
+    for label, iv, aggr in (("react 6, aggr 0.06", 6, 600),
+                            ("react 6, aggr 0.15", 6, 1500),
+                            ("react 6, aggr 0.30", 6, 3000),
+                            ("react 6, aggr 0.45", 6, 4500),
+                            ("react 10, aggr 0.30", 10, 3000)):
+        rows[label] = sweep(True, True, True, iv, True, reactive=True,
+                            aggression=aggr)
 
     base = H.run(SEEDS[0])
     check = run_range(SEEDS[0], O.canon_pack(), rc, 3, None,
@@ -360,17 +484,17 @@ def main() -> int:
           % ("yes" if same else "NO - the runner is not a superset"))
     print()
 
-    print("  %-22s %8s %8s %8s %9s %8s %7s %6s"
-          % ("configuration", "thr/f-rd", "whiff", "connect", "kd/min",
-             "gap", "cards", "roped"))
+    print("  %-22s %8s %7s %7s %8s %8s %7s %6s"
+          % ("configuration", "thr/f-rd", "whiff", "evaded", "connect",
+             "kd/min", "gap", "cards"))
     for label in rows:
         r = rows[label]
-        print("  %-22s %8.1f %8d %7.1f%% %9.2f %7.1fx %3d/%-2d %6d"
+        print("  %-22s %8.1f %7d %7d %7.1f%% %8.2f %6.1fx %3d/%-2d"
               % (label, r["thrown_per_fighter_round"], r["whiffed"],
-                 r["connect_pct"], r["kd_per_minute"], r["gap_x"],
-                 r["cards"], r["seeds"], r["roped"]))
-    print("  %-22s %8.1f %8s %7.1f%% %9.2f %7s %3d/%-2d"
-          % ("REFERENCE SIM", 40.72, "-", 42.41, 0.38, "-", 20, 24))
+                 r["evaded"], r["connect_pct"], r["kd_per_minute"],
+                 r["gap_x"], r["cards"], r["seeds"]))
+    print("  %-22s %8.1f %7s %7s %7.1f%% %8.2f %6s  %3d/%-2d"
+          % ("REFERENCE SIM", 40.72, "-", "610", 42.41, 0.38, "-", 20, 24))
     print()
 
     ph = rows["the phase, a fighter"]
