@@ -1,0 +1,37 @@
+{
+  "id": "the-effects-of-impact-forces-and-kinematics-of-2017",
+  "title": "The effects of impact forces and kinematics of two different stances at straight punch techniques in boxing",
+  "authors": [
+    "Bergün Meriç Bingül",
+    "Ozlem Tore",
+    "MENŞURE AYDIN",
+    "Erdal Bal",
+    "Çiğdem Bulgan"
+  ],
+  "year": 2017,
+  "source_url": "https://openalex.org/W7132421464",
+  "accessed_at": "2026-08-05T22:01:49Z",
+  "document_type": "article",
+  "peer_review_status": "likely",
+  "tier": 2,
+  "research_lane": [
+    "punch_biomechanics"
+  ],
+  "canon_status": "discovered",
+  "confidence": "low",
+  "no_doi_reason": "no DOI in the OpenAlex record; verify by hand before this source is used for anything",
+  "journal_or_venue": "Kocaeli Üniversitesi - AVESİS",
+  "open_access_status": "closed",
+  "retraction_or_correction_status": "no retraction or correction recorded in OpenAlex at accessed_at",
+  "notes": "Kept as discovered rather than reviewed: only the aims were available at harvest, and a record must not claim a reading that did not happen.",
+  "methodology": "Comparison of impact force and kinematic indicators for the straight punch between orthodox and southpaw stance.",
+  "main_findings": [
+    "Asks whether stance changes impact force, which is the question our one-axis model cannot currently represent at all."
+  ],
+  "limitations": [
+    "abstract only records aims; method detail not in the harvested metadata and must be read in full before use"
+  ],
+  "project_implications": [
+    "Directly relevant to Decision 0013 and the lateral-geometry work: stance is currently a label in this project, not a geometry."
+  ]
+}

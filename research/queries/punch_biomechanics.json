@@ -1,0 +1,24 @@
+{
+  "lane": "punch_biomechanics",
+  "queries": [
+    "boxing punch force velocity biomechanics",
+    "punch impact kinematics boxing kinetic chain",
+    "boxing straight hook uppercut force comparison"
+  ],
+  "index": "OpenAlex",
+  "harvested_at": "2026-08-05T22:01:49Z",
+  "written": [
+    "concussion-in-professional-football-comparison-with-boxing-head-2005-01neu00001",
+    "biomechanical-assessment-of-various-punching-techniques-2020-s004140200",
+    "an-analysis-of-the-three-dimensional-kinetics-and-2018-24748668201",
+    "validation-of-a-unique-boxing-monitoring-system-2021-s21216947",
+    "biomechanical-characteristics-of-taekwondo-athletes-kicks-and-punches-2018-bhk2018001",
+    "biomechanics-of-the-lead-straight-punch-and-related-2023-fphys20221",
+    "biomechanical-analysis-of-the-cross-hook-and-uppercut-2020-fspor20205",
+    "the-acute-effects-of-boxing-specific-dumbbell-activity-2025-fphys20251",
+    "combined-effects-of-rhodiola-rosea-and-caffeine-supplementation-2025-metabo150402",
+    "changes-of-impact-force-during-performance-of-straight-2023-sts202221",
+    "the-effects-of-impact-forces-and-kinematics-of-2017"
+  ],
+  "skipped_as_duplicate_or_present": 1
+}

@@ -216,8 +216,16 @@ def run_range(seed: int, c: dict, rc: dict, rounds: int = 3,
                                                           * c["cond_relief"]) // 10000
                                     st[opp] += ((c["st_max"] - st[opp])
                                                 * c["stam_relief"]) // 10000
-                                    if kd_round[opp] >= c["max_per_round"] \
-                                            or kd_bout[opp] >= c["max_per_bout"]:
+                                    # Decision 0018 (G5): a knockdown count
+                                    # ends a bout only if the RULESET has
+                                    # one. None under the professional
+                                    # default, and this harness follows the
+                                    # contract rather than keeping the old
+                                    # arcade rule to itself.
+                                    if (c["max_per_round"] is not None
+                                        and kd_round[opp] >= c["max_per_round"]) \
+                                            or (c["max_per_bout"] is not None
+                                                and kd_bout[opp] >= c["max_per_bout"]):
                                         stopped = True
                                         stop_tick = T
                     elif k > mv["startup"] + mv["active"]:

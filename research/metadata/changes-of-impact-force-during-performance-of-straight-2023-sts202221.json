@@ -1,0 +1,43 @@
+{
+  "id": "changes-of-impact-force-during-performance-of-straight-2023-sts202221",
+  "title": "Changes of Impact Force During Performance of Straight Punch With Two Boxing Techniques – Case Study",
+  "authors": [
+    "Vedran Dukarić",
+    "Mateja Očić",
+    "Ivan Bon",
+    "Tomislav Rupčić",
+    "Damir Knjaz"
+  ],
+  "year": 2023,
+  "source_url": "https://openalex.org/W4322501276",
+  "accessed_at": "2026-08-05T22:01:49Z",
+  "document_type": "article",
+  "peer_review_status": "likely",
+  "tier": 2,
+  "research_lane": [
+    "punch_biomechanics"
+  ],
+  "canon_status": "reviewed",
+  "confidence": "low",
+  "doi": "10.5817/sts2022-2-1",
+  "journal_or_venue": "Studia sportiva",
+  "publisher": "Masaryk University",
+  "full_text_url": "https://journals.muni.cz/studiasportiva/article/download/21404/28649",
+  "open_access_status": "diamond",
+  "retraction_or_correction_status": "no retraction or correction recorded in OpenAlex at accessed_at",
+  "notes": "n=1. Recorded because the question is the right one, kept at low confidence because a single subject cannot answer it.",
+  "methodology": "Single-subject comparison of straight punches with and without weight shifting; IMU suit, pressure insoles and an instrumented punch sensor.",
+  "study_population": "one top-level female boxer, 26 years",
+  "sample_size": "n = 1, 20 punches",
+  "main_findings": [
+    "Treats weight transfer as the independent variable rather than as technique description."
+  ],
+  "limitations": [
+    "single subject - directional at best, and not generalisable",
+    "no opponent, no fatigue",
+    "the design cannot separate technique from this athlete"
+  ],
+  "project_implications": [
+    "Relevant only as a pointer to the weight-transfer question our \"planted\" locomotion mode already asserts without evidence."
+  ]
+}

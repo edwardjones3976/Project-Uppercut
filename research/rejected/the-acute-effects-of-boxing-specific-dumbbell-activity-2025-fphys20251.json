@@ -1,0 +1,30 @@
+{
+  "id": "the-acute-effects-of-boxing-specific-dumbbell-activity-2025-fphys20251",
+  "title": "The acute effects of boxing-specific dumbbell activity on punch performance in male amateur boxers",
+  "authors": [
+    "Rangxi Jin",
+    "Muyun Huang",
+    "Wenjuan Yi",
+    "Mitchell James Finlay",
+    "Chao Chen"
+  ],
+  "year": 2025,
+  "source_url": "https://openalex.org/W4412957773",
+  "accessed_at": "2026-08-05T22:01:49Z",
+  "document_type": "article",
+  "peer_review_status": "likely",
+  "tier": 2,
+  "research_lane": [
+    "punch_biomechanics"
+  ],
+  "canon_status": "rejected",
+  "confidence": "low",
+  "doi": "10.3389/fphys.2025.1607933",
+  "journal_or_venue": "Frontiers in Physiology",
+  "publisher": "Frontiers Media",
+  "full_text_url": "https://doi.org/10.3389/fphys.2025.1607933",
+  "open_access_status": "gold",
+  "retraction_or_correction_status": "no retraction or correction recorded in OpenAlex at accessed_at",
+  "notes": "cited_by_count 4 at harvest; a citation count is a measure of attention, not of correctness",
+  "rejected_because": "Acute post-activation potentiation from a warm-up protocol. Real, and about the athlete rather than the punch; this project has no warm-up state and no plausible route to one."
+}

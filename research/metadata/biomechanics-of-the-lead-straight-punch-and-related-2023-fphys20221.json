@@ -1,0 +1,50 @@
+{
+  "id": "biomechanics-of-the-lead-straight-punch-and-related-2023-fphys20221",
+  "title": "Biomechanics of the lead straight punch and related indexes between sanda fighters and boxers from the perspective of cross-border talent transfer",
+  "authors": [
+    "Yang Liu",
+    "Lei Li",
+    "Xianliang Yan",
+    "Xinseng He",
+    "Bin Zhao"
+  ],
+  "year": 2023,
+  "source_url": "https://openalex.org/W4316362814",
+  "accessed_at": "2026-08-05T22:01:49Z",
+  "document_type": "article",
+  "peer_review_status": "likely",
+  "tier": 2,
+  "research_lane": [
+    "punch_biomechanics"
+  ],
+  "canon_status": "reviewed",
+  "confidence": "moderate",
+  "doi": "10.3389/fphys.2022.1099682",
+  "journal_or_venue": "Frontiers in Physiology",
+  "publisher": "Frontiers Media",
+  "full_text_url": "https://www.frontiersin.org/articles/10.3389/fphys.2022.1099682/pdf",
+  "open_access_status": "gold",
+  "retraction_or_correction_status": "no retraction or correction recorded in OpenAlex at accessed_at",
+  "notes": "cited_by_count 18 at harvest; a citation count is a measure of attention, not of correctness",
+  "methodology": "Vicon 3D capture, two Kistler platforms and an instrumented target; lead straight punch compared between boxers and Sanda athletes across velocity, force and lower-limb indices.",
+  "study_population": "11 boxers, 16 Sanda athletes",
+  "sample_size": "n = 27",
+  "main_findings": [
+    "Peak punch velocity and contact velocity differed significantly between the two trained groups - style of training, not fitness, moves the numbers.",
+    "Differences also in peak impulse, peak strength, relative strength and rate of force development."
+  ],
+  "limitations": [
+    "cross-sectional comparison of two trained populations",
+    "single punch type",
+    "talent-transfer framing; not a controlled intervention"
+  ],
+  "quoted_evidence": [
+    {
+      "quote": "Significant differences in the peak punch velocity and contact velocity were found between the two groups",
+      "locator": "abstract, results"
+    }
+  ],
+  "project_implications": [
+    "Evidence that a style is expressible as a different force-time curve for the SAME named punch - which is what our per-fighter move profiles would need if they are ever more than a damage scalar."
+  ]
+}

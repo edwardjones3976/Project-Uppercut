@@ -1,0 +1,37 @@
+{
+  "id": "validation-of-a-unique-boxing-monitoring-system-2021-s21216947",
+  "title": "Validation of a Unique Boxing Monitoring System",
+  "authors": [
+    "Tobias Menzel",
+    "Wolfgang Potthast"
+  ],
+  "year": 2021,
+  "source_url": "https://openalex.org/W3205706172",
+  "accessed_at": "2026-08-05T22:01:49Z",
+  "document_type": "article",
+  "peer_review_status": "likely",
+  "tier": 2,
+  "research_lane": [
+    "punch_biomechanics"
+  ],
+  "canon_status": "reviewed",
+  "confidence": "moderate",
+  "doi": "10.3390/s21216947",
+  "journal_or_venue": "Sensors",
+  "publisher": "Multidisciplinary Digital Publishing Institute",
+  "full_text_url": "https://www.mdpi.com/1424-8220/21/21/6947/pdf?version=1634719673",
+  "open_access_status": "gold",
+  "retraction_or_correction_status": "no retraction or correction recorded in OpenAlex at accessed_at",
+  "notes": "cited_by_count 24 at harvest; a citation count is a measure of attention, not of correctness",
+  "methodology": "Development and validation of a wearable punch-performance sensor system against Kistler force plate and Vicon capture by linear regression.",
+  "main_findings": [
+    "Wearable punch measurement reached R2 0.97-0.99 against laboratory gold standards for force, acceleration and velocity."
+  ],
+  "limitations": [
+    "an instrument paper, not a boxing finding",
+    "laboratory validation, not competition use"
+  ],
+  "project_implications": [
+    "Matters for how future evidence arrives rather than for canon: it is the tool that would let punch data be gathered outside a laboratory."
+  ]
+}

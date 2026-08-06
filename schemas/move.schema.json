@@ -42,6 +42,7 @@
         "guard",
         "evasion",
         "step",
+        "explosive_step",
         "pivot",
         "clinch",
         "showmanship"
@@ -78,6 +79,16 @@
     "stamina_cost": {
       "type": "number",
       "minimum": 0
+    },
+    "cost_model": {
+      "description": "Decision 0014 (gate G1). 'displacement' means this field is a DERIVED echo of movement_model.locomotion.<mode>.stamina_cost_per_ru at full stride and the core prices the action by the distance actually travelled; the validator recomputes it and fails on drift. 'flat' means the cost is authored as written, which is permitted only for a separately named explosive action - never for an ordinary adjustment step.",
+      "enum": [
+        "displacement",
+        "flat"
+      ]
+    },
+    "cost_note": {
+      "type": "string"
     },
     "guard_interaction": {
       "enum": [

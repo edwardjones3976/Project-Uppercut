@@ -1,0 +1,85 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-06 03:40 UTC", "end": "2026-08-06 03:40 UTC" },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "research_record.schema.json",
+  "title": "Project Uppercut research evidence record",
+  "$comment": "One record per source. The point of this schema is not tidiness: it is that a scraped paragraph must not quietly become a gameplay formula. A record carries where it came from, whether anyone peer reviewed it, what it actually measured, and - separately and explicitly - whether this project has accepted it. Discovery is free; canon costs a decision record.",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "authors",
+    "year",
+    "source_url",
+    "accessed_at",
+    "document_type",
+    "peer_review_status",
+    "tier",
+    "research_lane",
+    "canon_status",
+    "confidence"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
+    "title": { "type": "string", "minLength": 3 },
+    "authors": { "type": "array", "items": { "type": "string" } },
+    "year": { "type": "integer", "minimum": 1850, "maximum": 2100 },
+    "doi": { "type": "string" },
+    "no_doi_reason": { "type": "string", "minLength": 8 },
+    "publisher": { "type": "string" },
+    "journal_or_venue": { "type": "string" },
+    "source_url": { "type": "string", "format": "uri" },
+    "full_text_url": { "type": "string" },
+    "accessed_at": { "type": "string" },
+    "document_type": { "type": "string" },
+    "peer_review_status": { "enum": ["verified", "likely", "unknown"] },
+    "open_access_status": { "type": "string" },
+    "retraction_or_correction_status": { "type": "string" },
+    "tier": {
+      "description": "1 strongest authority (commissions, systematic reviews, controlled studies, official engine docs, standards). 2 useful support (single observational studies, university pages, developer interviews, patents, analytics with disclosed methods). 3 inspiration only (reviews, retrospectives, coaching articles, community analysis, video). Tier 3 may never reach canon_status accepted.",
+      "enum": [1, 2, 3]
+    },
+    "research_lane": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "enum": [
+          "punch_biomechanics",
+          "fatigue_and_recovery",
+          "knockdowns_and_stoppages",
+          "tactics_and_ringcraft",
+          "responsiveness_and_determinism",
+          "training_and_spectator_design"
+        ]
+      }
+    },
+    "study_population": { "type": "string" },
+    "methodology": { "type": "string" },
+    "sample_size": { "type": "string" },
+    "main_findings": { "type": "array", "items": { "type": "string" } },
+    "limitations": { "type": "array", "items": { "type": "string" } },
+    "quoted_evidence": {
+      "description": "Short verbatim extracts ONLY, with a locator. Each quote is capped at 25 words by the validator; a record is a pointer to a source, not a copy of it.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["quote", "locator"],
+        "additionalProperties": false,
+        "properties": {
+          "quote": { "type": "string" },
+          "locator": { "type": "string" }
+        }
+      }
+    },
+    "project_implications": { "type": "array", "items": { "type": "string" } },
+    "canon_status": {
+      "description": "discovered: found and recorded. reviewed: a human read it and judged the method. accepted: it may inform canon, and accepted_by_decision names the decision record that says so. rejected: read and set aside, with rejected_because.",
+      "enum": ["discovered", "reviewed", "accepted", "rejected"]
+    },
+    "accepted_by_decision": { "type": "string" },
+    "rejected_because": { "type": "string" },
+    "confidence": { "enum": ["low", "moderate", "high"] },
+    "notes": { "type": "string" }
+  }
+}

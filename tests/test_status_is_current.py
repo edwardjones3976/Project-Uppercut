@@ -110,7 +110,11 @@ def test_status_does_not_overclaim_an_engine_phase():
     # reproduced analyze_core_range.expected_stream byte for byte at 4242/5400,
     # 777/5400 and 4242/900 (docs/phase1a/determinism_probe_results.md, "Phase
     # Q ... PASS"). Re-provable with `python -m tools.engine.prove_core_range`.
-    contract_only = {"P", "R", "S"}
+    # R left this set on 2026-08-06, the day UppercutCoreEvadeCommandlet
+    # reproduced analyze_core_evade.expected_stream byte for byte at 4242/5400,
+    # 777/5400 and 4242/1200. Re-provable with
+    # `python -m tools.engine.prove_core_evade`.
+    contract_only = {"P", "S"}
     assert phase not in contract_only, (
         "STATUS.md claims Phase %s is the latest proven engine phase, but that "
         "phase is contract-only: no C++ artifact has been proven byte-identical "

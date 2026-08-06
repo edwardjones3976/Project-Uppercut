@@ -1,0 +1,71 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-06 06:20 UTC", "end": "2026-08-06 06:20 UTC" },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "ruleset.schema.json",
+  "title": "Project Uppercut ruleset",
+  "$comment": "Decision 0018 (gate G5). A bout runs under a NAMED, VERSIONED rulebook, and records which one. Before this, the three-knockdown rule was an assumption sitting where a declaration belonged - it was canon, it was the termination condition in every measurement taken the week of 2026-08-03, and the ABC Unified Rules explicitly do not contain it (Rule 8: 'There is NO Three (3) Knockdown Rule'). That did not make the project wrong; an arcade boxing game may choose the rule deliberately. It made the choice invisible. Every field here is read by the contract - a ruleset field nothing reads is a rule nothing enforces.",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "version",
+    "mandatory_count_numbers",
+    "standing_eight_count",
+    "three_knockdown_rule",
+    "knockdowns_per_round_stoppage",
+    "knockdowns_per_bout_stoppage",
+    "saved_by_the_bell",
+    "scoring"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$comment": { "type": "string" },
+    "contribution": { "type": "object" },
+    "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "name": { "type": "string" },
+    "version": {
+      "description": "Semantic version of the RULES, not of the file. A replay records this, and a replay whose ruleset version is unknown is not a replay - it is a coincidence.",
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "mandatory_count_numbers": {
+      "description": "How far the referee counts after a knockdown before the bout may resume. The CADENCE (ticks per number) stays in condition_model.knockdown.count_ticks_per_number and is not repeated here - one authority each.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "standing_eight_count": { "type": "boolean" },
+    "three_knockdown_rule": { "type": "boolean" },
+    "knockdowns_per_round_stoppage": {
+      "description": "Knockdowns in one round that stop the bout. Null means no such rule, which is the professional case.",
+      "type": ["integer", "null"],
+      "minimum": 1
+    },
+    "knockdowns_per_bout_stoppage": {
+      "type": ["integer", "null"],
+      "minimum": 1
+    },
+    "saved_by_the_bell": { "type": "boolean" },
+    "scoring": {
+      "type": "object",
+      "required": ["system", "round_win", "round_lose", "knockdown_deduction"],
+      "additionalProperties": false,
+      "properties": {
+        "system": { "enum": ["ten_point_must"] },
+        "round_win": { "type": "integer" },
+        "round_lose": { "type": "integer" },
+        "knockdown_deduction": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "referee_stoppage": {
+      "description": "The referee may stop a bout on judgement. This project does not yet model that judgement, and the contract records zero referee stoppages rather than pretending otherwise. The field is here so the rule is declared before it is implemented, not after.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "permitted": { "type": "boolean" },
+        "modelled": { "type": "boolean" },
+        "note": { "type": "string" }
+      }
+    },
+    "notes": { "type": "string" }
+  }
+}

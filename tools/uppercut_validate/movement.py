@@ -119,6 +119,54 @@ def check_displacement(doc: dict) -> list:
     return errs
 
 
+def check_step_cost_authority(doc: dict) -> list:
+    """Decision 0014 (gate G1): one authority for what movement costs.
+
+    `stamina_cost_per_ru` is the authority; the move table's ordinary step
+    entries are a derived echo of it. This recomputes the echo and fails on
+    drift, because the defect this ruling closed was exactly two authorities
+    disagreeing by 4.55x with nothing checking either.
+    """
+    moves_path = Path(__file__).resolve().parents[2] / "data" / "moves" / \
+        "generic_sandbox_moves.json"
+    if not moves_path.exists():
+        return []
+    modes = _modes(doc)
+    step = modes.get("boxing_steps")
+    if step is None:
+        return ["Decision 0014: no boxing_steps mode to price movement from"]
+    per_ru = step["stamina_cost_per_ru"]
+    stride = step["stride_length_ru"]
+    d = doc["locomotion"]["directional"]
+    expect = {"step_in": d["advance_stride_multiplier"],
+              "step_out": d["retreat_stride_multiplier"],
+              "step_lateral": d["lateral_stride_multiplier"]}
+    table = {m["id"]: m for m in
+             json.loads(moves_path.read_text(encoding="utf-8"))["moves"]}
+    errs = []
+    for mid, mult in expect.items():
+        m = table.get(mid)
+        if m is None:
+            errs.append(f"Decision 0014: ordinary step {mid} is missing from the "
+                        f"move table")
+            continue
+        if m.get("cost_model") != "displacement":
+            errs.append(f"Decision 0014: {mid} must declare cost_model "
+                        f"'displacement'; it declares {m.get('cost_model')!r}")
+        want = round(stride * mult * per_ru, 6)
+        if round(float(m["stamina_cost"]), 6) != want:
+            errs.append(f"Decision 0014: {mid} echoes stamina_cost "
+                        f"{m['stamina_cost']} but displacement pricing gives "
+                        f"{want} ({stride} ru x {mult} x {per_ru}/ru). The echo "
+                        f"drifted from its authority - fix the echo, not the rule")
+    for mid, m in table.items():
+        if m.get("category") == "step" and m.get("cost_model") == "flat":
+            errs.append(f"Decision 0014: {mid} is categorised as an ordinary step "
+                        f"but priced flat; a flat fee belongs to a separately "
+                        f"named explosive action")
+    return errs
+
+
 def check_facing(doc: dict) -> list:
     facing = doc["facing"]
     errs = []
@@ -256,6 +304,7 @@ ALL_CHECKS = [
     ("posture_lock", check_posture_lock),
     ("compression_rule13", check_compression_law),
     ("displacement_rule13", check_displacement),
+    ("step_cost_authority_0014", check_step_cost_authority),
     ("facing_rule15", check_facing),
     ("anti_cheat_rule13", check_anti_cheat),
     ("threat_compression", check_threat_compression),

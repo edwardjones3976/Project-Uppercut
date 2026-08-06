@@ -80,3 +80,8 @@ _commitmsg.txt
 # never persists. They carry no authority - the marker stream is byte-identical
 # without them - and they churn on every session.
 sandbox/Content/__ExternalActors__/
+
+# Research: fetched full text and reconstructed abstracts. Copyright and size
+# both say keep these out of git - the committed artifacts are the metadata
+# records, the queries, the citations index and the lane syntheses.
+research/raw/

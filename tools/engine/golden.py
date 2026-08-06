@@ -40,6 +40,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import analyze_core_evade as R  # noqa: E402
 import analyze_core_range as Q  # noqa: E402
 import analyze_core_round as O  # noqa: E402
 
@@ -116,6 +117,47 @@ def _describe_q(line: str) -> str:
     return line
 
 
+def _describe_r(line: str) -> str:
+    """One Phase R row, in words.
+
+    `P` means a punch resolving here as it does in Q, but the interesting field
+    is WHY: clear, vacated, counter or region. Those four words are the phase.
+    """
+    f = line.split("|")
+    k = f[0]
+    if k == "P":
+        if f[5] == "vacated":
+            return ("tick %s: fighter %s threw %s and found nothing there - %s "
+                    "had vacated the %s" % (f[1], f[2], f[3], f[7], f[6]))
+        if f[5] == "counter":
+            return ("tick %s: fighter %s landed %s INTO the %s - it is authored "
+                    "to beat that evasion" % (f[1], f[2], f[3], f[7]))
+        if f[5] == "region":
+            return ("tick %s: fighter %s landed %s on the %s; %s was active but "
+                    "went somewhere else" % (f[1], f[2], f[3], f[6], f[7]))
+        return ("tick %s: fighter %s landed %s on the %s, nobody evading"
+                % (f[1], f[2], f[3], f[6]))
+    if k == "W":
+        return ("tick %s: fighter %s %s a %s"
+                % (f[1], f[2], "began" if f[4] == "open" else "came out of", f[3]))
+    if k == "A":
+        return "tick %s: fighter %s committed to %s" % (f[1], f[2], f[3])
+    if k == "Y":
+        return ("%s is %s, %s ticks, vacates %s, beaten by %s"
+                % (f[1], f[2], f[4], f[5], f[6]))
+    if k == "M":
+        return "%s is a %s aimed at the %s" % (f[1], f[2], f[3])
+    if k == "V":
+        return "property %s proven=%s" % (f[1], f[2])
+    if k == "K":
+        return "economy " + line[2:]
+    if k == "S":
+        return "TRAILER " + line[2:]
+    if k == "H":
+        return "header " + line[2:]
+    return line
+
+
 # Seeds and lengths chosen once and fixed. 4242 is the seed every phase record
 # in this repository quotes. Phase O pins one round to keep the file reviewable
 # in a diff; Phase Q pins the long run its port was proven at, because that is
@@ -127,7 +169,13 @@ PINS = {
         # The canonical stream: no floats, no opt-in diagnostics.
         "current": lambda: O.expected_stream(4242, 1, with_floats=False),
         "describe": _describe_o,
-        "state": "HELD - this pin moves when G1, G2 or G3 is ruled on",
+        # G1 and G5 have landed and moved it twice. G2 and G3 will move it
+        # again, and so will the conversion work the 2026-08-06 measurement
+        # points at. The file grew from ~2,000 lines to ~11,000 when Decision
+        # 0018 removed the three-knockdown stoppage: the round now runs to the
+        # bell instead of ending early, which is the pin recording a real change
+        # in what a bout IS rather than getting bigger for no reason.
+        "state": "HELD - moves on any canon ruling that changes the fight",
     },
     "Q": {
         "path": os.path.join("docs", "phase1a", "golden",
@@ -135,6 +183,13 @@ PINS = {
         "current": lambda: Q.expected_stream(4242, 5400),
         "describe": _describe_q,
         "state": "PROVEN - UppercutCoreRangeCommandlet reproduces this exactly",
+    },
+    "R": {
+        "path": os.path.join("docs", "phase1a", "golden",
+                             "phase_r_4242_5400.stream"),
+        "current": lambda: R.expected_stream(4242, 5400),
+        "describe": _describe_r,
+        "state": "PROVEN - UppercutCoreEvadeCommandlet reproduces this exactly",
     },
 }
 

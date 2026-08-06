@@ -1300,3 +1300,124 @@ nothing to do with range — and a port proven against a stream that moves for
 unrelated reasons is not really proven. This one does not move.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 22:50 UTC | Phase Q proof END ] -->
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 02:10 UTC | Decision 0014 re-proof START ] -->
+
+## Re-proof under Decision 0014 — Phases K, N and Q, 2026-08-05
+
+Not a new phase. A **re-run of three proven ones** after a canon ruling moved the
+ground under them, recorded here because a pin that is edited rather than
+re-earned is worse than no pin at all.
+
+Decision 0014 (gate G1) repriced ordinary movement by displacement. Three step
+entries in `data/moves/generic_sandbox_moves.json` changed, and every phase that
+hashes that file into its marker stream header therefore produced a different
+stream — Phase K, Phase N and Phase Q. **None of their fights changed.** Phase Q
+spends no stamina at all; Phases K and N read the table but were re-run against
+the same repriced canon on both sides. Only the hashes moved.
+
+Each was re-run and re-compared byte for byte:
+
+    Phase N   UppercutCoreCondition, seed 4242, 5400 ticks     identical
+              88af6f3011b93c12540ead0c016062425e20abf9c7cda994322d1a98c14ddc37  (2026-08-04)
+           -> 7b2b90001b541b8e145ab4fe501de15e45b3780b3c1e821a866a3b4786cea1ff  (2026-08-05)
+
+    Phase K   UppercutRenderGameMode, seed 4242, 5400 ticks    identical
+              b6f1c24b62671b8dc81b37057f851f33e075f9280d34b68f5cdcc346c0276bda  (2026-08-04)
+           -> 4826e82c532b98e481080b8603321e2e406c4f706681361b7a1996ff153b36ce  (2026-08-05)
+
+    Phase Q   UppercutCoreRange, three runs                    identical
+              4242/5400  32fb81853e8e961525664ecd98fc0f39fae50d2a184769457e6151af66b22faf
+               777/5400  02f3832ed95e77e75ff2166cac62baa1bd973aa43f3662041517c159bbd47360
+              4242/900   b8acb84ee9c1eaefd1c0575c8794abb9825506e632e13fc39edb438418d9a006
+
+`tests/test_phase_evidence_pins.py` carries the new hashes with the superseded
+ones beside them.
+
+### A correction, made where it will be read
+
+When Phase Q was ported earlier the same day, its record claimed the pin "will
+survive the open gates" because the slice spends no stamina. **That was too
+strong**, and the Phase Q golden failed within hours of being written.
+
+The behaviour claim was right; the bytes claim was not. Phase Q reads the move
+table for range bands and hashes it, so a change to a step's *price* — a field
+Phase Q never reads — still moved its stream. The distinction that survives is:
+a canon ruling on stamina cannot change the Phase Q **fight**, but any edit to a
+file Phase Q hashes will change its **stream**.
+
+This is the pin behaving exactly as designed. It failed the moment canon moved,
+which is the alarm that says *re-prove the port before re-blessing* — and that is
+what happened here rather than a quiet regeneration.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 02:10 UTC | Decision 0014 re-proof END ] -->
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 13:30 UTC | Phase R proof START ] -->
+
+## Phase R — the head is not where the punch is going (UppercutCoreEvade): PASS
+
+**2026-08-06.** `UppercutCoreEvadeCommandlet` reproduces
+`analyze_core_evade.expected_stream` byte for byte.
+
+Canon authors evasion **geometrically**, which is why this phase adds no die.
+Each evasion has a kind, an active window in ticks, a set of regions it
+**vacates**, and a list of things it is **beaten by**. The whole rule is canon's
+sentence rather than the port's:
+
+> During an evasion's active window a punch aimed at a vacated region finds
+> nothing there — unless the punch is one the evasion is authored to be beaten
+> by, in which case it lands into the movement.
+
+That second clause is the project's core design rule applied one level out. A
+guard is a structure that protects some lanes and exposes others; an evasion is
+the same object in motion. A roll that beat the uppercut would be a strictly
+better guard rather than a different one.
+
+### The proof
+
+    seed 4242, 5400 ticks
+        sha256 f450d2f678fb464aca0e59960fcc0c692c213f6fb75de27a9056f53412912523
+    seed 777, 5400 ticks
+        sha256 4b8d38276da032f71d7577f0ea92c845fe2fd80e420676976c3026e81444aec0
+    seed 4242, 1200 ticks
+        sha256 4aae2b77657989bab82e39e132a12c5e323ed118127c7b8707fc670235cd8738
+
+Byte-equality against the Python recomputation, not a similarity score. Each
+stream is then read back cold by `analyze_core_evade.analyse`, which re-derives
+the trailer from the rows and re-checks the invariants — a dodge only ever in a
+vacated region, never against a punch the evasion is beaten by, and every
+non-dodge recorded as an arrival. Zero errors on all three.
+
+Re-run with `python -m tools.engine.prove_core_evade`. Pinned at
+`docs/phase1a/golden/phase_r_4242_5400.stream`.
+
+### The telegraph is free, and that is the interesting part
+
+The reference simulator needs a multiplier —
+`telegraph.evasion_gain_per_startup_frame` — to make slow punches more
+dodgeable, because its evasion is a die rolled at contact. Here a slip is five
+ticks of real time and an 11-frame overhand spends longer in flight than a
+4-frame jab, so a slip thrown at the same moment is far likelier to still be
+active when the overhand arrives.
+
+**Nothing computes that.** The defender is not buffed and the slow punch is not
+nerfed; the slow punch is *seen*, which is exactly what canon says a telegraph
+is for. The contract refuses a canon in which every punch spends the same time
+in the air, because that is the canon in which the telegraph would stop being
+free and would need a coefficient.
+
+### Scope, and why this pin should be stable
+
+Three canon files and no more: guard/evasion, moves, animation. **No separation
+and no geometry** — whether a fist reaches is Phase Q's contract, proven on
+2026-08-05, and re-implementing it here would be a second place for it to be
+wrong. **No guard** — `outranks_guard` is true, so a dodged punch never reaches
+the guard stage. **No stamina** — gate G7 is open on the stamina economy, and a
+slice that spent stamina would need re-blessing the day it is ruled on for a
+reason having nothing to do with evasion.
+
+One caveat learned from Phase Q and stated here rather than discovered later: a
+canon ruling on stamina cannot change the Phase R **fight**, but any edit to one
+of the three files Phase R hashes will change its **stream**.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 13:30 UTC | Phase R proof END ] -->

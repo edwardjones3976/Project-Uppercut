@@ -72,7 +72,7 @@
       "display": "Philly shell / shoulder roll",
       "extents": {
         "guard_high": 0.7,
-        "guard_body": 0.6
+        "guard_body": 0.55
       },
       "stamina_per_tick": 0.0008,
       "mobility_multiplier": 1.0,
@@ -242,7 +242,7 @@
       "id": "active_hands",
       "display": "Open guard / active hands",
       "extents": {
-        "guard_high": 0.6,
+        "guard_high": 0.65,
         "guard_body": 0.5
       },
       "stamina_per_tick": 0.0014,
