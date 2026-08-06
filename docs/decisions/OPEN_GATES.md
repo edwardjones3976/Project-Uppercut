@@ -15,9 +15,14 @@ decided thing as open; this file is the inverse and needs the same care.
 
 ## Status
 
-**All six gates were ruled on by the Director on 2026-08-05 and are CLOSED.** The
-rows stay, as this file's own rules require; each now names the decision that
-closed it. New gates are added below the table when work next stops on a call.
+**G1–G6 were ruled on by the Director on 2026-08-05 and are CLOSED.** The rows
+stay, as this file's own rules require; each names the decision that closed it.
+
+**G7 opened 2026-08-06** and is the only gate currently blocking work.
+
+| # | Gate | Blocks | State | Evidence |
+|---|---|---|---|---|
+| G7 | **The stamina economy cannot pay for a round of boxing** — pool, regeneration and punch costs together buy 19 punches a round against a professional 55–78, a 2.9× shortfall. Fighters sit at 1% stamina for eleven of every twelve minutes, and `1.4 − stamina_fraction` is the ONLY term in the pressure product that discriminates between a landing that knocks a man down and one that does not | Phase O's lethality, and every conversion figure downstream of it | **OPEN** | `docs/plans/2026-08-06-the-stamina-economy-decision-packet.md` |
 
 | # | Gate | Blocks | State | Evidence |
 |---|---|---|---|---|
