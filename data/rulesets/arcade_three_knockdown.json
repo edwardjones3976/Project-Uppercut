@@ -1,6 +1,6 @@
 {
   "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-06 06:30 UTC", "end": "2026-08-06 06:30 UTC" },
-  "$comment": "Decision 0018 (gate G5). THE ARCADE MODIFIER, and the honest home of what used to be silent canon. Three knockdowns in a round stops the bout; four in a bout stops it. No professional rulebook has either, and this project used both as the termination condition in every measurement taken the week of 2026-08-03. Keeping them is a deliberate arcade choice - a bout that ends fast and reads clearly is worth having for exhibitions - and what changes is that choosing it is now visible in the header of every stream and every replay. The two numbers are the same ones condition_model.knockdown has carried since Phase N; a validator checks they still agree, so the legacy fields are a checked echo rather than a second opinion.",
+  "$comment": "Decision 0019 implements Decision 0014 gate G5. This is the explicit arcade modifier and the honest home of what used to be silent canon. Three knockdowns in a round stops the bout; four in a bout stops it. Keeping them is a deliberate arcade choice, and selecting it is visible in every stream and replay.",
   "id": "arcade_three_knockdown",
   "name": "Project Uppercut Arcade Three-Knockdown Rule",
   "version": "1.0.0",
@@ -19,7 +19,7 @@
   "referee_stoppage": {
     "permitted": true,
     "modelled": false,
-    "note": "Permitted but not modelled. Under this ruleset it matters less than under the professional one, because the knockdown counts end the bout on their own."
+    "note": "Permitted but not modelled. Under this ruleset it matters less than under the professional one because the knockdown limits may end the bout first."
   },
-  "notes": "For arcade exhibitions and special events. It may not silently define a professional fight - that is the whole point of Decision 0018."
+  "notes": "For arcade exhibitions and special events. It may not silently define a professional fight."
 }
