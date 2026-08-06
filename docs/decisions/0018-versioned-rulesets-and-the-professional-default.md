@@ -63,6 +63,30 @@ and a shared rule cancels in a ratio. What it changes is the absolute claim —
 "this core reaches the cards in 0 of 24" — which must be re-measured under the
 professional default before it is quoted again.
 
+## Measured after (2026-08-06)
+
+Implemented and swept the same day: `tools/engine/measure_ruleset_effect.py`,
+24 bouts, 3 rounds, one contract, two rulebooks.
+
+| | professional | arcade |
+|---|---|---|
+| reached the cards | **24** | 0 |
+| stopped | 0 | 24 |
+| knockdowns | 1648 | 96 |
+| knockdowns per round | **22.89** | 4.0 |
+
+`decision_path_must_survive` is satisfied for the first time — and **for the
+wrong reason.** The bout survives to the cards because nothing ends it, not
+because the fighters survive it.
+
+The reading that matters: *"0 of 24 reach the cards"* and *"23 knockdowns per
+round"* were always the same measurement seen from either side of the stoppage
+rule. This ruling did not fix Phase O; it removed the lid and made the size of
+the real problem — conversion at 2.78× the reference, measured 2026-08-05 and
+unaffected by this — impossible to miss.
+
+Full working: `docs/development-log/2026-08-06-the-three-knockdown-rule-was-not-the-problem-it-was-the-lid.md`.
+
 ## What this does not decide
 
 Foul deductions, medical stoppage criteria and the scoring of a fought-even round

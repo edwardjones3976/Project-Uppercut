@@ -222,6 +222,61 @@ def check_invariants(doc: dict) -> list:
     return [f"missing required invariant '{r}'" for r in REQUIRED_INVARIANTS if r not in present]
 
 
+def check_rulesets_0018(doc: dict) -> list:
+    """Decision 0018 (gate G5): the rulebook is named, versioned data.
+
+    Two things are held here. The default ruleset must exist and must not carry
+    a knockdown-count stoppage, because that is what makes it professional. And
+    condition_model's legacy `max_per_round` / `max_per_bout` - which sealed
+    Phases N and K still read, so they cannot be removed - must equal the ARCADE
+    ruleset's, since the arcade rules are what those fields were describing all
+    along. That keeps them a checked echo instead of a second opinion, which is
+    the same shape as Decision 0014's step-cost fix.
+    """
+    import json as _json
+    root = Path(__file__).resolve().parents[2] / "data" / "rulesets"
+    errs = []
+    if not root.is_dir():
+        return ["Decision 0018: data/rulesets/ is missing; a bout cannot run "
+                "under a rulebook that does not exist"]
+    sets = {}
+    for p in sorted(root.glob("*.json")):
+        r = _json.loads(p.read_text(encoding="utf-8"))
+        sets[r.get("id", p.stem)] = r
+        if r.get("id") != p.stem:
+            errs.append(f"Decision 0018: {p.name} declares id {r.get('id')!r}; "
+                        f"the file name is how a stream refers to it, so they "
+                        f"must match")
+        if r.get("three_knockdown_rule") and not r.get("knockdowns_per_round_stoppage"):
+            errs.append(f"Decision 0018: {r.get('id')} claims the three-knockdown "
+                        f"rule with no per-round stoppage count, so the rule "
+                        f"could never fire")
+    pro = sets.get("professional")
+    if pro is None:
+        errs.append("Decision 0018: the professional default ruleset is missing")
+    else:
+        if pro.get("three_knockdown_rule") or pro.get("knockdowns_per_round_stoppage"):
+            errs.append("Decision 0018: the professional default carries a "
+                        "three-knockdown stoppage. No professional rulebook has "
+                        "one; that belongs to the arcade modifier")
+        if pro.get("standing_eight_count"):
+            errs.append("Decision 0018: the professional default carries a "
+                        "standing eight count, which the unified rules exclude")
+    arcade = sets.get("arcade_three_knockdown")
+    if arcade is not None:
+        kd = doc["knockdown"]
+        if int(kd["max_per_round"]) != arcade["knockdowns_per_round_stoppage"] or \
+                int(kd["max_per_bout"]) != arcade["knockdowns_per_bout_stoppage"]:
+            errs.append(
+                f"Decision 0018: condition_model's legacy knockdown limits "
+                f"({kd['max_per_round']}/{kd['max_per_bout']}) no longer echo the "
+                f"arcade ruleset "
+                f"({arcade['knockdowns_per_round_stoppage']}/"
+                f"{arcade['knockdowns_per_bout_stoppage']}). Sealed phases read "
+                f"the legacy fields; fix the echo, not the ruleset")
+    return errs
+
+
 ALL_CHECKS = [
     ("schema", check_schema),
     ("regions_rule14", check_regions),
@@ -232,6 +287,7 @@ ALL_CHECKS = [
     ("recovery_rule8", check_recovery),
     ("stoppages_rule3", check_stoppages),
     ("prohibitions", check_prohibitions),
+    ("rulesets_0018", check_rulesets_0018),
     ("invariants_declared", check_invariants),
 ]
 

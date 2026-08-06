@@ -1,0 +1,25 @@
+{
+  "contribution": { "agent": "Claude (Cowork)", "model": "Claude Opus 5 (claude-opus-5)", "start": "2026-08-06 06:25 UTC", "end": "2026-08-06 06:25 UTC" },
+  "$comment": "Decision 0018 (gate G5). THE DEFAULT. Modelled on the Association of Boxing Commissions' Unified Rules of Boxing, which contain no three-knockdown rule (Rule 8), no standing eight count (Rule 7), a mandatory eight count after every knockdown (Rule 5), and no saved-by-the-bell in any round (Rule 10). This is not a copy of that rulebook - it is Project Uppercut's own professional ruleset, authored to agree with it where this project models the same thing. A bout under these rules ends because a fighter could not continue, or because the cards said so.",
+  "id": "professional",
+  "name": "Project Uppercut Professional Rules",
+  "version": "1.0.0",
+  "mandatory_count_numbers": 8,
+  "standing_eight_count": false,
+  "three_knockdown_rule": false,
+  "knockdowns_per_round_stoppage": null,
+  "knockdowns_per_bout_stoppage": null,
+  "saved_by_the_bell": false,
+  "scoring": {
+    "system": "ten_point_must",
+    "round_win": 10,
+    "round_lose": 9,
+    "knockdown_deduction": 1
+  },
+  "referee_stoppage": {
+    "permitted": true,
+    "modelled": false,
+    "note": "A referee may stop a bout on judgement, and under these rules that is the only discretionary stoppage - there is no knockdown count to end one automatically. This project does not yet model referee judgement, so under this ruleset a bout currently ends only by the cards or by a fighter failing the count. That is a gap in the implementation, not in the rules, and it is stated here so that a bout going the distance is not mistaken for a bout that could not have been stopped."
+  },
+  "notes": "Selected as the default by Decision 0018. Consequence stated there and worth repeating: every stoppage figure measured before 2026-08-05 was measured under the arcade three-knockdown termination and must be re-run rather than re-read."
+}

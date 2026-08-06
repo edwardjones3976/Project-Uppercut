@@ -127,7 +127,13 @@ PINS = {
         # The canonical stream: no floats, no opt-in diagnostics.
         "current": lambda: O.expected_stream(4242, 1, with_floats=False),
         "describe": _describe_o,
-        "state": "HELD - this pin moves when G1, G2 or G3 is ruled on",
+        # G1 and G5 have landed and moved it twice. G2 and G3 will move it
+        # again, and so will the conversion work the 2026-08-06 measurement
+        # points at. The file grew from ~2,000 lines to ~11,000 when Decision
+        # 0018 removed the three-knockdown stoppage: the round now runs to the
+        # bell instead of ending early, which is the pin recording a real change
+        # in what a bout IS rather than getting bigger for no reason.
+        "state": "HELD - moves on any canon ruling that changes the fight",
     },
     "Q": {
         "path": os.path.join("docs", "phase1a", "golden",

@@ -63,16 +63,47 @@ def test_canon_still_requires_the_decision_path_to_survive():
     assert cm["knockdown"]["decision_path_must_survive"] is True
 
 
-def test_the_decision_path_is_currently_dead():
-    """THE FINDING. Every swept seed ends by stoppage in round one.
+def test_the_decision_path_is_alive_but_for_the_wrong_reason():
+    """THE FINDING, REWRITTEN 2026-08-06 — and the rewrite is the point.
 
-    When this fails, the phase has been fixed - update the record in
-    docs/phase1a/determinism_probe_results.md rather than deleting this test."""
+    This test used to assert `decision == 0`: every swept seed ended by
+    stoppage in round one, and the decision path had never executed. It failed
+    the day Decision 0018 (gate G5) made the professional ruleset the default,
+    because that rulebook has no three-knockdown rule and nothing stops the bout
+    any more.
+
+    The instruction the old docstring carried was "when this fails, the phase
+    has been fixed — update the record rather than deleting this test." Half of
+    that was right. The phase was not fixed. The LID came off:
+
+        24 bouts, 3 rounds, professional rules:  24 of 24 reach the cards
+                                                 22.89 knockdowns PER ROUND
+
+    A fighter put down twenty-three times a round and rising each time is not a
+    fixed fight. `decision_path_must_survive` is satisfied because nothing ends
+    the bout, not because the fighters survive it — so the two things this file
+    now holds are that the path is live AND that it is live for the wrong
+    reason.
+
+    When the second assertion fails, the conversion work has landed. THAT is
+    when the Phase O record gets rewritten.
+    """
     s = O.sweep(SWEEP)
-    assert s["decision"] == 0, (
-        "the decision path has revived (%d of %d seeds) - rewrite the Phase O "
-        "finding" % (s["decision"], s["seeds"]))
-    assert s["stopped_in_round_1"] == s["seeds"]
+    assert s["decision"] > 0, (
+        "the decision path is dead again (%d of %d seeds reached the cards). "
+        "Under the professional default nothing stops a bout on a knockdown "
+        "count, so a stoppage now means a fighter failed the count - check "
+        "whether the ruleset changed before assuming the fight did."
+        % (s["decision"], s["seeds"]))
+    stream = O.expected_stream(4242, 3, with_floats=False)
+    f = dict(kv.split("=", 1) for kv in
+             next(l for l in stream.splitlines()
+                  if l.startswith("S|")).split("|")[1:])
+    per_round = int(f["knockdowns"]) / max(1, int(f["rounds"]))
+    assert per_round > 5.0, (
+        "knockdowns per round is down to %.1f. If that is real, the conversion "
+        "problem is fixed and this test, the Phase O record and the 2026-08-06 "
+        "development log all need rewriting in the same commit." % per_round)
 
 
 def test_no_knockdown_fires_below_the_canon_threshold(stream):

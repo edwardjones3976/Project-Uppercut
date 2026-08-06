@@ -70,6 +70,25 @@ q, fnv1a64 = N.q, N.fnv1a64
 
 CANON = dict(N.CANON, clock="data/clock_model.json")
 CANON_ORDER = N.CANON_ORDER + ("clock",)
+
+# Decision 0018 (gate G5). The default rulebook, by id. Overridable per run via
+# the UPPERCUT_RULESET environment variable so a measurement can be taken under
+# the arcade rules without editing anything - which matters, because every
+# stoppage figure quoted before 2026-08-05 was measured under those and has to
+# be re-run rather than re-read.
+RULESETS = os.path.join("data", "rulesets")
+RULESET_DEFAULT = os.environ.get("UPPERCUT_RULESET", "professional")
+
+
+def load_ruleset(rid: str) -> dict:
+    p = os.path.join(REPO, RULESETS, rid + ".json")
+    if not os.path.exists(p):
+        raise SystemExit("no ruleset %r in %s - a bout cannot run under a "
+                         "rulebook that does not exist" % (rid, RULESETS))
+    r = json.loads(io.open(p, "rb").read())
+    import hashlib
+    r["_sha"] = hashlib.sha256(io.open(p, "rb").read()).hexdigest()
+    return r
 # Rounds are scored on landings; a knockdown costs the man who suffered it a
 # point on top of losing the round. 10-point must, from judge.py.
 ROUND_WIN, ROUND_LOSE = 10, 9
@@ -90,12 +109,28 @@ def canon_pack() -> dict:
         clock["authority"]["tick_rate_hz"])
     c["break_ticks"] = int(cm["recovery"]["between_rounds_break_ticks"])
     c["kd_threshold"] = q(kd["pressure_threshold"])
-    c["count_ticks"] = int(kd["count_ticks_per_number"]) * (
-        8 if kd.get("mandatory_eight_count") else 3)
+    # Decision 0018 (gate G5): the RULEBOOK is named, versioned data, and the
+    # contract records which one it ran under. What used to happen here was that
+    # a three-knockdown stoppage - a rule no professional rulebook has - was
+    # read out of the physiology model and applied to every fight silently.
+    #
+    # The split is one authority each: the ruleset owns how far the referee
+    # counts and what stops a bout; condition_model keeps the count CADENCE,
+    # because ticks-per-number is a timing quantity the physiology already owns.
+    rules = load_ruleset(RULESET_DEFAULT)
+    c["ruleset"] = rules
+    c["count_ticks"] = int(kd["count_ticks_per_number"]) * int(
+        rules["mandatory_count_numbers"])
     c["cond_relief"] = q(kd["count_condition_relief_fraction"])
     c["stam_relief"] = q(kd["count_stamina_relief_fraction"])
-    c["max_per_round"] = int(kd["max_per_round"])
-    c["max_per_bout"] = int(kd["max_per_bout"])
+    # None means "no such rule", which is the professional case. The legacy
+    # condition_model values stay where they are - Phases N and K are sealed and
+    # read them - and a validator holds them equal to the arcade ruleset, so
+    # they are a checked echo rather than a second opinion.
+    c["max_per_round"] = rules["knockdowns_per_round_stoppage"]
+    c["max_per_bout"] = rules["knockdowns_per_bout_stoppage"]
+    c["legacy_max_per_round"] = int(kd["max_per_round"])
+    c["legacy_max_per_bout"] = int(kd["max_per_bout"])
     c["baseline"] = q(pm["undamaged_baseline"])
     c["caught"] = q(pm["caught_committed_multiplier"])
     c["balanced"] = q(pm["balanced_multiplier"])
@@ -130,7 +165,8 @@ def canon_pack() -> dict:
                               if m["posture_mode"] == "boxing_steps"))
 
     errs = list(c["canon_errors"])
-    if c["max_per_round"] > c["max_per_bout"]:
+    if c["max_per_round"] is not None and c["max_per_bout"] is not None \
+            and c["max_per_round"] > c["max_per_bout"]:
         errs.append("the per-round knockdown limit exceeds the per-bout limit, so "
                     "the round rule could never fire")
     if not kd.get("decision_path_must_survive", False):
@@ -218,6 +254,12 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True,
     c = canon_pack()
     lines = ["H|phase=O"]
     lines += ["H|canon_%s=%s" % (k, c["sha"][k]) for k in CANON_ORDER]
+    # Decision 0018: the rulebook is part of the artifact. A stream that does not
+    # say which rules it ran under cannot be compared with one that ran under
+    # different ones, and this project spent a week doing exactly that.
+    lines += ["H|ruleset=%s" % c["ruleset"]["id"],
+              "H|ruleset_version=%s" % c["ruleset"]["version"],
+              "H|canon_ruleset=%s" % c["ruleset"]["_sha"]]
     lines += ["H|seed=%d" % seed, "H|rounds=%d" % rounds,
               "H|round_ticks=%d" % c["round_ticks"],
               "H|break_ticks=%d" % c["break_ticks"],
@@ -377,10 +419,18 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True,
                                                          * c["cond_relief"]) // 10000
                                     st[opp] += ((c["st_max"] - st[opp])
                                                 * c["stam_relief"]) // 10000
-                                    if kd_round[opp] >= c["max_per_round"]:
+                                    # Decision 0018: a knockdown count only ends
+                                    # a bout if the RULESET says one does. Under
+                                    # the professional default both limits are
+                                    # null, and a fighter who keeps rising keeps
+                                    # fighting - which is what makes the cards
+                                    # reachable at all.
+                                    if c["max_per_round"] is not None \
+                                            and kd_round[opp] >= c["max_per_round"]:
                                         stopped, stop_reason = True, "three_knockdown_rule"
                                         stop_loser = opp
-                                    elif kd_total[opp] >= c["max_per_bout"]:
+                                    elif c["max_per_bout"] is not None \
+                                            and kd_total[opp] >= c["max_per_bout"]:
                                         stopped, stop_reason = True, "knockdown_limit"
                                         stop_loser = opp
                     elif k > mv["startup"] + mv["active"]:
@@ -634,7 +684,7 @@ def analyse(path: str) -> dict:
             per_round.setdefault(int(r[2]), []).append(int(r[3]))
         for rnd, kds in per_round.items():
             for k in kds:
-                if k > c["max_per_round"]:
+                if c["max_per_round"] is not None and k > c["max_per_round"]:
                     rep["errors"].append("round %d records more knockdowns than "
                                          "canon's per-round maximum" % rnd)
 
@@ -650,7 +700,8 @@ def analyse(path: str) -> dict:
         if int(trail["knockdowns"]) != len(krow):
             rep["errors"].append("the trailer's knockdown count disagrees with the "
                                  "K rows")
-        if int(trail["knockdowns"]) > 2 * c["max_per_bout"]:
+        if c["max_per_bout"] is not None \
+                and int(trail["knockdowns"]) > 2 * c["max_per_bout"]:
             rep["errors"].append("more knockdowns than both fighters' bout limits "
                                  "allow")
         rep["knockdowns"] = int(trail["knockdowns"])
