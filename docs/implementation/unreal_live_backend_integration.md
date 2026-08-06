@@ -84,7 +84,42 @@ One claim was corrected rather than left standing: Phase Q's record said its pin
 "will survive the open gates." The fight survived; the bytes did not, because
 Phase Q hashes a file it does not otherwise read.
 
-## Milestone 2 — authoritative runtime subsystem. NOT STARTED
+## Milestone 2 — authoritative runtime subsystem. GROUNDWORK DONE
+
+**2026-08-06: the rules are now callable at runtime.** `UppercutRangeCore`
+(`Public/UppercutRangeCore.h`, `Private/UppercutRangeCore.cpp`) holds Phase Q's
+rules as plain fixed-point functions — no UObject, no ticking, no logging, no
+file IO. `UppercutCoreRangeCommandlet` is now a *caller*: it loads canon, drives
+the clock and writes rows.
+
+This had to happen before anything else in this milestone. The proven C++ lived
+inside commandlet `Main()` functions, monolithic and file-scoped and reachable
+only by running the editor headless. A runtime subsystem could not call any of
+it, so a live arena would have had to re-implement the rules — and two
+implementations of one rule is the defect this repository spends most of its
+discipline avoiding.
+
+**The refactor's safety net is the parity proof itself.** After the extraction
+the commandlet still emits byte-identical streams:
+
+    seed 4242, 5400 ticks  32fb8185...   unchanged
+    seed  777, 5400 ticks  02f3832e...   unchanged
+    seed 4242,  900 ticks  b8acb84e...   unchanged
+
+That is a stronger statement about a refactor than a test suite can make: the
+fight is provably the same fight.
+
+Design rules for anything else extracted this way, so it stays usable from both
+sides: no UObject, fixed-point integers only, every division through
+`UppercutFloorDiv` (Python's `//` floors and C++ `/` truncates, and that is the
+seam where a port silently diverges), and canon arrives as **data** — loaded by
+whoever has a file system, the commandlet from disk and the subsystem from a
+data asset.
+
+**Still to do in M2:** the same extraction for Phase R, then the subsystem,
+match director and fighter classes.
+
+## Milestone 2 (continued) — the subsystem itself. NOT STARTED
 
 Planned shape, recorded so the next session does not re-derive it:
 

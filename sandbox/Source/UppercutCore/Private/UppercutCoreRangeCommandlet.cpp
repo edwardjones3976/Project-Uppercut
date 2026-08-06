@@ -1,4 +1,4 @@
-// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 21:20 UTC | START ]
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 14:25 UTC | START ]
 #include "UppercutCoreRangeCommandlet.h"
 
 #include "Dom/JsonObject.h"
@@ -7,6 +7,13 @@
 #include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
+#include "UppercutRangeCore.h"
+
+// THE RULES NO LONGER LIVE HERE. They are in UppercutRangeCore, so a live
+// runtime can call the same code a marker stream is proven against; this file
+// loads canon, drives the clock and writes rows. The refactor's safety net is
+// the parity proof itself - the stream must stay byte-identical, which is a
+// stronger statement about a refactor than a test suite can make.
 
 // SHA-256 (FIPS 180-4), file-local like every evidence probe's.
 namespace UppercutRangeSha256
@@ -79,28 +86,8 @@ namespace
     const uint32 LcgC = 1013904223u;
     const uint64 FnvOffset = 14695981039346656037ull;
     const uint64 FnvPrime = 1099511628211ull;
-    const int64 Unbounded = -1;
 
     int64 Q(double V) { return (int64)FMath::RoundToDouble(V * 10000.0); }
-
-    // Python's // floors; C++ / truncates toward zero. Every scaled quantity in
-    // this phase goes through here, so a negative delta cannot round the other
-    // way in the port and silently move a fighter one unit further than the
-    // contract does. `rope_retreat_multiplier` is 0.0 today and the two agree
-    // by luck; this is what makes them agree on purpose.
-    int64 FloorDiv(int64 A, int64 B)
-    {
-        int64 R = A / B;
-        if ((A % B != 0) && ((A < 0) != (B < 0))) { --R; }
-        return R;
-    }
-
-    struct FQMove
-    {
-        int32 Startup = 0, Active = 0, Frames = 0;
-        int64 Ext = 0;
-        bool bPunch = false;
-    };
 
     bool LoadJsonQ(const FString& Path, TSharedPtr<FJsonObject>& OutRoot, FString& OutSha)
     {
@@ -115,6 +102,13 @@ namespace
         const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Text);
         return FJsonSerializer::Deserialize(Reader, OutRoot) && OutRoot.IsValid();
     }
+
+    // Nine actions, drawn flat, in the contract's order. The index into this
+    // array IS the LCG word modulo nine, so the order is part of the artifact.
+    const TCHAR* ActionName[9] = { TEXT("idle"), TEXT("step_in"), TEXT("step_out"),
+                                   TEXT("step_lateral"), TEXT("jab_lead"),
+                                   TEXT("cross_rear"), TEXT("hook_lead"),
+                                   TEXT("uppercut_rear"), TEXT("body_straight_rear") };
 }
 
 int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
@@ -149,46 +143,45 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
         }
     }
 
-    // ---- canon into the shared integer contract ------------------------------
-    TArray<FString> BKey;
-    TArray<int64> BLo, BHi;
+    // ---- canon into the shared integer contract ---------------------------
+    FUppercutRangeCanon C;
     const TSharedPtr<FJsonObject> RB = Root[0]->GetObjectField(TEXT("range_bands"));
     for (const TSharedPtr<FJsonValue>& V : RB->GetArrayField(TEXT("bands")))
     {
         const TSharedPtr<FJsonObject> B = V->AsObject();
-        BKey.Add(B->GetStringField(TEXT("key")));
-        BLo.Add(Q(B->GetNumberField(TEXT("min_ru"))));
-        BHi.Add(B->HasTypedField<EJson::Number>(TEXT("max_ru"))
-                ? Q(B->GetNumberField(TEXT("max_ru"))) : Unbounded);
+        C.BandKey.Add(B->GetStringField(TEXT("key")));
+        C.BandLo.Add(Q(B->GetNumberField(TEXT("min_ru"))));
+        C.BandHi.Add(B->HasTypedField<EJson::Number>(TEXT("max_ru"))
+                     ? Q(B->GetNumberField(TEXT("max_ru")))
+                     : FUppercutRangeCanon::Unbounded);
     }
-    const int64 Hyst = Q(RB->GetNumberField(TEXT("hysteresis_ru")));
+    C.Hyst = Q(RB->GetNumberField(TEXT("hysteresis_ru")));
     const TSharedPtr<FJsonObject> Loco = Root[0]->GetObjectField(TEXT("locomotion"));
-    int64 Stride = 0;
     for (const TSharedPtr<FJsonValue>& V : Loco->GetArrayField(TEXT("modes")))
     {
         const TSharedPtr<FJsonObject> M = V->AsObject();
         if (M->GetStringField(TEXT("posture_mode")) == TEXT("boxing_steps"))
         {
-            Stride = Q(M->GetNumberField(TEXT("stride_length_ru")));
+            C.Stride = Q(M->GetNumberField(TEXT("stride_length_ru")));
         }
     }
-    const int64 Cap = Q(Loco->GetNumberField(TEXT("max_frame_displacement_ru")));
+    C.Cap = Q(Loco->GetNumberField(TEXT("max_frame_displacement_ru")));
     const TSharedPtr<FJsonObject> Dir = Loco->GetObjectField(TEXT("directional"));
-    const int64 DirAdvance = Q(Dir->GetNumberField(TEXT("advance_stride_multiplier")));
-    const int64 DirRetreat = Q(Dir->GetNumberField(TEXT("retreat_stride_multiplier")));
-    const int64 DirLateral = Q(Dir->GetNumberField(TEXT("lateral_stride_multiplier")));
-    const int64 MinSep = Q(Root[0]->GetObjectField(TEXT("separation"))
-                           ->GetNumberField(TEXT("min_center_distance_ru")));
+    C.DirAdvance = Q(Dir->GetNumberField(TEXT("advance_stride_multiplier")));
+    C.DirRetreat = Q(Dir->GetNumberField(TEXT("retreat_stride_multiplier")));
+    C.DirLateral = Q(Dir->GetNumberField(TEXT("lateral_stride_multiplier")));
+    C.MinSep = Q(Root[0]->GetObjectField(TEXT("separation"))
+                 ->GetNumberField(TEXT("min_center_distance_ru")));
     const TSharedPtr<FJsonObject> Track =
         Root[0]->GetObjectField(TEXT("ring"))->GetObjectField(TEXT("track"));
-    const int64 Axis = Q(Track->GetNumberField(TEXT("axis_length_ru")));
-    const int64 Ropes = Q(Track->GetNumberField(TEXT("back_to_ropes_ru")));
-    const int64 RopeRetreat = Q(Track->GetNumberField(TEXT("rope_retreat_multiplier")));
+    C.Axis = Q(Track->GetNumberField(TEXT("axis_length_ru")));
+    C.Ropes = Q(Track->GetNumberField(TEXT("back_to_ropes_ru")));
+    C.RopeRetreat = Q(Track->GetNumberField(TEXT("rope_retreat_multiplier")));
 
     const TSharedPtr<FJsonObject> Pose = Root[3];
-    const int64 HalfDepth = Q(Pose->GetObjectField(TEXT("body"))->GetNumberField(TEXT("half_depth_ru")));
+    C.HalfDepth = Q(Pose->GetObjectField(TEXT("body"))->GetNumberField(TEXT("half_depth_ru")));
     const TSharedPtr<FJsonObject> Fist = Pose->GetObjectField(TEXT("fist"));
-    const int64 Retracted = Q(Fist->GetNumberField(TEXT("retracted_ru")));
+    C.Retracted = Q(Fist->GetNumberField(TEXT("retracted_ru")));
     TMap<FString, int64> ExtBy;
     for (const TSharedPtr<FJsonValue>& V : Fist->GetArrayField(TEXT("extension_by_move")))
     {
@@ -201,11 +194,6 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
     {
         Anim.Add(V->AsObject()->GetStringField(TEXT("move_id")), V->AsObject());
     }
-
-    // Every move that declares a band, and the band it declares. The M rows are
-    // emitted from this map sorted by id, so a port that iterated a hash map
-    // would be caught before the first tick.
-    TMap<FString, FString> MoveBand;
     TMap<FString, TSharedPtr<FJsonObject>> Moves;
     for (const TSharedPtr<FJsonValue>& V : Root[1]->GetArrayField(TEXT("moves")))
     {
@@ -214,17 +202,9 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
         FString Band;
         if (M->TryGetStringField(TEXT("range_band"), Band) && !Band.IsEmpty())
         {
-            MoveBand.Add(M->GetStringField(TEXT("id")), Band);
+            C.MoveBand.Add(M->GetStringField(TEXT("id")), Band);
         }
     }
-
-    // Nine actions, drawn flat, in the contract's order. The index into this
-    // array IS the LCG word modulo nine, so the order is part of the artifact.
-    const TCHAR* ActionName[9] = { TEXT("idle"), TEXT("step_in"), TEXT("step_out"),
-                                   TEXT("step_lateral"), TEXT("jab_lead"),
-                                   TEXT("cross_rear"), TEXT("hook_lead"),
-                                   TEXT("uppercut_rear"), TEXT("body_straight_rear") };
-    TMap<FString, FQMove> Mv;
     for (int32 a = 1; a < 9; ++a)
     {
         const FString Id = ActionName[a];
@@ -234,7 +214,7 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
             UE_LOG(LogTemp, Error, TEXT("UppercutCoreRange: move %s is not in canon"), *Id);
             return 1;
         }
-        FQMove D;
+        FUppercutRangeMove D;
         if (a >= 4)
         {
             const TSharedPtr<FJsonObject>* A = Anim.Find(Id);
@@ -255,137 +235,10 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
             D.Frames = (int32)(*M)->GetNumberField(TEXT("startup_frames"))
                      + (int32)(*M)->GetNumberField(TEXT("recovery_frames"));
         }
-        Mv.Add(Id, D);
+        C.Moves.Add(Id, D);
     }
 
-    // ---- the canon checks, counted rather than described --------------------
-    // Only the count reaches the stream (V|canon_errors), so the order these
-    // run in does not matter; that they all run does.
-    int32 CanonErrors = 0;
-    for (int32 i = 0; i + 1 < BKey.Num(); ++i)
-    {
-        if (BHi[i] != BLo[i + 1]) { ++CanonErrors; }
-    }
-    if (BLo[0] != 0) { ++CanonErrors; }
-    if (BHi.Last() != Unbounded) { ++CanonErrors; }
-    int64 NarrowestBand = MAX_int64;
-    for (int32 i = 0; i < BKey.Num(); ++i)
-    {
-        if (BHi[i] != Unbounded) { NarrowestBand = FMath::Min(NarrowestBand, BHi[i] - BLo[i]); }
-    }
-    if (Hyst >= NarrowestBand) { ++CanonErrors; }
-    if (Stride <= 0 || Cap <= 0) { ++CanonErrors; }
-    if (MinSep >= BHi[0]) { ++CanonErrors; }
-    for (int32 a = 4; a < 9; ++a)
-    {
-        const FString Id = ActionName[a];
-        if (Mv[Id].Ext <= HalfDepth) { ++CanonErrors; }
-        if (Mv[Id].Active <= 0) { ++CanonErrors; }
-        if (!MoveBand.Contains(Id)) { ++CanonErrors; }
-    }
-
-    // ---- the rules, one lambda each, same names as the contract -------------
-    auto BandAt = [&](int64 Sep)
-    {
-        for (int32 i = 0; i < BKey.Num(); ++i)
-        {
-            if (Sep >= BLo[i] && (BHi[i] == Unbounded || Sep < BHi[i])) { return i; }
-        }
-        return BKey.Num() - 1;
-    };
-    auto ResolveBand = [&](int32 Cur, int64 Sep)
-    {
-        if (Cur < 0 || Cur >= BKey.Num()) { return BandAt(Sep); }
-        if (Sep < BLo[Cur] - Hyst) { return BandAt(Sep); }
-        if (BHi[Cur] != Unbounded && Sep >= BHi[Cur] + Hyst) { return BandAt(Sep); }
-        return Cur;
-    };
-    auto InBand = [&](const FString& Id, int32 BandIdx)
-    {
-        const FString* B = MoveBand.Find(Id);
-        return B != nullptr && *B == BKey[BandIdx];
-    };
-    auto Drain = [&](int64 Pending, int64& OutPending)
-    {
-        if (Pending == 0) { OutPending = 0; return (int64)0; }
-        const int64 Step = FMath::Max(-Cap, FMath::Min(Cap, Pending));
-        OutPending = Pending - Step;
-        return Step;
-    };
-    auto ClampSeparation = [&](int64 Sep) { return FMath::Max(MinSep, Sep); };
-    auto StepDelta = [&](const FString& Action)
-    {
-        if (Action == TEXT("step_in")) { return -Stride; }
-        if (Action == TEXT("step_out")) { return Stride; }
-        return (int64)0;
-    };
-    auto RopeScaled = [&](int64 Pos, int64 Delta, int64 Opponent)
-    {
-        if (Delta == 0) { return (int64)0; }
-        const bool bRetreating = (Pos < Opponent) ? (Delta < 0) : (Delta > 0);
-        if (!bRetreating) { return Delta; }
-        const int64 Edge = (Delta < 0) ? Pos : Axis - Pos;
-        if (Edge <= Ropes) { return FloorDiv(Delta * RopeRetreat, 10000); }
-        return Delta;
-    };
-
-    // ---- the four properties, proven here rather than asserted --------------
-    auto FootworkIsNotInert = [&]()
-    {
-        const int64 Start = Q(0.90);
-        const int32 Band0 = BandAt(Start);
-        int64 Sep = Start;
-        int32 Cur = Band0;
-        for (int32 i = 0; i < 20; ++i)
-        {
-            Sep = ClampSeparation(Sep + StepDelta(TEXT("step_in")));
-            Cur = ResolveBand(Cur, Sep);
-            if (Cur != Band0) { return true; }
-        }
-        return false;
-    };
-    auto UppercutIsReachable = [&]()
-    {
-        const int64 MidSep = Q(0.90);
-        if (InBand(TEXT("uppercut_rear"), BandAt(MidSep))) { return false; }
-        const int64 Reach = Mv[TEXT("uppercut_rear")].Ext;
-        int64 Sep = MidSep;
-        int32 Cur = BandAt(MidSep);
-        for (int32 i = 0; i < 20; ++i)
-        {
-            Sep = ClampSeparation(Sep + StepDelta(TEXT("step_in")));
-            Cur = ResolveBand(Cur, Sep);
-            if (InBand(TEXT("uppercut_rear"), Cur) && Reach >= Sep - HalfDepth) { return true; }
-        }
-        return false;
-    };
-    auto HysteresisKillsFlicker = [&]()
-    {
-        for (int32 i = 0; i < BKey.Num(); ++i)
-        {
-            if (BHi[i] == Unbounded) { continue; }
-            const int32 Here = BandAt(BHi[i] - 1);
-            if (ResolveBand(Here, BHi[i] + Hyst / 2) != Here) { return false; }
-        }
-        return true;
-    };
-    auto RunningIsFinite = [&]()
-    {
-        int64 Pos = Axis / 2 - 4500;
-        const int64 Opp = Axis / 2 + 4500;
-        int64 Last = MIN_int64;
-        for (int32 i = 0; i < 200; ++i)
-        {
-            const int64 D = RopeScaled(Pos, -Cap, Opp);
-            Pos = FMath::Max((int64)0, FMath::Min(Axis, Pos + D));
-            if (D == 0) { return true; }
-            if (Pos == Last) { return true; }
-            Last = Pos;
-        }
-        return false;
-    };
-
-    // ---- the header: canon before any tick ----------------------------------
+    // ---- the header: canon before any tick --------------------------------
     FString Out;
     Out += TEXT("H|phase=Q\n");
     for (int32 i = 0; i < 4; ++i)
@@ -393,26 +246,27 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
         Out += FString::Printf(TEXT("H|canon_%s=%s\n"), ShaName[i], *Sha[i]);
     }
     Out += FString::Printf(TEXT("H|seed=%u\nH|ticks=%d\n"), Seed, Ticks);
-    for (int32 i = 0; i < BKey.Num(); ++i)
+    for (int32 i = 0; i < C.BandKey.Num(); ++i)
     {
-        Out += FString::Printf(TEXT("B|%d|%s|%lld|%lld\n"), i, *BKey[i], BLo[i], BHi[i]);
+        Out += FString::Printf(TEXT("B|%d|%s|%lld|%lld\n"), i, *C.BandKey[i],
+                               C.BandLo[i], C.BandHi[i]);
     }
     Out += FString::Printf(
         TEXT("K|hyst=%lld|stride=%lld|cap=%lld|min_sep=%lld|axis=%lld|ropes=%lld")
         TEXT("|rope_retreat=%lld|advance=%lld|retreat=%lld|lateral=%lld")
         TEXT("|half_depth=%lld|retracted=%lld\n"),
-        Hyst, Stride, Cap, MinSep, Axis, Ropes, RopeRetreat,
-        DirAdvance, DirRetreat, DirLateral, HalfDepth, Retracted);
+        C.Hyst, C.Stride, C.Cap, C.MinSep, C.Axis, C.Ropes, C.RopeRetreat,
+        C.DirAdvance, C.DirRetreat, C.DirLateral, C.HalfDepth, C.Retracted);
     TArray<FString> BandedMoves;
-    MoveBand.GetKeys(BandedMoves);
+    C.MoveBand.GetKeys(BandedMoves);
     BandedMoves.Sort();
     for (const FString& Id : BandedMoves)
     {
-        Out += FString::Printf(TEXT("M|%s|%s\n"), *Id, *MoveBand[Id]);
+        Out += FString::Printf(TEXT("M|%s|%s\n"), *Id, *C.MoveBand[Id]);
     }
 
-    // ---- state --------------------------------------------------------------
-    int64 Pos[2] = { Axis / 2 - 4500, Axis / 2 + 4500 };
+    // ---- state ------------------------------------------------------------
+    int64 Pos[2] = { C.Axis / 2 - 4500, C.Axis / 2 + 4500 };
     int64 Pending[2] = { 0, 0 };
     int32 Busy[2] = { 0, 0 };
     bool bInFlight[2] = { false, false };
@@ -420,7 +274,7 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
     int32 PunchT0[2] = { 0, 0 };
     int32 PunchBand[2] = { 0, 0 };
     bool bPunchLegal[2] = { false, false };
-    int32 Band[2] = { BandAt(Pos[1] - Pos[0]), BandAt(Pos[1] - Pos[0]) };
+    int32 Band[2] = { C.BandAt(Pos[1] - Pos[0]), C.BandAt(Pos[1] - Pos[0]) };
     uint32 X = Seed;
     uint64 Fnv = FnvOffset;
     int64 Rows = 0, Decisions = 0, Idles = 0, Steps = 0, Laterals = 0, Punches = 0;
@@ -441,21 +295,21 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
     {
         for (int32 i = 0; i < 2; ++i)
         {
-            // ---- 1. deliver movement already owed, at most the cap ----------
+            // ---- 1. deliver movement already owed, at most the cap --------
             if (Pending[i] != 0)
             {
                 int64 NextPending = 0;
-                const int64 Step = Drain(Pending[i], NextPending);
+                const int64 Step = C.Drain(Pending[i], NextPending);
                 Pending[i] = NextPending;
                 const int64 Before = Pos[i];
-                Pos[i] = FMath::Max((int64)0, FMath::Min(Axis, Pos[i] + Step));
+                Pos[i] = FMath::Max((int64)0, FMath::Min(C.Axis, Pos[i] + Step));
                 FString Flags;
-                if (Pos[1] - Pos[0] < MinSep)
+                if (Pos[1] - Pos[0] < C.MinSep)
                 {
-                    if (i == 0) { Pos[0] = Pos[1] - MinSep; }
-                    else { Pos[1] = Pos[0] + MinSep; }
+                    if (i == 0) { Pos[0] = Pos[1] - C.MinSep; }
+                    else { Pos[1] = Pos[0] + C.MinSep; }
                     Pos[0] = FMath::Max((int64)0, Pos[0]);
-                    Pos[1] = FMath::Min(Axis, Pos[1]);
+                    Pos[1] = FMath::Min(C.Axis, Pos[1]);
                     // The rest of the stride is refused, not banked.
                     Pending[i] = 0;
                     Flags += TEXT("m");
@@ -471,38 +325,39 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
                                      Flags.IsEmpty() ? TEXT("-") : *Flags));
                 for (int32 j = 0; j < 2; ++j)
                 {
-                    const int32 Nb = ResolveBand(Band[j], Sep);
+                    const int32 Nb = C.ResolveBand(Band[j], Sep);
                     if (Nb != Band[j])
                     {
                         Emit(FString::Printf(TEXT("R|%d|%d|%s|%s|%lld\n"),
-                                             T, j, *BKey[Band[j]], *BKey[Nb], Sep));
+                                             T, j, *C.BandKey[Band[j]],
+                                             *C.BandKey[Nb], Sep));
                         Band[j] = Nb;
                         ++Transitions;
                     }
                 }
             }
 
-            // ---- 2. a punch in flight ---------------------------------------
+            // ---- 2. a punch in flight -------------------------------------
             if (bInFlight[i])
             {
-                const FQMove& M = Mv[PunchMove[i]];
+                const FUppercutRangeMove& M = C.Moves[PunchMove[i]];
                 const int32 Kk = T - PunchT0[i];
                 const int32 Span = M.Startup + M.Active;
                 if (Kk > M.Startup && Kk <= Span)
                 {
-                    const int64 TipExt = Retracted + FloorDiv((M.Ext - Retracted) * Kk, Span);
+                    const int64 TipExt = C.TipExtension(M, Kk);
                     int64 Tip = 0, Surface = 0;
                     bool bArrived = false;
                     if (i == 0)
                     {
                         Tip = Pos[0] + TipExt;
-                        Surface = Pos[1] - HalfDepth;
+                        Surface = Pos[1] - C.HalfDepth;
                         bArrived = Tip >= Surface;
                     }
                     else
                     {
                         Tip = Pos[1] - TipExt;
-                        Surface = Pos[0] + HalfDepth;
+                        Surface = Pos[0] + C.HalfDepth;
                         bArrived = Tip <= Surface;
                     }
                     const TCHAR* Result = nullptr;
@@ -525,7 +380,7 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
                         Emit(FString::Printf(
                             TEXT("P|%d|%d|%s|%s|%s|%d|%lld|%lld|%s|%d\n"),
                             T, i, *PunchMove[i], Result, Reason, Kk, Tip, Surface,
-                            *BKey[PunchBand[i]], bPunchLegal[i] ? 1 : 0));
+                            *C.BandKey[PunchBand[i]], bPunchLegal[i] ? 1 : 0));
                         bInFlight[i] = false;
                     }
                 }
@@ -535,7 +390,7 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
                 }
             }
 
-            // ---- 3. commitment ----------------------------------------------
+            // ---- 3. commitment --------------------------------------------
             // A step keeps draining while its owner is committed: that is what
             // makes "entering is when counters land" true rather than stated.
             if (Busy[i] > 0)
@@ -544,7 +399,7 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
                 continue;
             }
 
-            // ---- 4. one decision --------------------------------------------
+            // ---- 4. one decision ------------------------------------------
             X = LcgA * X + LcgC;          // uint32 wraps, which IS mod 2^32
             const int32 Choice = (int32)(X % 9u);
             const FString Action = ActionName[Choice];
@@ -556,8 +411,8 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
             }
             else if (Choice >= 4)
             {
-                Busy[i] = Mv[Action].Frames;
-                const bool bLegal = InBand(Action, Band[i]);
+                Busy[i] = C.Moves[Action].Frames;
+                const bool bLegal = C.InBand(Action, Band[i]);
                 bInFlight[i] = true;
                 PunchMove[i] = Action;
                 PunchT0[i] = T;
@@ -568,7 +423,7 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
             }
             else
             {
-                Busy[i] = Mv[Action].Frames;
+                Busy[i] = C.Moves[Action].Frames;
                 ++Steps;
                 if (Choice == 3)
                 {
@@ -581,25 +436,29 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
                 {
                     const int64 Toward = (i == 0) ? 1 : -1;
                     const int64 Sign = (Choice == 1) ? Toward : -Toward;
-                    const int64 Mul = (Choice == 1) ? DirAdvance : DirRetreat;
-                    const int64 Delta = Sign * FloorDiv(Stride * Mul, 10000);
-                    const int64 Scaled = RopeScaled(Pos[i], Delta, Pos[1 - i]);
+                    const int64 Mul = (Choice == 1) ? C.DirAdvance : C.DirRetreat;
+                    const int64 Delta = Sign * UppercutFloorDiv(C.Stride * Mul, 10000);
+                    const int64 Scaled = C.RopeScaled(Pos[i], Delta, Pos[1 - i]);
                     if (Scaled != Delta) { ++Roped; Mark = TEXT("r"); }
                     Pending[i] = Scaled;
                 }
             }
             Emit(FString::Printf(TEXT("D|%d|%d|%s|%u|%lld|%lld|%lld|%s|%lld|%s\n"),
                                  T, i, *Action, X, Pos[0], Pos[1], Pos[1] - Pos[0],
-                                 *BKey[Band[i]], Pending[i], *Mark));
+                                 *C.BandKey[Band[i]], Pending[i], *Mark));
         }
     }
 
     // ---- the properties, inside the hash ------------------------------------
-    Emit(FString::Printf(TEXT("V|footwork_is_not_inert|%d\n"), FootworkIsNotInert() ? 1 : 0));
-    Emit(FString::Printf(TEXT("V|uppercut_is_reachable|%d\n"), UppercutIsReachable() ? 1 : 0));
-    Emit(FString::Printf(TEXT("V|hysteresis_kills_flicker|%d\n"), HysteresisKillsFlicker() ? 1 : 0));
-    Emit(FString::Printf(TEXT("V|running_is_finite|%d\n"), RunningIsFinite() ? 1 : 0));
-    Emit(FString::Printf(TEXT("V|canon_errors|%d\n"), CanonErrors));
+    Emit(FString::Printf(TEXT("V|footwork_is_not_inert|%d\n"),
+                         C.FootworkIsNotInert() ? 1 : 0));
+    Emit(FString::Printf(TEXT("V|uppercut_is_reachable|%d\n"),
+                         C.UppercutIsReachable() ? 1 : 0));
+    Emit(FString::Printf(TEXT("V|hysteresis_kills_flicker|%d\n"),
+                         C.HysteresisKillsFlicker() ? 1 : 0));
+    Emit(FString::Printf(TEXT("V|running_is_finite|%d\n"),
+                         C.RunningIsFinite() ? 1 : 0));
+    Emit(FString::Printf(TEXT("V|canon_errors|%d\n"), C.CanonErrors()));
 
     Out += FString::Printf(
         TEXT("S|rows=%lld|decisions=%lld|idles=%lld|steps=%lld|laterals=%lld")
@@ -619,4 +478,4 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
     UE_LOG(LogTemp, Display, TEXT("UppercutCoreRange: %lld rows, fnv1a64=%016llx"), Rows, Fnv);
     return 0;
 }
-// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 21:20 UTC | END ]
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 14:25 UTC | END ]
