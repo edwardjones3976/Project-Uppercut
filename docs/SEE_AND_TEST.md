@@ -12,6 +12,48 @@ installed.
 
 ---
 
+## Press Play on it
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 22:40 UTC | arena start ] -->
+
+Open `sandbox\UppercutSandbox.uproject`, open
+`/Game/ProjectUppercut/Maps/L_UppercutDevArena`, press Play. Two fighters close
+and open distance on canon's ring axis, throw punches, and miss when they throw
+from the wrong band.
+
+| Key | Does |
+|---|---|
+| `Space` | pause / resume |
+| `.` | one tick |
+| `,` | one second |
+| `R` | restart, same seed |
+| `N` | next seed |
+| `[` `]` `\` | slower / faster / 1x |
+| `P` | dump the round to `Saved\live\` as a marker stream |
+
+The fight you are watching is the artifact the parity proof is taken against —
+same canon reader, same loop, same stream format, not a runtime that agrees with
+it. That claim is checkable:
+
+```
+python -m tools.engine.prove_live_arena        # ~2 minutes, needs UE
+```
+
+It drives the real subsystem inside a real world, through the same single-step
+control the `.` key uses, and compares the dump to the contract byte for byte.
+
+Phase Q is a fight about **distance**. There is no guard, stamina, damage,
+knockdown or round structure in the arena, because Phase O is held on gate
+**G7**. Full write-up: `docs\implementation\live_dev_arena.md`.
+
+To rebuild the map after changing the actors:
+
+```
+python -m tools.engine.make_dev_arena
+```
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 22:40 UTC | arena end ] -->
+
 ## Look at it
 
 ```
@@ -52,7 +94,7 @@ unfixed, so you are not seeing them for the first time in a screenshot:
 ## Test it
 
 ```
-python -m pytest -q                            # 745 tests, ~2 minutes
+python -m pytest -q                            # 811 tests, ~2.5 minutes
 python -m tools.uppercut_validate.cli all      # canon validators, ~10 seconds
 ```
 
@@ -63,6 +105,7 @@ Both must be clean before anything is pushed. CI runs the same two.
 ```
 python -m tools.engine.prove_core_range        # Phase Q, ~2 minutes, needs UE
 python -m tools.engine.prove_core_evade        # Phase R, ~2 minutes, needs UE
+python -m tools.engine.prove_live_arena        # the arena itself, ~2 min, needs UE
 python -m tools.engine.golden --diff           # every pinned stream, no UE needed
 ```
 

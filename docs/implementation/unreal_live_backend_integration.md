@@ -116,12 +116,37 @@ seam where a port silently diverges), and canon arrives as **data** — loaded b
 whoever has a file system, the commandlet from disk and the subsystem from a
 data asset.
 
-**Still to do in M2:** the same extraction for Phase R, then the subsystem,
-match director and fighter classes.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 22:45 UTC | M2/M3 status start ] -->
+**M2 is now done, and so is the first useful slice of M3.** Full write-up:
+`docs/implementation/live_dev_arena.md`.
 
-## Milestone 2 (continued) — the subsystem itself. NOT STARTED
+Phase R was extracted the same way (`UppercutEvadeCore`,
+`UppercutEvadeCanonLoader`, `UppercutEvadeSession`), and two further seams came
+out of Phase Q that the plan below did not anticipate: the **canon reader**
+(`UppercutRangeCanonLoader`) and the **stream's shape**
+(`UppercutRangeStream`). Both were extracted because a subsystem that parsed
+canon or wrote a header itself would be a second opinion about each — and a
+stream written by a second writer is a lookalike, not the same artifact.
 
-Planned shape, recorded so the next session does not re-derive it:
+Four extractions, six pinned hashes, none moved. The parity proof was the safety
+net at every step: byte-identity is a stronger statement about a refactor than a
+test suite can make.
+
+Shipped: `UUppercutFightSubsystem`, `AUppercutMatchDirector`,
+`AUppercutFighterBase`, `L_UppercutDevArena`, the keyboard control set, and
+`tools/engine/prove_live_arena.py` — which drives the real subsystem in a real
+`UWorld` through its own single-step control and proves the arena's own dump
+against the contract. **LIVE PROVEN** at 4242/1200 and 777/900.
+
+Not yet done from the plan below: the data assets, `WBP_UppercutDevHUD`, and the
+presentation soul proof. Those are presentation, and they now have a proven
+authoritative source to present.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 22:45 UTC | M2/M3 status end ] -->
+
+## Milestone 2 (continued) — the subsystem itself. DONE 2026-08-06
+
+Planned shape, recorded before it was built, and kept here so the built thing
+can be compared against what was intended:
 
 - `UUppercutFightSubsystem` — owns one fight session, advances the fixed
   authoritative tick, accepts seed / ruleset / profiles / rounds / clock mode,
@@ -142,10 +167,23 @@ The existing commandlets stay. They are evidence harnesses and the parity proof
 runs through them; the subsystem is a second consumer of the same rules, not a
 replacement.
 
-## Milestone 3 — the live arena, controls, HUD, presentation. NOT STARTED
+## Milestone 3 — the live arena, controls, HUD, presentation. PART DONE
 
-`/Game/ProjectUppercut/Maps/L_UppercutDevArena`, the control set, the debug
-visualisation, and the soul proof. Nothing exists yet.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 22:45 UTC | M3 status start ] -->
+Done: `/Game/ProjectUppercut/Maps/L_UppercutDevArena` (authored offline by
+`tools/engine/build_dev_arena.py` and regenerated rather than patched, so the
+committed map is always exactly what that file says), and the control set —
+pause, one tick, one second, restart, reseed, speed, dump.
+
+Not done: `WBP_UppercutDevHUD`, the debug visualisation, and the soul proof. The
+data the HUD needs is already exposed and already inside the hash — the running
+marker hash, the row count, the canon file hashes, and every trailer counter —
+so the HUD is a presentation job now rather than a plumbing one.
+
+What the arena deliberately does **not** show: guard, stamina, damage,
+knockdown, round structure. Those are Phases O, P and S, and **Phase O is held
+on G7**.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 22:45 UTC | M3 status end ] -->
 
 ## Parity boundary
 
