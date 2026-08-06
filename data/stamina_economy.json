@@ -1,0 +1,130 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-06 23:10 UTC",
+    "end": "2026-08-06 23:10 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$comment": "Decision 0021 - Wind over Reserve. Two authoritative stamina layers: Wind is the acute exchange resource a boxer regains by breathing, Reserve is whole-fight conditioning that does not come back inside a round. A short pause may restore Wind; it may not restore Reserve or erase the history of the fight.",
+  "schema_version": "0.1.0-draft",
+  "tuning_status": "hypothesis",
+  "authority": {
+    "decision": "0021",
+    "supersedes_for_integrated_contract": "condition_model.stamina",
+    "$comment": "WHY THIS IS A NEW FILE AND NOT AN EDIT TO condition_model.stamina. Decision 0022 freezes the N/Q/R/S/O unit pins, and those phases hash the canon files they read. Editing condition_model.json or data/moves/generic_sandbox_moves.json would move several proven streams for a reason unrelated to what they proved. The single-tier `condition_model.stamina` block therefore REMAINS the authority for the frozen phase contracts that already read it, and this file is the authority for the integrated bout. The two are not merged until the integrated contract exists and a numbered Decision retires the old block.",
+    "reader_rule": "A contract reads one economy or the other, never both. An integrated-contract reader that falls back to condition_model.stamina is a bug, not a compatibility shim."
+  },
+  "wind": {
+    "$comment": "The acute exchange resource. Answers whether a fighter can move, defend, evade, throw and sustain the current burst.",
+    "max": 100.0,
+    "start_fraction": 1.0,
+    "low_threshold_fraction": 0.25,
+    "exhausted_threshold_fraction": 0.10,
+    "between_rounds_recovery_fraction": 0.35,
+    "recovery_per_tick_by_action": {
+      "$comment": "Recovery depends on observable action state, which is the point of Decision 0014's G2 action families - a fighter who is watching is not a fighter who is working. Rates are genuinely per-TICK at 60 Hz (clock_model.authority.tick_rate_hz). The 2026-08-03 units correction is the reason that sentence is written down: these fields were once authored as per-tick carrying per-second magnitudes, and the pool refilled ten times a round.",
+      "rest": 0.020,
+      "observe": 0.012,
+      "hold_position": 0.010,
+      "micro_adjust": 0.004,
+      "move": 0.0,
+      "guard": 0.0,
+      "evade": 0.0,
+      "attack": 0.0
+    },
+    "recovery_notes": "Attack, evasion, explosive movement and active pressure buy no Wind back at all, per Decision 0021. Rest is the only state that pays well, and Rest is not safety: it yields initiative, may concede ring position, and is interruptible.",
+    "ceiling_from_reserve": {
+      "$comment": "Reserve limits how much Wind a fighter can hold. This is the FIRST of the two indirect paths by which deep conditioning reaches a knockdown, and it is deliberately indirect - Decision 0021 refuses to add Reserve as a second direct multiplier until the indirect path is proven insufficient, because that would count deep fatigue twice.",
+      "floor_fraction": 0.55,
+      "span_fraction": 0.45,
+      "formula": "wind_max = wind.max * (floor_fraction + span_fraction * reserve_fraction)"
+    },
+    "recovery_from_reserve": {
+      "$comment": "The second indirect path: a drained fighter gets his breath back more slowly, which is what makes a late round feel different from an early one even when Wind reads the same number.",
+      "floor_multiplier": 0.40,
+      "span_multiplier": 0.60,
+      "formula": "recovery_rate *= (floor_multiplier + span_multiplier * reserve_fraction)"
+    }
+  },
+  "reserve": {
+    "$comment": "Whole-fight conditioning. Answers how much deep capacity remains after rounds, bodywork, repeated bursts and accumulated exertion. Must make round ten meaningfully different from round one without making every tired fighter helpless.",
+    "max": 100.0,
+    "start_fraction": 1.0,
+    "low_threshold_fraction": 0.30,
+    "in_round_recovery_per_tick": 0.0,
+    "between_rounds_recovery": 2.0,
+    "between_rounds_recovery_note": "Flat and declared, not a fraction of the deficit. A fraction would make a nearly-empty fighter recover least in absolute terms, which is true of Wind and false of a corner's work.",
+    "drains": {
+      "$comment": "Reserve is spent by what the fight COSTS, not by what a fighter chooses each tick. Three sources only, each one a thing a boxing coach would name.",
+      "per_move_reserve_load": {
+        "source": "data/moves/generic_sandbox_effort.json",
+        "note": "Every committed action carries an authored reserve_load. Small per action, decisive over twelve rounds."
+      },
+      "sustained_exertion_per_tick_below_low_wind": {
+        "value": 0.0012,
+        "note": "Working while already short of breath costs conditioning at a rate that resting does not repay. This is the mechanism that turns a reckless early pace into a late-round problem."
+      },
+      "body_damage_multiplier": {
+        "value": 1.0,
+        "note": "Placeholder of 1.0 until the condition model is integrated. Decision 0021 names bodywork as a Reserve drain; the coefficient is authored where the damage regions are, not guessed here. A value of 1.0 means 'no effect yet', declared rather than silently absent."
+      }
+    }
+  },
+  "acceptance_bands": {
+    "$comment": "Decision 0021's initial experience targets, recorded as MEASURABLE bands rather than prose so a harness can report against them. These are acceptance criteria, not tuning constants, and they are checked under observable CPU policy - not against the flat action draw, which would make any number meaningless.",
+    "ordinary_round_wind_low": 45.0,
+    "ordinary_round_wind_high": 85.0,
+    "burst_wind_low": 15.0,
+    "burst_wind_high": 35.0,
+    "exceptional_wind_below": 10.0,
+    "later_rounds_must_start_and_recover_worse": true,
+    "pause_restores_exchange_not_freshness": true,
+    "body_investment_outlives_wind_recovery": true
+  },
+  "calibration_status": {
+    "$comment": "Stated plainly because this project has been bitten by numbers that looked authored and were not tested. Every value above is a structural hypothesis. Decision 0021 step 7 forbids calibration until the integrated policy produces boxing-like action cadence, so none of these has been fitted to evidence yet and no conclusion may cite them as tuned.",
+    "values_are_fitted": false,
+    "fitted_against": null,
+    "calibration_blocked_on": "integrated observable CPU policy (Director order step 3)"
+  },
+  "prohibitions": [
+    "Let Reserve recover meaningfully during an active round (Decision 0021).",
+    "Copy a move's authored effort into its wind_cost unchanged (Decision 0021 forbids chaining impact to resource debit).",
+    "Add Reserve as a second direct multiplier on knockdown vulnerability before the indirect path is proven insufficient.",
+    "Read this file and condition_model.stamina in the same contract.",
+    "Cite any value in this file as calibrated while calibration_status.values_are_fitted is false."
+  ],
+  "invariants": [
+    {
+      "id": "two_layers_are_distinct",
+      "rule": "Decision 0021",
+      "statement": "Wind and Reserve are separate authoritative values with separate scales, drains and recovery rules.",
+      "enforced_by": "tools/uppercut_validate/stamina.py::check_layers"
+    },
+    {
+      "id": "reserve_does_not_regenerate_in_round",
+      "rule": "Decision 0021",
+      "statement": "Reserve's in-round recovery per tick is exactly zero; its only recovery is the declared between-rounds amount.",
+      "enforced_by": "tools/uppercut_validate/stamina.py::check_reserve"
+    },
+    {
+      "id": "work_never_pays_better_than_rest",
+      "rule": "Decision 0021",
+      "statement": "No action state recovers Wind faster than Rest, and attacking, evading and guarding recover none.",
+      "enforced_by": "tools/uppercut_validate/stamina.py::check_recovery_ordering"
+    },
+    {
+      "id": "reserve_reaches_vulnerability_only_indirectly",
+      "rule": "Decision 0021",
+      "statement": "Reserve influences knockdown vulnerability through the Wind ceiling and Wind recovery, never as a direct term.",
+      "enforced_by": "tools/uppercut_validate/stamina.py::check_indirect_only"
+    },
+    {
+      "id": "effort_is_not_wind_cost",
+      "rule": "Decision 0021",
+      "statement": "A move's effort, wind_cost and reserve_load are separately authored; effort may seed wind_cost during migration but is not identical to it across the table.",
+      "enforced_by": "tools/uppercut_validate/stamina.py::check_effort_is_decoupled"
+    }
+  ]
+}

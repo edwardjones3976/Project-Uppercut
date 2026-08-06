@@ -45,18 +45,49 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 # changed. The superseded hashes are kept beside the new ones so the record of
 # what was proven when survives, which is the whole point of pinning.
 #
+# RE-PINNED AGAIN 2026-08-06, and this time for a reason that is not a canon
+# change at all. Commit fb4bdea renumbered Decisions 0018 -> 0019 and 0019 ->
+# 0020 during the post-merge reconciliation, and updated the prose inside canon
+# files that cited them: `$comment`, `note` and `notes` strings in
+# pose_geometry.json and both rulesets. Not one authoritative value moved.
+#
+# Four pins broke anyway - N, K, and the Phase O and Q golden streams - because
+# a stream header hashes the whole canon FILE. Decision 0022 freezes these pins
+# and permits a move only when canon or implementation changes inside the phase's
+# declared scope. A corrected comment is neither, so this re-pin is recorded as
+# an implementation correction rather than as a canon ruling.
+#
+# The claim that only prose moved is MECHANICAL, not editorial. Strip every
+# documentation key ($comment, note, notes, contribution, *_note) from each
+# changed file at both revisions and the remainder is byte-identical:
+#
+#   data/pose_geometry.json                   raw=differs  semantics=identical
+#   data/rulesets/professional.json           raw=differs  semantics=identical
+#   data/rulesets/arcade_three_knockdown.json raw=differs  semantics=identical
+#
+# Decision 0022 requires "the first divergent authoritative event, not only the
+# final hash". There is no divergent authoritative event. Every tick of both
+# fights is unchanged; the divergence is confined to the header's canon hashes.
+#
+# THIS IS A DEFECT IN THE EVIDENCE SCHEME, not merely an accident, and it is
+# written up in docs/plans/2026-08-06-the-canon-hash-cannot-see-the-difference.md:
+# whole-file hashing cannot distinguish a retuned value from a fixed typo, so it
+# trains re-blessing as routine, which is exactly how pin discipline dies.
+#
 #   Phase N  88af6f30... (2026-08-04, flat step cost)
 #            -> 7b2b9000... (2026-08-05, displacement pricing)
+#            -> 3df854f4... (2026-08-06, PROSE ONLY - no value changed)
 #   Phase K  b6f1c24b... (2026-08-04)
 #            -> 4826e82c... (2026-08-05, same cause)
+#            -> d2032592... (2026-08-06, PROSE ONLY - no value changed)
 #
 # (module, callable args, the hash the phase record swears to, where it is recorded)
 PINS = [
     ("analyze_core_condition", (4242, 5400),
-     "7b2b90001b541b8e145ab4fe501de15e45b3780b3c1e821a866a3b4786cea1ff",
+     "3df854f401d7168d1a73c021c05ff0cee3a1ebb7bb07399e6965610f5c68d5e3",
      "Phase N - visible stamina and condition"),
     ("analyze_render_probe", (4242, 5400),
-     "4826e82c532b98e481080b8603321e2e406c4f706681361b7a1996ff153b36ce",
+     "d2032592e01d897015bebef6799bd002959fd8e7a854034064bb753c985d8c82",
      "Phase K / the rendered slice - primitives, mannequins and the arena alike"),
 ]
 
