@@ -61,7 +61,7 @@ def test_tier_three_can_never_reach_canon():
     physics ends up sourced from whatever was most readable.
     """
     errs = gate.check(_one(tier=3, canon_status="accepted",
-                           accepted_by_decision="0014-movement-costs-displacement.md"))
+                           accepted_by_decision="0015-movement-cost-implementation.md"))
     assert any("tier 3" in e for e in errs)
 
 
@@ -75,7 +75,7 @@ def test_accepting_evidence_requires_a_decision_record_that_exists():
     assert gate.check(_one(
         canon_status="accepted",
         peer_review_status="verified",
-        accepted_by_decision="0014-movement-costs-displacement.md")) == []
+        accepted_by_decision="0015-movement-cost-implementation.md")) == []
 
 
 def test_high_confidence_requires_verified_peer_review():
@@ -118,7 +118,7 @@ def test_a_rejection_must_carry_its_reason():
 def test_a_retracted_source_cannot_be_accepted():
     errs = gate.check(_one(canon_status="accepted",
                            peer_review_status="verified",
-                           accepted_by_decision="0014-movement-costs-displacement.md",
+                           accepted_by_decision="0015-movement-cost-implementation.md",
                            retraction_or_correction_status="RETRACTED per OpenAlex"))
     assert any("retracted" in e for e in errs)
 
@@ -130,7 +130,7 @@ def test_the_ordinary_no_retraction_note_is_not_read_as_a_retraction():
     assert gate.check(_one(
         canon_status="accepted",
         peer_review_status="verified",
-        accepted_by_decision="0014-movement-costs-displacement.md",
+        accepted_by_decision="0015-movement-cost-implementation.md",
         retraction_or_correction_status="no retraction or correction recorded "
                                         "in OpenAlex at accessed_at")) == []
 

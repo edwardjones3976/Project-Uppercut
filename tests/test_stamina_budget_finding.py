@@ -98,12 +98,55 @@ def test_stamina_is_the_only_term_that_discriminates_at_a_knockdown():
             % (k, ratios[k]))
 
 
-def test_the_packet_and_the_open_gate_are_both_present():
-    """A finding with no gate is a finding nobody will act on."""
+def test_the_packet_survives_its_own_ruling():
+    """Rewritten 2026-08-06, the same day the Director closed G7.
+
+    This test used to assert that G7 was OPEN, and the docstring at the top of
+    this file predicted its own death: "when the Director rules on G7, these
+    fail, and the packet, the development log and the Phase O record get
+    rewritten in the same commit as the ruling." Decision 0021 ruled - Wind over
+    Reserve - so the guard fired exactly as designed and is rewritten rather than
+    deleted.
+
+    What it now holds is the thing that can still rot: a ruling must not orphan
+    the evidence that produced it. The packet is what makes Decision 0021
+    auditable by someone who was not here, so the packet has to outlive the gate.
+    """
     packet = os.path.join(ROOT, "docs", "plans",
                           "2026-08-06-the-stamina-economy-decision-packet.md")
-    assert os.path.exists(packet)
+    assert os.path.exists(packet), (
+        "the G7 evidence packet is gone. Decision 0021 cites it; a decision "
+        "whose evidence has been deleted is an assertion.")
     gates = open(os.path.join(ROOT, "docs", "decisions", "OPEN_GATES.md"),
                  encoding="utf-8").read()
-    assert "G7" in gates and "OPEN" in gates
+    assert "G7" in gates, "a gate row is edited to CLOSED, never deleted"
+    ruling = os.path.join(ROOT, "docs", "decisions",
+                          "0021-two-tier-stamina-economy.md")
+    assert os.path.exists(ruling), "G7's closure names Decision 0021"
+
+
+def test_the_two_tier_economy_has_not_yet_reached_the_frozen_contracts():
+    """Decision 0021 is authored but deliberately not yet wired in.
+
+    The two tests above measure the SINGLE-tier economy in
+    `condition_model.stamina`, which is still what the frozen Phase N/O
+    contracts read. Decision 0022 freezes those pins, so Wind and Reserve were
+    authored as new canon beside the old block rather than as an edit to it.
+
+    This test holds that separation. When the integrated contract starts reading
+    the two-tier economy, the two tests above stop describing anything real and
+    must be rewritten in the same commit - not left to pass on canon nothing
+    uses any more, which is the quietest way for evidence to go stale.
+    """
+    import json
+
+    econ = json.load(open(os.path.join(ROOT, "data", "stamina_economy.json"),
+                          encoding="utf-8"))
+    assert econ["authority"]["supersedes_for_integrated_contract"] == \
+        "condition_model.stamina"
+    assert econ["calibration_status"]["values_are_fitted"] is False, (
+        "stamina_economy.json now claims fitted values. Decision 0021 step 7 "
+        "forbids calibration until the integrated policy produces boxing-like "
+        "cadence - and the moment it is fitted, the two tests above are "
+        "measuring the wrong economy.")
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 11:25 UTC | END ]

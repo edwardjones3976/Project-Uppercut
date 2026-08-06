@@ -1,0 +1,163 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-06 23:20 UTC",
+    "end": "2026-08-06 23:20 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$comment": "Decision 0021 - effort, wind_cost and reserve_load, separated. The old model derived delivered impact from the cost of throwing the punch, which forced the stamina economy to pay the same number used to describe commitment. One number cannot be both how hard a punch is thrown and how much breath it takes; a jab is thrown constantly and costs little, an overhand is thrown rarely and costs a great deal, and their ratio of impact to breath is not the same.",
+  "schema_version": "0.1.0-draft",
+  "tuning_status": "hypothesis",
+  "authority": {
+    "decision": "0021",
+    "joins": "data/moves/generic_sandbox_moves.json on move id",
+    "$comment": "A SEPARATE FILE, on purpose. Decision 0022 freezes the N/Q/R/S/O unit pins, and Phase Q and Phase R both hash generic_sandbox_moves.json into their stream headers. Adding three fields to that file would move two proven streams for a reason having nothing to do with range or evasion. This table joins by move id, exactly as animation_model.json already does, and the join is enforced rather than assumed.",
+    "migration_rule": "Decision 0021: the existing authored `stamina_cost` seeds `effort` unchanged. It is NOT copied into `wind_cost`. The two diverge per move, with a reason recorded on each row, because a constant ratio would be the same overloaded number wearing a new name."
+  },
+  "moves": [
+    {
+      "move_id": "jab_lead",
+      "effort": 1.0,
+      "wind_cost": 0.22,
+      "reserve_load": 0.015,
+      "note": "The cheapest punch in boxing and the one thrown most. Its Wind ratio is the lowest in the table on purpose: a jab is how a boxer occupies an opponent while breathing, and an economy that makes jabbing expensive deletes the sport's most common action."
+    },
+    {
+      "move_id": "cross_rear",
+      "effort": 2.5,
+      "wind_cost": 0.78,
+      "reserve_load": 0.042,
+      "note": "Full rear-hand rotation through the hips. Costs meaningfully more breath than the jab and considerably more conditioning."
+    },
+    {
+      "move_id": "hook_lead",
+      "effort": 2.2,
+      "wind_cost": 0.66,
+      "reserve_load": 0.038,
+      "note": "Short arc, heavy trunk rotation, little reach commitment."
+    },
+    {
+      "move_id": "hook_rear",
+      "effort": 2.8,
+      "wind_cost": 0.86,
+      "reserve_load": 0.048,
+      "note": "The rear hook turns the whole body and leaves the thrower square for a moment."
+    },
+    {
+      "move_id": "uppercut_lead",
+      "effort": 2.4,
+      "wind_cost": 0.70,
+      "reserve_load": 0.040,
+      "note": "Drives from the legs. Leg-driven punches are why Reserve exists as a separate layer."
+    },
+    {
+      "move_id": "uppercut_rear",
+      "effort": 3.0,
+      "wind_cost": 0.92,
+      "reserve_load": 0.055,
+      "note": "The most leg-dependent punch authored. Its reserve_load is deliberately high relative to its Wind cost - it is not that it leaves you gasping, it is that it spends your legs."
+    },
+    {
+      "move_id": "overhand_rear",
+      "effort": 3.2,
+      "wind_cost": 1.05,
+      "reserve_load": 0.060,
+      "note": "The highest commitment in the table. Thrown rarely, and it should be visible in both layers when it is."
+    },
+    {
+      "move_id": "body_hook_lead",
+      "effort": 2.2,
+      "wind_cost": 0.62,
+      "reserve_load": 0.052,
+      "note": "Digging to the body is whole-body work: LOWER Wind than the head hook of the same effort, HIGHER conditioning burden. This inversion is the clearest single case of why effort and wind_cost had to be separated - a scaled copy could not express it."
+    },
+    {
+      "move_id": "body_straight_rear",
+      "effort": 2.6,
+      "wind_cost": 0.72,
+      "reserve_load": 0.058,
+      "note": "Same inversion as the body hook: the thrower bends, drives and pays for it in legs rather than lungs."
+    },
+    {
+      "move_id": "guard_high",
+      "effort": 0.3,
+      "wind_cost": 0.012,
+      "reserve_load": 0.0008,
+      "note": "Per-ACTIVATION, not per-tick. Holding a structure is cheap; the earlier measurement that guard hold was 1.2% of all spend is the reason this is small rather than a suspected culprit."
+    },
+    {
+      "move_id": "guard_body",
+      "effort": 0.3,
+      "wind_cost": 0.012,
+      "reserve_load": 0.0010,
+      "note": "Marginally more conditioning than the high guard: dropping the elbows to cover the body loads the trunk."
+    },
+    {
+      "move_id": "slip_lead",
+      "effort": 0.8,
+      "wind_cost": 0.20,
+      "reserve_load": 0.012,
+      "note": "A head movement, cheap in both layers. Evasion must stay affordable or a fighter's only answer to pressure is to absorb it."
+    },
+    {
+      "move_id": "roll_under",
+      "effort": 1.2,
+      "wind_cost": 0.34,
+      "reserve_load": 0.028,
+      "note": "A leg movement disguised as a head movement. Rolling is where an unfit fighter is found out, so its reserve_load is more than double the slip's."
+    },
+    {
+      "move_id": "step_in",
+      "effort": 0.132,
+      "wind_cost": null,
+      "reserve_load": null,
+      "cost_model": "displacement",
+      "note": "Decision 0014 (gate G1) and Decision 0015: ordinary movement is priced by the distance actually travelled, not by a flat per-action fee. Null is deliberate and means 'ask the locomotion model', not 'free' - see stamina_economy.displacement_movement."
+    },
+    {
+      "move_id": "step_out",
+      "effort": 0.10296,
+      "wind_cost": null,
+      "reserve_load": null,
+      "cost_model": "displacement",
+      "note": "Displacement-priced. Retreating covers less ground per stride, so it costs less, which falls out of the model rather than being authored."
+    },
+    {
+      "move_id": "step_lateral",
+      "effort": 0.1122,
+      "wind_cost": null,
+      "reserve_load": null,
+      "cost_model": "displacement",
+      "note": "Displacement-priced. Inert on Phase Q's single axis and marked as such in that stream; it still costs what it moves."
+    },
+    {
+      "move_id": "pivot_lead",
+      "effort": 1.0,
+      "wind_cost": 0.24,
+      "reserve_load": 0.020,
+      "note": "A pivot buys an angle for very little breath. That is the whole argument for footwork over volume, and the economy has to let a fighter make it."
+    },
+    {
+      "move_id": "clinch_entry",
+      "effort": 1.5,
+      "wind_cost": 0.45,
+      "reserve_load": 0.030,
+      "note": "Costs real Wind to enter and is nevertheless how a hurt fighter buys time. Its value is not that it is cheap; it is that it stops the other man's output while you breathe."
+    }
+  ],
+  "displacement_movement": {
+    "$comment": "The rates ordinary locomotion is priced at in the two-tier economy. Wind per ring unit is the acute cost of covering ground; reserve per ring unit is what walking a whole fight takes out of the legs.",
+    "wind_per_ru": 0.60,
+    "wind_per_ru_note": "Numerically the same rate movement_model.locomotion.boxing_steps.stamina_cost_per_ru carries in the single-tier model, and kept identical on purpose: Decision 0014 settled the movement price on evidence, and re-litigating it here would quietly overturn a closed gate under cover of a schema change.",
+    "reserve_per_ru": 0.008,
+    "reserve_per_ru_note": "New, and small. Over a twelve-round fight a busy mover should feel it in the legs; over one round it should be nearly invisible."
+  },
+  "calibration_status": {
+    "$comment": "Every wind_cost and reserve_load above is a structural hypothesis with a stated reason, not a fitted value. Decision 0021 step 7 forbids calibration until the integrated policy produces boxing-like cadence. The ratios were chosen so that the RELATIONSHIPS are arguable by a boxing coach - jab cheapest, overhand dearest, body shots inverted - and the absolute levels are expected to move.",
+    "values_are_fitted": false,
+    "fitted_against": null,
+    "target_volume_per_fighter_round": [55, 78],
+    "target_volume_source": "docs/plans/2026-08-06-the-stamina-economy-decision-packet.md (professional reference band)"
+  }
+}
