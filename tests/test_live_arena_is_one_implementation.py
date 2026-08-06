@@ -1,0 +1,187 @@
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 22:10 UTC | START ]
+"""The arena must not become a second implementation.
+
+The whole argument for the live arena is that it RUNS the proven code rather
+than agreeing with it. That argument is a property of the source layout, and
+source layout is exactly the kind of thing that decays quietly: someone adds one
+convenient JSON read to the subsystem, or reimplements one rule inline "just for
+the HUD", and the arena stops being evidence without a single test failing.
+
+These tests are cheap and need no engine. They do not prove the arena correct -
+`tools/engine/prove_live_arena.py` does that, byte for byte. They stop the
+arrangement that makes that proof meaningful from being dismantled by accident.
+"""
+import io
+import os
+import re
+
+import pytest
+
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SRC = os.path.join(REPO, "sandbox", "Source", "UppercutCore")
+PRIVATE = os.path.join(SRC, "Private")
+PUBLIC = os.path.join(SRC, "Public")
+
+
+def read(*parts):
+    path = os.path.join(*parts)
+    assert os.path.exists(path), "%s is missing" % path
+    return io.open(path, encoding="utf-8", errors="replace").read()
+
+
+# The files that make up the shared core: rules, canon reader, loop, stream
+# shape. Everything else in the module is a caller.
+CORE_FILES = (
+    "UppercutRangeCore.cpp",
+    "UppercutRangeCanonLoader.cpp",
+    "UppercutRangeStream.cpp",
+)
+
+# The callers. Two of them, which is the point - the commandlet that writes the
+# evidence and the subsystem the Director presses Play on.
+CALLERS = (
+    "UppercutCoreRangeCommandlet.cpp",
+    "UppercutFightSubsystem.cpp",
+)
+
+
+# Phase Q's chain: the shared core, the commandlet that writes the evidence, and
+# the subsystem the Director presses Play on. Other phases' commandlets read
+# canon for themselves and are none of this test's business - see
+# `test_the_canon_reader_sprawl_is_on_the_record` for that, which is a finding
+# rather than a rule.
+PHASE_Q_CHAIN = CORE_FILES + (
+    "UppercutCoreRangeCommandlet.cpp",
+    "UppercutFightSubsystem.cpp",
+    "UppercutLiveArenaCommandlet.cpp",
+)
+
+
+def test_only_the_loader_reads_canon_in_phase_qs_chain():
+    """A second JSON reader is a second chance to read canon differently.
+
+    The claim is about Phase Q's chain, not the module. An earlier draft of this
+    test asserted the wider thing and failed immediately on six other phases'
+    commandlets - which read canon legitimately, for their own contracts. The
+    narrow claim is the one that is true and the one that matters: the fight the
+    Director watches and the fight in the evidence are parsed by one function.
+    """
+    readers = []
+    for name in PHASE_Q_CHAIN:
+        text = read(PRIVATE, name)
+        if "range_bands" in text or "max_frame_displacement_ru" in text:
+            readers.append(name)
+    assert readers == ["UppercutRangeCanonLoader.cpp"], (
+        "Phase Q canon is parsed in %s - it must be parsed only by the loader, "
+        "which both the commandlet and the subsystem call" % readers
+    )
+
+
+def test_the_canon_reader_sprawl_is_on_the_record():
+    """Six other phases parse canon inline. Counted, not fixed, not forgotten.
+
+    This is drift, and it is the same drift the Phase Q extraction just undid:
+    every one of these commandlets holds its own opinion about which JSON field
+    means what, and nothing makes them agree. It is NOT a defect today - each is
+    proven against its own contract, so each is right about the phase it
+    describes. It becomes a defect the moment a live runtime wants to run any of
+    those phases too, which is precisely what Phase O will want.
+
+    The number is asserted so that adding a seventh is a decision somebody makes
+    on purpose, and removing one shows up as progress.
+    """
+    inline = []
+    for name in sorted(os.listdir(PRIVATE)):
+        if not name.endswith(".cpp") or name in PHASE_Q_CHAIN:
+            continue
+        if "range_bands" in read(PRIVATE, name):
+            inline.append(name)
+    assert len(inline) == 6, (
+        "%d phases parse movement canon inline (was 6): %s. If this went up, a "
+        "new phase copied the pattern the Phase Q extraction exists to end; if "
+        "it went down, say so in the phase record." % (len(inline), inline)
+    )
+
+
+def test_the_subsystem_does_not_reimplement_the_loop():
+    """The arena must call Step(), never grow its own copy of the rules."""
+    text = read(PRIVATE, "UppercutFightSubsystem.cpp")
+    assert "Session.Step(" in text, "the subsystem no longer drives the session"
+    for forbidden in ("1664525", "1013904223"):
+        assert forbidden not in text, (
+            "the subsystem contains the LCG constant %s - the decision draw "
+            "belongs to the core, and a copy here would be a second fight"
+            % forbidden
+        )
+
+
+def test_the_marker_hash_has_one_definition():
+    """FNV-1a folds the rows. Two definitions is two hashes that agree for now."""
+    definers = []
+    for name in sorted(os.listdir(PRIVATE)):
+        if name.endswith(".cpp") and "1099511628211" in read(PRIVATE, name):
+            definers.append(name)
+    # Other phases still carry their own copies; Phase Q's chain must not.
+    for name in CORE_FILES + CALLERS:
+        if name != "UppercutRangeStream.cpp":
+            assert name not in definers, (
+                "%s defines the FNV prime itself - it should fold rows through "
+                "UppercutFnv1a64 so the arena and the commandlet hash "
+                "identically" % name
+            )
+    assert "UppercutRangeStream.cpp" in definers
+
+
+def test_the_stream_shape_is_not_duplicated():
+    """A header written twice is two artifacts that look like one."""
+    writers = []
+    for name in sorted(os.listdir(PRIVATE)):
+        if name.endswith(".cpp") and "H|phase=Q" in read(PRIVATE, name):
+            writers.append(name)
+    assert writers == ["UppercutRangeStream.cpp"], (
+        "the Phase Q stream header is written in %s - one writer, or a dumped "
+        "fight is only a lookalike of the proven one" % writers
+    )
+
+
+def test_wall_clock_does_not_scale_a_tick():
+    """Criterion E.19, checked where it is easy to break."""
+    text = read(PRIVATE, "UppercutFightSubsystem.cpp")
+    assert "Accumulator +=" in text, "the fixed-step accumulator is gone"
+    assert re.search(r"Accumulator -= TickSeconds", text), (
+        "ticks are no longer spent whole - wall-clock time has started scaling "
+        "the simulation, which Criterion E.19 prohibits"
+    )
+    assert "DeltaSeconds *" not in text.replace(
+        "(double)DeltaSeconds * (double)Speed", ""), (
+        "delta seconds are being applied to something other than the accumulator"
+    )
+
+
+@pytest.mark.parametrize("name", CORE_FILES + CALLERS + (
+    "UppercutFighterBase.cpp",
+    "UppercutMatchDirector.cpp",
+    "UppercutLiveArenaCommandlet.cpp",
+))
+def test_every_arena_file_is_tagged(name):
+    """The owner's identifying-tag procedure, on the files this work added."""
+    text = read(PRIVATE, name)
+    assert "START ]" in text and "END ]" in text, (
+        "%s is missing its start/end identifying tags" % name
+    )
+
+
+def test_the_fighter_actor_cannot_write_to_the_fight():
+    """Decision 0012's boundary, tested rather than trusted.
+
+    Presentation reads snapshots. If this actor ever calls a control, deleting it
+    mid-round would change the fight - and the separation would be decorative.
+    """
+    text = read(PRIVATE, "UppercutFighterBase.cpp")
+    for forbidden in ("StartFight", "SingleStep", "Restart(", "Reseed",
+                      "SetSpeed", "Session"):
+        assert forbidden not in text, (
+            "the fighter actor calls %s - a presentation actor that can drive "
+            "the fight is not a presentation actor" % forbidden
+        )
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 22:10 UTC | END ]

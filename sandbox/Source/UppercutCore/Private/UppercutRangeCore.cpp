@@ -158,3 +158,210 @@ int32 FUppercutRangeCanon::CanonErrors() const
     return Errors;
 }
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 14:15 UTC | END ]
+
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 15:40 UTC | the loop | START ]
+namespace
+{
+    const uint32 LcgA = 1664525u;
+    const uint32 LcgC = 1013904223u;
+
+    const TCHAR* GActionName[9] = { TEXT("idle"), TEXT("step_in"), TEXT("step_out"),
+                                    TEXT("step_lateral"), TEXT("jab_lead"),
+                                    TEXT("cross_rear"), TEXT("hook_lead"),
+                                    TEXT("uppercut_rear"),
+                                    TEXT("body_straight_rear") };
+}
+
+const TCHAR* UppercutRangeActionName(int32 Index)
+{
+    return GActionName[FMath::Clamp(Index, 0, 8)];
+}
+
+void FUppercutRangeSession::Reset(const FUppercutRangeCanon& InCanon, uint32 Seed)
+{
+    Canon = &InCanon;
+    Fighter[0] = FUppercutRangeFighter();
+    Fighter[1] = FUppercutRangeFighter();
+    Fighter[0].Pos = InCanon.Axis / 2 - 4500;
+    Fighter[1].Pos = InCanon.Axis / 2 + 4500;
+    const int64 Sep = Fighter[1].Pos - Fighter[0].Pos;
+    Fighter[0].Band = Fighter[1].Band = InCanon.BandAt(Sep);
+    X = Seed;
+    Tick = 0;
+    Decisions = Idles = Steps = Laterals = Punches = 0;
+    Landed = WhiffBand = WhiffReach = Transitions = 0;
+    Roped = Clamped = Applied = 0;
+    SepMin = SepMax = Sep;
+}
+
+void FUppercutRangeSession::Step(TArray<FString>* OutRows)
+{
+    const FUppercutRangeCanon& C = *Canon;
+    ++Tick;
+    const int32 T = Tick;
+
+    auto Row = [&](const FString& S) { if (OutRows) { OutRows->Add(S); } };
+
+    for (int32 i = 0; i < 2; ++i)
+    {
+        FUppercutRangeFighter& F = Fighter[i];
+
+        // ---- 1. deliver movement already owed, at most the cap ------------
+        if (F.Pending != 0)
+        {
+            int64 NextPending = 0;
+            const int64 StepDelta = C.Drain(F.Pending, NextPending);
+            F.Pending = NextPending;
+            const int64 Before = F.Pos;
+            F.Pos = FMath::Max((int64)0, FMath::Min(C.Axis, F.Pos + StepDelta));
+            FString Flags;
+            if (Fighter[1].Pos - Fighter[0].Pos < C.MinSep)
+            {
+                if (i == 0) { Fighter[0].Pos = Fighter[1].Pos - C.MinSep; }
+                else { Fighter[1].Pos = Fighter[0].Pos + C.MinSep; }
+                Fighter[0].Pos = FMath::Max((int64)0, Fighter[0].Pos);
+                Fighter[1].Pos = FMath::Min(C.Axis, Fighter[1].Pos);
+                // The rest of the stride is refused, not banked.
+                F.Pending = 0;
+                Flags += TEXT("m");
+                ++Clamped;
+            }
+            const int64 Moved = F.Pos - Before;
+            if (Moved != 0) { ++Applied; }
+            const int64 Sep = Separation();
+            SepMin = FMath::Min(SepMin, Sep);
+            SepMax = FMath::Max(SepMax, Sep);
+            Row(FString::Printf(TEXT("X|%d|%d|%lld|%lld|%lld|%lld|%lld|%s\n"),
+                                T, i, Moved, Fighter[0].Pos, Fighter[1].Pos, Sep,
+                                F.Pending, Flags.IsEmpty() ? TEXT("-") : *Flags));
+            for (int32 j = 0; j < 2; ++j)
+            {
+                const int32 Nb = C.ResolveBand(Fighter[j].Band, Sep);
+                if (Nb != Fighter[j].Band)
+                {
+                    Row(FString::Printf(TEXT("R|%d|%d|%s|%s|%lld\n"), T, j,
+                                        *C.BandKey[Fighter[j].Band],
+                                        *C.BandKey[Nb], Sep));
+                    Fighter[j].Band = Nb;
+                    ++Transitions;
+                }
+            }
+        }
+
+        // ---- 2. a punch in flight -----------------------------------------
+        if (F.bInFlight)
+        {
+            const FUppercutRangeMove& M = C.Moves[F.PunchMove];
+            const int32 Kk = T - F.PunchT0;
+            const int32 Span = M.Startup + M.Active;
+            if (Kk > M.Startup && Kk <= Span)
+            {
+                const int64 TipExt = C.TipExtension(M, Kk);
+                int64 Tip = 0, Surface = 0;
+                bool bArrived = false;
+                if (i == 0)
+                {
+                    Tip = Fighter[0].Pos + TipExt;
+                    Surface = Fighter[1].Pos - C.HalfDepth;
+                    bArrived = Tip >= Surface;
+                }
+                else
+                {
+                    Tip = Fighter[1].Pos - TipExt;
+                    Surface = Fighter[0].Pos + C.HalfDepth;
+                    bArrived = Tip <= Surface;
+                }
+                const TCHAR* Result = nullptr;
+                const TCHAR* Reason = TEXT("-");
+                if (bArrived && F.bPunchLegal)
+                {
+                    Result = TEXT("landed");
+                    ++Landed;
+                }
+                else if (Kk == Span)
+                {
+                    Result = TEXT("whiffed");
+                    // The band is tested first on purpose: a punch from the
+                    // wrong band is refused even when the fist arrived.
+                    Reason = F.bPunchLegal ? TEXT("reach") : TEXT("band");
+                    if (F.bPunchLegal) { ++WhiffReach; } else { ++WhiffBand; }
+                }
+                if (Result != nullptr)
+                {
+                    Row(FString::Printf(
+                        TEXT("P|%d|%d|%s|%s|%s|%d|%lld|%lld|%s|%d\n"), T, i,
+                        *F.PunchMove, Result, Reason, Kk, Tip, Surface,
+                        *C.BandKey[F.PunchBand], F.bPunchLegal ? 1 : 0));
+                    F.bInFlight = false;
+                }
+            }
+            else if (Kk > Span)
+            {
+                F.bInFlight = false;
+            }
+        }
+
+        // ---- 3. commitment -------------------------------------------------
+        // A step keeps draining while its owner is committed: that is what makes
+        // "entering is when counters land" true rather than stated.
+        if (F.Busy > 0)
+        {
+            --F.Busy;
+            continue;
+        }
+
+        // ---- 4. one decision -----------------------------------------------
+        X = LcgA * X + LcgC;              // uint32 wraps, which IS mod 2^32
+        const int32 Choice = (int32)(X % 9u);
+        const FString Action = GActionName[Choice];
+        F.LastAction = Action;
+        // Presentation-only, and never emitted: two identical actions in a row
+        // are two commitments, and an animation layer comparing strings alone
+        // would silently drop the second one.
+        F.LastActionTick = T;
+        ++Decisions;
+        FString Mark = TEXT("-");
+        if (Choice == 0)
+        {
+            ++Idles;
+        }
+        else if (Choice >= 4)
+        {
+            F.Busy = C.Moves[Action].Frames;
+            const bool bLegal = C.InBand(Action, F.Band);
+            F.bInFlight = true;
+            F.PunchMove = Action;
+            F.PunchT0 = T;
+            F.PunchBand = F.Band;
+            F.bPunchLegal = bLegal;
+            ++Punches;
+            Mark = bLegal ? TEXT("1") : TEXT("0");
+        }
+        else
+        {
+            F.Busy = C.Moves[Action].Frames;
+            ++Steps;
+            if (Choice == 3)
+            {
+                // Knowingly inert on one axis, and marked in the row so a reader
+                // never has to infer it from a zero.
+                ++Laterals;
+                Mark = TEXT("l");
+            }
+            else
+            {
+                const int64 Toward = (i == 0) ? 1 : -1;
+                const int64 Sign = (Choice == 1) ? Toward : -Toward;
+                const int64 Mul = (Choice == 1) ? C.DirAdvance : C.DirRetreat;
+                const int64 Delta = Sign * UppercutFloorDiv(C.Stride * Mul, 10000);
+                const int64 Scaled = C.RopeScaled(F.Pos, Delta, Fighter[1 - i].Pos);
+                if (Scaled != Delta) { ++Roped; Mark = TEXT("r"); }
+                F.Pending = Scaled;
+            }
+        }
+        Row(FString::Printf(TEXT("D|%d|%d|%s|%u|%lld|%lld|%lld|%s|%lld|%s\n"),
+                            T, i, *Action, X, Fighter[0].Pos, Fighter[1].Pos,
+                            Separation(), *C.BandKey[F.Band], F.Pending, *Mark));
+    }
+}
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 15:40 UTC | the loop | END ]
