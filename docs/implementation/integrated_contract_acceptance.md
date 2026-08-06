@@ -1,6 +1,19 @@
 # Integrated-contract acceptance
 
-This is the engineering closure checklist created by Decisions 0021 and 0022.
+This is the engineering closure checklist created by Decisions 0021, 0022, and 0023.
+
+## Canon identity
+
+- [ ] Every canon dependency records an explicit semantic hash and raw-file hash.
+- [ ] The hash contract and canonicalizer version are written into the stream header.
+- [ ] Documentation fields are excluded only through an explicit schema annotation or versioned hash-role manifest.
+- [ ] Unknown fields cannot disappear silently.
+- [ ] Duplicate JSON keys and unsupported numeric values are rejected.
+- [ ] Python and C++ produce identical semantic hashes over shared fixtures.
+- [ ] Documentation-only mutations move the raw hash but not the semantic hash.
+- [ ] Every authoritative mutation moves the semantic hash, including a value inside an object that also contains excluded prose.
+- [ ] Historical active streams migrate once with every authoritative event row unchanged.
+- [ ] No integrated golden stream exists before the semantic-hash mutation suite passes.
 
 ## Stamina
 
@@ -15,14 +28,14 @@ This is the engineering closure checklist created by Decisions 0021 and 0022.
 
 ## Integrated contract
 
-- [ ] Existing N/Q/R/S/O unit pins remain frozen.
+- [ ] Existing N/Q/R/S/O unit claims remain preserved through their versioned evidence history.
 - [ ] A new integrated schema and marker stream exist.
 - [ ] RNG is partitioned into stable named substreams.
 - [ ] The same authoritative runtime drives commandlet and live arena.
 - [ ] Pause, speed, rendering, and camera do not alter the stream.
 - [ ] Range, evasion, policy, stamina, condition, knockdown, count, ruleset, scoring, and verdict coexist in one run.
 - [ ] Stoppage and decision paths both execute validly.
-- [ ] First divergent event is reported when a pin moves.
+- [ ] First divergent event is reported when a semantic pin moves.
 
 ## Product evidence
 
