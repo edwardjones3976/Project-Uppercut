@@ -5,14 +5,14 @@
 
 # Status
 
-Generated **2026-08-05 21:48 UTC** at `926fafc feat(core): Phase Q proven in C++ - the fight gets a distance`.
+Generated **2026-08-06 18:49 UTC** at `97bc87d docs(canon): open gate G7 - the stamina economy cannot pay for a round of boxing`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **745 passed** |
+| Test suite | **796 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
-| Latest engine phase proven | Phase Q — the fight gets a distance (UppercutCoreRange) |
+| Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |
 | Phase 0 | gate **PASSED** 2026-08-02 (`docs/phase0/phase0_status.md`) |
 | Phase 1A | definitions complete for all twelve steps; the quality gate is **not** passed - see `docs/phase1a/phase1a_status.md` |
 | Next step | Slice item 9: one rendered round with knockdown, count, stoppage and decision (C++) (`docs/plans/next_steps.md`) |

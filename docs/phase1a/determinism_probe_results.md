@@ -1351,3 +1351,73 @@ which is the alarm that says *re-prove the port before re-blessing* — and that
 what happened here rather than a quiet regeneration.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 02:10 UTC | Decision 0014 re-proof END ] -->
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 13:30 UTC | Phase R proof START ] -->
+
+## Phase R — the head is not where the punch is going (UppercutCoreEvade): PASS
+
+**2026-08-06.** `UppercutCoreEvadeCommandlet` reproduces
+`analyze_core_evade.expected_stream` byte for byte.
+
+Canon authors evasion **geometrically**, which is why this phase adds no die.
+Each evasion has a kind, an active window in ticks, a set of regions it
+**vacates**, and a list of things it is **beaten by**. The whole rule is canon's
+sentence rather than the port's:
+
+> During an evasion's active window a punch aimed at a vacated region finds
+> nothing there — unless the punch is one the evasion is authored to be beaten
+> by, in which case it lands into the movement.
+
+That second clause is the project's core design rule applied one level out. A
+guard is a structure that protects some lanes and exposes others; an evasion is
+the same object in motion. A roll that beat the uppercut would be a strictly
+better guard rather than a different one.
+
+### The proof
+
+    seed 4242, 5400 ticks
+        sha256 f450d2f678fb464aca0e59960fcc0c692c213f6fb75de27a9056f53412912523
+    seed 777, 5400 ticks
+        sha256 4b8d38276da032f71d7577f0ea92c845fe2fd80e420676976c3026e81444aec0
+    seed 4242, 1200 ticks
+        sha256 4aae2b77657989bab82e39e132a12c5e323ed118127c7b8707fc670235cd8738
+
+Byte-equality against the Python recomputation, not a similarity score. Each
+stream is then read back cold by `analyze_core_evade.analyse`, which re-derives
+the trailer from the rows and re-checks the invariants — a dodge only ever in a
+vacated region, never against a punch the evasion is beaten by, and every
+non-dodge recorded as an arrival. Zero errors on all three.
+
+Re-run with `python -m tools.engine.prove_core_evade`. Pinned at
+`docs/phase1a/golden/phase_r_4242_5400.stream`.
+
+### The telegraph is free, and that is the interesting part
+
+The reference simulator needs a multiplier —
+`telegraph.evasion_gain_per_startup_frame` — to make slow punches more
+dodgeable, because its evasion is a die rolled at contact. Here a slip is five
+ticks of real time and an 11-frame overhand spends longer in flight than a
+4-frame jab, so a slip thrown at the same moment is far likelier to still be
+active when the overhand arrives.
+
+**Nothing computes that.** The defender is not buffed and the slow punch is not
+nerfed; the slow punch is *seen*, which is exactly what canon says a telegraph
+is for. The contract refuses a canon in which every punch spends the same time
+in the air, because that is the canon in which the telegraph would stop being
+free and would need a coefficient.
+
+### Scope, and why this pin should be stable
+
+Three canon files and no more: guard/evasion, moves, animation. **No separation
+and no geometry** — whether a fist reaches is Phase Q's contract, proven on
+2026-08-05, and re-implementing it here would be a second place for it to be
+wrong. **No guard** — `outranks_guard` is true, so a dodged punch never reaches
+the guard stage. **No stamina** — gate G7 is open on the stamina economy, and a
+slice that spent stamina would need re-blessing the day it is ruled on for a
+reason having nothing to do with evasion.
+
+One caveat learned from Phase Q and stated here rather than discovered later: a
+canon ruling on stamina cannot change the Phase R **fight**, but any edit to one
+of the three files Phase R hashes will change its **stream**.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 13:30 UTC | Phase R proof END ] -->
