@@ -2,8 +2,9 @@
 
 # Decision 0013 — Guard geometry: nuance in the model, simplicity at the controller
 
-**Status:** proposed, awaiting Director ratification
-**Date:** 2026-08-04
+**Status:** accepted; ratified by the Director in Decision 0014  
+**Date:** 2026-08-04  
+**Ratified:** 2026-08-06  
 **Supersedes:** nothing. **Extends:** Decision 0010 (guard postures are coverage extents)
 
 ## Question
@@ -54,27 +55,21 @@ which is the direction that grade warned about.
 
 ## Sequencing, which is the part with a real cost
 
-Recommended order:
+The Director ratifies this order:
 
-1. **Phase P — the hand is the unit.** Per-hand guard (measured: 853 blocks from
-   zero, with no dice and no new coefficient), then per-hand chaining and arm
-   fatigue, both of which canon authors and the C++ core reads none of.
-2. **CPU decision policy from observable evidence.** The roadmap's own step 9.
-3. **Lateral geometry**, judged against a fight that behaves like a fight.
+1. **Phase P — the hand is the unit.** Per-hand guard, then per-hand chaining and
+   arm fatigue, both of which canon authors and the C++ core must share.
+2. **CPU decision policy from observable evidence.** The roadmap's own step 9,
+   including the rest and aggression semantics decided in Decision 0014.
+3. **Complete live generic round and bout integration.** The current high/low
+   geometry must function end to end before a new axis is judged.
+4. **Lateral geometry.** Land it as a new phase with its own contract and pin,
+   before the Adewale-versus-Calvin named-fighter vertical slice.
 
-The reason lateral geometry is third is not that it matters least. It is that
-blocks now function and the decision path is dead because fighters choose
-uniformly at random every decision interval — canon's 0.57 knockdown threshold
-was swept against a *policy*, and a coin does not pace itself. Building angular
-coverage before the policy means measuring it against a coin, which is the trap
-this project has now walked into twice (the Phase N erosion horizon, the Phase O
-stoppage rate) and which the external review named independently.
-
-**The defensible alternative** is lateral geometry second, ahead of the policy:
-the hook simplification has been outstanding for some time, and hooks carry a
-disproportionate share of whether the fight reads as boxing. If the Director
-prefers visible boxing truth sooner over measurable tuning sooner, that ordering
-is a legitimate call and this record should be amended rather than ignored.
+The reason lateral geometry is later is not that it matters least. It is that
+blocks must be judged inside a fight that behaves like a fight. Building angular
+coverage before policy and the live bout would measure it against an incomplete
+organism, repeating the trap seen in earlier erosion and stoppage work.
 
 ## Consequences
 
@@ -82,8 +77,7 @@ is a legitimate call and this record should be amended rather than ignored.
   the hook's named simplification is retired rather than carried.
 - Posture extents become angular functions. This **extends what a posture's
   extents mean** rather than merely reading them — which is why this is a
-  decision record and not a quiet edit, per the rule established the same day
-  after a sealed phase was nearly rewritten.
+  decision record and not a quiet edit.
 - Any phase whose PASS depends on the current two-lane geometry stays frozen.
   Lateral geometry lands in a NEW phase with its own contract and its own pin.
 - Discrete postures remain the authoring surface, so guard catalogs, CPU
@@ -96,3 +90,5 @@ the reference studies are guidance and motivation only, per the standing Directo
 directive, and no protected content, naming or presentation enters this project.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 23:40 UTC | END ] -->
+
+<!-- [ OpenAI Director | GPT-5.6 Thinking | 2026-08-06 12:27 PDT | ratification and sequencing amendment ] -->
