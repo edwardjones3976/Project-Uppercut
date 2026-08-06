@@ -164,6 +164,31 @@ def canon_pack() -> dict:
                               for m in mvj["locomotion"]["modes"]
                               if m["posture_mode"] == "boxing_steps"))
 
+    # ---- Decisions 0015 and 0016 (gates G2 and G3) -------------------------
+    # The policy layer's own canon. Three things the flat eleven-way draw never
+    # read: which band a move declares (Rule 12, so an opportunity can be
+    # ILLEGAL), the difficulty tier's aggression bias (applied at the intent
+    # stage and nowhere else), and the activity-dependent regeneration rates
+    # canon has authored since step 8 and this core has been using one of.
+    cpu = json.loads(io.open(os.path.join(REPO, CANON["cpu"]), "rb").read())
+    tiers = {t["id"]: t for t in cpu["difficulty_tiers"]}
+    tid = os.environ.get("UPPERCUT_TIER", "club")
+    if tid not in tiers:
+        raise SystemExit("no difficulty tier %r; canon has %s"
+                         % (tid, ", ".join(sorted(tiers))))
+    c["tier"] = tid
+    c["aggression"] = q(tiers[tid]["aggression_bias"])
+    c["error_rate"] = q(tiers[tid]["error_rate"])
+    mj = json.loads(io.open(os.path.join(REPO, CANON["moves"]), "rb").read())
+    c["move_band"] = {m["id"]: m["range_band"] for m in mj["moves"]
+                      if m.get("range_band")}
+    c["band_keys"] = [b["key"] for b in mvj["range_bands"]["bands"]]
+    c["regen_moving"] = q(st["regen_per_tick_moving"])
+    c["regen_throwing"] = q(st["regen_per_tick_throwing"])
+    # The stamina fraction below which a fighter would rather recover than work.
+    # canon's own low-water mark, not a new number.
+    c["low_water"] = (q(st["max"]) * c["low_frac"]) // 10000
+
     errs = list(c["canon_errors"])
     if c["max_per_round"] is not None and c["max_per_bout"] is not None \
             and c["max_per_round"] > c["max_per_bout"]:
@@ -263,7 +288,10 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True,
     lines += ["H|seed=%d" % seed, "H|rounds=%d" % rounds,
               "H|round_ticks=%d" % c["round_ticks"],
               "H|break_ticks=%d" % c["break_ticks"],
-              "H|interval=%d" % c["interval"], "H|graded=%s" % GRADED]
+              "H|interval=%d" % c["interval"], "H|graded=%s" % GRADED,
+              # Decisions 0015 and 0016: which policy ran, and at what bias.
+              "H|tier=%s" % c["tier"], "H|aggression=%d" % c["aggression"],
+              "H|error_rate=%d" % c["error_rate"], "H|policy=staged"]
 
     pos = [c["axis"] // 2 - 4500, c["axis"] // 2 + 4500]
     st = [c["st_max"], c["st_max"]]
@@ -280,7 +308,14 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True,
     band, x = 2, seed % LCG_M
     rows = []
     counts = {k: 0 for k in ("punches", "blocked", "landed", "whiffed", "dodged",
-                             "steps", "switches", "slips", "held", "idles")}
+                             "steps", "switches", "slips", "held", "idles",
+                             # Decisions 0015 and 0016: the three numbers that
+                             # say whether the staged policy is doing anything.
+                             # `no_opportunity` is the interesting one - an
+                             # intent to attack that found no legal punch, which
+                             # under the old flat draw could not happen because
+                             # nothing was ever illegal.
+                             "observes", "rests", "no_opportunity")}
     transitions = damage_total = opened = 0
     kd_total = [0, 0]           # knockdowns suffered, whole bout
     kd_round = [0, 0]
@@ -300,10 +335,27 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True,
                 if stopped:
                     break
                 if punch[i] is not None:
-                    mid, t0 = punch[i]
+                    mid, t0, in_band_at_throw = punch[i]
                     mv = c["moves"][mid]
                     k = T - t0
-                    if mv["startup"] < k <= mv["startup"] + mv["active"]:
+                    if not in_band_at_throw:
+                        # Rule 12, folded into the round contract from Phase Q.
+                        # A punch thrown from the wrong band travels its full
+                        # arc into empty air and pays the whiff - even when the
+                        # geometry says the fist arrived, which at a static mid
+                        # separation it almost always does. Without this, the
+                        # misjudged punches that `error_rate` produces still
+                        # landed: 97.9% of everything thrown arrived, and a
+                        # fighter who cannot miss is not an accurate fighter.
+                        if k == mv["startup"] + mv["active"]:
+                            counts["whiffed"] += 1
+                            rows.append(
+                                "P|%d|%d|%s|whiffed|-|%d|0|0|0|band|0|0|-"
+                                % (T, i, mid, k))
+                            punch[i] = None
+                        elif k > mv["startup"] + mv["active"]:
+                            punch[i] = None
+                    elif mv["startup"] < k <= mv["startup"] + mv["active"]:
                         tip_ext = N._ext(c, mid, k)
                         opp = 1 - i
                         if i == 0:
@@ -436,6 +488,16 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True,
                     elif k > mv["startup"] + mv["active"]:
                         punch[i] = None
                 if committed[i] > 0:
+                    # Decision 0015 (gate G2), the implementable half. Canon has
+                    # authored three regeneration rates by activity since step 8
+                    # - idle 0.004, moving 0.0018, throwing 0.0 - and this core
+                    # read one of them and gave a committed fighter nothing at
+                    # all. A man walking is not a man punching, and canon has
+                    # always said so.
+                    rate = c["regen_throwing"] if punch[i] is not None \
+                        else c["regen_moving"]
+                    st[i] = min(c["st_max"],
+                                st[i] + (rate * N._regen_mult(cond[i], c)) // 10000)
                     committed[i] -= 1
                     if committed[i] == 0:
                         vacated[i] = None       # the hand comes home
@@ -455,15 +517,106 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True,
                 g = "%s|%s" % (GCHAR[posture[0]], GCHAR[posture[1]])
                 if held or committed[i] > 0:
                     counts["held"] += 1
-                    rows.append("D|%d|%d|held|0|%d|%d|%d|%d|%d|%d|%s|-"
+                    rows.append("D|%d|%d|held|0|%d|%d|%d|%d|%d|%d|%s|-|COMMITTED"
                                 % (T, i, pos[0], pos[1], pos[1] - pos[0], band,
                                    st[0], st[1], g))
                     continue
+                # ---- Decisions 0015 and 0016 (gates G2 and G3) --------------
+                # The staged policy, replacing a flat eleven-way draw in which
+                # 5 of 11 outcomes were a punch regardless of where the fighter
+                # stood, what he could reach, or how tired he was.
+                #
+                #   observe state -> intent -> opportunity -> action -> commit
+                #
+                # `aggression_bias` is read at the INTENT stage and nowhere
+                # else, which is the whole of Decision 0016: it is the tendency
+                # to SEEK offensive initiative, not the share of thought cycles
+                # that become a punch. An intent to attack that finds no legal
+                # opportunity produces an observation, not a punch into a band
+                # the move does not declare.
                 x = (LCG_A * x + LCG_C) % LCG_M
-                action = ACTIONS[x % 11]
+                wants_to_attack = (x % 10000) < c["aggression"]
+                band_key = c["band_keys"][band]
+                reason = "HOLD_AND_OBSERVE"
+                action = "observe"
+                if wants_to_attack:
+                    # Stage 2: does a legal opportunity exist? Rule 12's range
+                    # gate, and stamina he actually has. This is the first time
+                    # the round contract has asked either question.
+                    legal = [p for p in PUNCHES
+                             if c["move_band"].get(p) == band_key
+                             and st[i] >= c["moves"][p]["cost"]]
+                    if legal:
+                        x = (LCG_A * x + LCG_C) % LCG_M
+                        action = legal[x % len(legal)]
+                        reason = "PUNISH_OPEN_LANE"
+                        # error_rate swaps WITHIN the chosen class - a worse
+                        # punch, never a punch instead of a step. Reading it as
+                        # a redraw across the whole action set once put ~10% of
+                        # every decision into a punch regardless of intent.
+                        #
+                        # The swap draws from EVERY punch, not only the legal
+                        # ones, and that is the substance of the field rather
+                        # than a detail: an error at the opportunity stage IS a
+                        # misjudged distance. A policy that only ever mistakes
+                        # one legal punch for another cannot miss - measured at
+                        # 99.6% of everything thrown arriving, which is not an
+                        # accurate fighter, it is a fighter with nothing left to
+                        # miss. A wrong-band punch travels its full arc into
+                        # empty air and pays the whiff (Rule 12).
+                        x = (LCG_A * x + LCG_C) % LCG_M
+                        if (x % 10000) < c["error_rate"]:
+                            x = (LCG_A * x + LCG_C) % LCG_M
+                            alt = [p for p in PUNCHES if p != action
+                                   and st[i] >= c["moves"][p]["cost"]]
+                            if alt:
+                                action = alt[x % len(alt)]
+                                reason = "PUNISH_OPEN_LANE_MISJUDGED"
+                    else:
+                        reason = "NO_LEGAL_OPPORTUNITY"
+                        counts["no_opportunity"] += 1
+                else:
+                    # Stage 2, defensive half. Nothing here is a frequency: each
+                    # branch is a state canon already defines. Below the low-water
+                    # mark he recovers; out of position he seeks the band his
+                    # punches live in; otherwise he holds and reads.
+                    want = {c["move_band"][p] for p in PUNCHES
+                            if p in c["move_band"]}
+                    if st[i] < c["low_water"]:
+                        action, reason = "rest", "RECOVER_STAMINA"
+                    elif band_key not in want:
+                        sep_now = pos[1] - pos[0]
+                        target = c["bmin"][c["band_keys"].index(
+                            sorted(want, key=c["band_keys"].index)[0])]
+                        action = "step_in" if sep_now > target else "step_out"
+                        reason = "SEEK_PREFERRED_RANGE"
+                    else:
+                        # Footwork stays in the non-offensive set even when the
+                        # band is already right, and the first draft of this
+                        # policy proved why by leaving it out: steps fell from
+                        # 612 to 36 across three rounds and band transitions to
+                        # ZERO. The fighters stood at one separation all night,
+                        # which is precisely the defect Phase Q exists to fix -
+                        # re-introduced by a policy that only moved when it was
+                        # in the wrong place. A boxer moves inside his range as
+                        # much as he moves to reach it.
+                        x = (LCG_A * x + LCG_C) % LCG_M
+                        action = ("step_in", "step_out", "step_lateral",
+                                  "slip_lead", "switch_guard", "observe")[x % 6]
+                        reason = {"step_in": "PRESSURE_ROPES",
+                                  "step_out": "RESET_AFTER_WHIFF",
+                                  "step_lateral": "CUT_OFF_EXIT",
+                                  "slip_lead": "EXIT_BAD_ANGLE",
+                                  "switch_guard": "PROTECT_DAMAGED_BODY",
+                                  "observe": "HOLD_AND_OBSERVE"}[action]
                 flags = ""
-                if action == "idle":
+                if action in ("observe", "rest"):
+                    # Decision 0015: thinking is free. No displacement, no
+                    # commitment, no stamina - and the regeneration branch below
+                    # already treats an uncommitted fighter as idle, which is
+                    # exactly what canon prices at regen_per_tick_idle.
                     counts["idles"] += 1
+                    counts["rests" if action == "rest" else "observes"] += 1
                 elif action == "switch_guard":
                     posture[i] = "tight_elbow" if posture[i] == "high_guard" \
                         else "high_guard"
@@ -480,7 +633,10 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True,
                     mv = c["moves"][action]
                     st[i] = max(0, st[i] - mv["cost"])
                     committed[i] = mv["frames"]
-                    punch[i] = (action, T)
+                    # Legality is decided at THROW time and travels with the
+                    # punch, because that is when the fighter committed.
+                    punch[i] = (action, T,
+                                c["move_band"].get(action) == band_key)
                     vacated[i] = mv["height"]   # the hand that left, and where
                     counts["punches"] += 1
                 else:
@@ -535,9 +691,14 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True,
                         if nxt != band:
                             transitions += 1
                         band = nxt
-                rows.append("D|%d|%d|%s|%d|%d|%d|%d|%d|%d|%d|%s|%s"
+                # Decision 0016: every decision emits a readable reason code. A
+                # policy that is behaving oddly should be readable rather than
+                # inferred - and `HOLD_AND_OBSERVE` could not be a reason code
+                # in a model where holding was not an outcome, which is why this
+                # arrives with G2 rather than after it.
+                rows.append("D|%d|%d|%s|%d|%d|%d|%d|%d|%d|%d|%s|%s|%s"
                             % (T, i, action, x, pos[0], pos[1], pos[1] - pos[0],
-                               band, st[0], st[1], g, flags or "-"))
+                               band, st[0], st[1], g, flags or "-", reason))
 
         rounds_done += 1
         # ---- the card, sealed: computed now, disclosed only in the trailer ----
@@ -587,11 +748,14 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True,
     lines.append(
         "S|rows=%d|punches=%d|blocked=%d|landed=%d|whiffed=%d|dodged=%d|steps=%d"
         "|switches=%d|slips=%d|held=%d|idles=%d|transitions=%d|damage=%d|opened=%d"
+        "|observes=%d|rests=%d|no_opportunity=%d"
         "|knockdowns=%d|rounds=%d|stopped=%s|fnv1a64=%016x"
         % (len(canon_rows), counts["punches"], counts["blocked"], counts["landed"],
            counts["whiffed"], counts["dodged"], counts["steps"], counts["switches"],
            counts["slips"], counts["held"], counts["idles"], transitions,
-           damage_total, opened, kd_total[0] + kd_total[1], rounds_done,
+           damage_total, opened,
+           counts["observes"], counts["rests"], counts["no_opportunity"],
+           kd_total[0] + kd_total[1], rounds_done,
            "1" if stopped else "0", h))
     return "\n".join(lines) + "\n"
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 21:40 UTC | continued ]
