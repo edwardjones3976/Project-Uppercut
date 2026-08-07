@@ -1,0 +1,61 @@
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 03:20 UTC | START ]
+#pragma once
+
+#include "CoreMinimal.h"
+
+// The C++ half of Decision 0023. It must agree with
+// tools/uppercut_canon/canonical.py BYTE FOR BYTE, which is why almost nothing
+// here is left to the platform.
+//
+// WHY THIS DOES NOT USE FJsonSerializer.
+// Decision 0023 requires duplicate JSON keys to be REJECTED. Unreal's JSON
+// object silently keeps one of the two, and it is the reader that decides
+// which. An evidence layer must not depend on a parser whose behaviour it
+// cannot control on the one case it is required to detect - so this carries its
+// own strict reader. It is small, it refuses more than it accepts, and refusing
+// is the correct bias for code that decides whether other evidence counts.
+//
+// The canonical encoding, identical to the Python contract:
+//
+//     null    'n'
+//     false   'f'
+//     true    't'
+//     number  'd' u32be(len) ascii          always %.10f, integers included
+//     string  's' u32be(len) utf-8 bytes    no escaping, ever
+//     array   'a' u32be(count) items...     order preserved - order is canon
+//     object  'o' u32be(count) (key value)  keys sorted by UTF-8 bytes
+//
+// Four identities are bound in front of the data (Director requirement 6), so
+// changing the rules that decide sameness changes what sameness means.
+
+UPPERCUTCORE_API extern const TCHAR* UppercutCanonicalizerVersion;   // uppercut-semantic-json-v1
+UPPERCUTCORE_API extern const TCHAR* UppercutHashContractVersion;    // uppercut-hash-contract-v1
+
+// Compute both identities for one canon document.
+//
+//   OutRaw       SHA-256 of the text's UTF-8 bytes - provenance.
+//   OutSemantic  SHA-256 of the bound canonical payload - evidence.
+//
+// Returns false and fills OutError on any refusal: duplicate keys, non-finite
+// numbers, a value needing more than ten decimal places, a pattern that matches
+// nothing, a pattern ending in a wildcard, or malformed JSON. Refusal is never
+// silently downgraded to a hash.
+UPPERCUTCORE_API bool UppercutCanonHashes(const FString& JsonText,
+                                          const TArray<FString>& Patterns,
+                                          const FString& SchemaIdentity,
+                                          const FString& ManifestIdentity,
+                                          const FString& ManifestVersion,
+                                          FString& OutRaw,
+                                          FString& OutSemantic,
+                                          FString& OutError);
+
+// The hash-role manifest's own semantic identity, under its own declared
+// exclusions (`/self/non_authoritative`). Bound with only the canonicalizer and
+// manifest versions, because binding the manifest identity into the computation
+// of the manifest identity would not terminate - the same shallower binding the
+// Python side documents and the manifest itself declares.
+UPPERCUTCORE_API bool UppercutCanonManifestIdentity(const FString& ManifestJson,
+                                                    FString& OutIdentity,
+                                                    FString& OutVersion,
+                                                    FString& OutError);
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 03:20 UTC | END ]

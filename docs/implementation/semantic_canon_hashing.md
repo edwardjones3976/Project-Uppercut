@@ -142,22 +142,44 @@ zero, the tenth-decimal boundary, and nested arrays.
 |---|---|
 | 1. hash-role manifest | **done** — `data/hash_roles.json` |
 | 2. Python canonicalizer + vector format | **done** — `tools/uppercut_canon/` |
-| 3. C++ counterpart | not started |
-| 4. cross-language parity tests | vectors exist; C++ side pending |
-| 5. mutation tests before any pin moves | **done for Python**, including the forbidden-implementation check |
-| 6. migrate historical streams | blocked on 3 and 4 |
+| 3. C++ counterpart | **done** — `UppercutCanonHash.{h,cpp}` |
+| 4. cross-language parity tests | **done** — `python -m tools.engine.prove_canon_parity` → PARITY PROVEN |
+| 5. mutation tests before any pin moves | **done**, including the forbidden-implementation check |
+| 6. migrate historical streams | next |
 | 7. integrated stream with dual hashes | blocked on 6 |
 | 8. resume Decision 0021 runtime work | canon authored; runtime pending |
 
-**No pin has been migrated and no integrated stream exists.** Nothing in this
-change alters any current hash: the canonicalizer is not yet wired into a stream
-header, and it will not be until the C++ side reproduces these vectors.
+**No pin has been migrated and no integrated stream exists.** Nothing so far
+alters any current hash: the canonicalizer is not yet wired into a stream header.
 
-## A note for whoever writes the C++
+## The C++ side
 
-Use a strict reader rather than `FJsonSerializer` for canon. Unreal's JSON
-object silently keeps one of two duplicate keys, and Decision 0023 requires
-duplicates to be *rejected* — an evidence layer must not depend on a parser
-whose behaviour it cannot control on the one case it is required to detect.
+`UppercutCanonHash.cpp` carries its own strict JSON reader rather than using
+`FJsonSerializer`. Unreal's JSON object silently keeps one of two duplicate
+keys, and Decision 0023 requires duplicates to be *rejected* — an evidence layer
+must not depend on a parser whose behaviour it cannot control on the one case it
+is required to detect.
+
+`python -m tools.engine.prove_canon_parity` drives the C++ over the shared
+vectors: 15 checks, every accept vector reproducing both hashes and every
+rejection vector refused, plus the real manifest's identity derived
+independently on both sides and compared.
+
+### What parity caught on its first run
+
+> `FString::operator==` is **case-insensitive** in Unreal.
+
+The C++ rejected the `key_sorting` vector as containing a duplicate key, because
+that vector deliberately holds both `A` and `a`. Three places were affected:
+duplicate detection, pointer matching, and the exclusion set — and `TSet<FString>`
+hashes case-insensitively too, so an exclusion pointer spelled `/guard/Note`
+would have dropped the real `/guard/note`, removing a field nobody classified
+from the evidence envelope.
+
+Python never had this bug, and no amount of Python testing would have found it.
+It is the exact class of defect shared vectors exist to catch: not a
+disagreement about the rules, but a disagreement about what the platform quietly
+means by "the same string". The regression is pinned in
+`test_keys_differing_only_in_case_are_different_fields`.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 02:00 UTC | END ] -->

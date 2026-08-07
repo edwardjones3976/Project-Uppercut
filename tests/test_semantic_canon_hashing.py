@@ -276,6 +276,24 @@ def test_a_string_of_digits_is_not_the_number():
     assert sem({"x": "1"}, []) != sem({"x": 1}, [])
 
 
+def test_keys_differing_only_in_case_are_different_fields():
+    """Regression, and the first thing cross-language parity ever caught.
+
+    `FString::operator==` is case-INSENSITIVE in Unreal. The C++ canonicalizer's
+    first parity run rejected the key_sorting vector as containing a duplicate
+    key, because it holds both "A" and "a". The same defect would have let an
+    exclusion pointer spelled `/guard/Note` drop the real `/guard/note` - a
+    field nobody classified, silently leaving the evidence envelope.
+
+    Python has never had this bug. The test is here anyway, because the vectors
+    are the shared contract and this is the property they encode.
+    """
+    assert sem({"A": 1, "a": 2}, []) != sem({"A": 2, "a": 1}, [])
+    assert sem({"a": 1}, []) != sem({"A": 1}, [])
+    # And two keys differing only in case are not a duplicate key.
+    C.hashes('{"A": 1, "a": 2}', [], "v")
+
+
 def test_unicode_survives_without_escaping_ambiguity():
     """Two serialisers disagree about \\uXXXX escapes; the byte stream cannot."""
     a = C.hashes(json.dumps({"x": "café"}, ensure_ascii=True), [], "v")[1]
