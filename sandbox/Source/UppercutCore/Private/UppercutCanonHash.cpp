@@ -1,6 +1,8 @@
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 03:20 UTC | START ]
 #include "UppercutCanonHash.h"
 
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 #include "UppercutCanonSource.h"
 
 const TCHAR* UppercutCanonicalizerVersion = TEXT("uppercut-semantic-json-v1");
@@ -524,6 +526,113 @@ bool UppercutCanonHashes(const FString& JsonText,
 
     if (!Encode(Doc, Payload, OutError)) { return false; }
     OutSemantic = UppercutSha256Hex(Payload.GetData(), (uint64)Payload.Num());
+    return true;
+}
+
+// Which file, at which schema version. Including the path means two canon files
+// holding identical values still have different identities, which is correct -
+// they are different dependencies.
+static bool SchemaIdentityFor(const FString& Text, const FString& Rel,
+                              FString& Out, FString& OutError)
+{
+    using namespace UppercutCanon;
+    FValue Doc;
+    if (!Parse(Text, Doc, OutError)) { return false; }
+    FString Version;
+    if (Doc.Type == EType::Object)
+    {
+        for (const TPair<FString, FValue>& M : Doc.Members)
+        {
+            if (KeyEquals(M.Key, TEXT("schema_version")) && M.Value.Type == EType::String)
+            {
+                Version = M.Value.Str;
+            }
+        }
+    }
+    Out = FString::Printf(TEXT("%s@%s"), *Rel, *Version);
+    return true;
+}
+
+bool UppercutCanonHeaderLines(const FString& RepoDir,
+                              const TArray<TPair<FString, FString>>& Entries,
+                              TArray<FString>& OutLines,
+                              FString& OutError)
+{
+    FString ManifestText;
+    const FString ManifestPath = RepoDir / TEXT("data/hash_roles.json");
+    if (!FFileHelper::LoadFileToString(ManifestText, *ManifestPath))
+    {
+        OutError = FString::Printf(TEXT("cannot read %s"), *ManifestPath);
+        return false;
+    }
+    FString ManifestId, ManifestVersion;
+    if (!UppercutCanonManifestIdentity(ManifestText, ManifestId, ManifestVersion, OutError))
+    {
+        return false;
+    }
+
+    // The manifest doc again, this time to read the per-file patterns.
+    UppercutCanon::FValue Manifest;
+    if (!UppercutCanon::Parse(ManifestText, Manifest, OutError)) { return false; }
+    const UppercutCanon::FValue* Files = nullptr;
+    for (const TPair<FString, UppercutCanon::FValue>& M : Manifest.Members)
+    {
+        if (UppercutCanon::KeyEquals(M.Key, TEXT("files"))) { Files = &M.Value; }
+    }
+
+    OutLines.Reset();
+    OutLines.Add(FString::Printf(TEXT("H|canon_hash_contract=%s"), UppercutHashContractVersion));
+    OutLines.Add(FString::Printf(TEXT("H|canon_hash_roles=%s"), *ManifestVersion));
+    OutLines.Add(FString::Printf(TEXT("H|canon_hash_roles_id=%s"), *ManifestId));
+
+    for (const TPair<FString, FString>& Entry : Entries)
+    {
+        const FString& Label = Entry.Key;
+        const FString& Rel = Entry.Value;
+
+        FString Text;
+        const FString Path = RepoDir / Rel;
+        if (!FFileHelper::LoadFileToString(Text, *Path))
+        {
+            OutError = FString::Printf(TEXT("cannot read canon file %s"), *Rel);
+            return false;
+        }
+
+        // Silence in the manifest means "hash the whole file", never "exclude
+        // something". A file nobody classified is fully authoritative.
+        TArray<FString> Patterns;
+        if (Files && Files->Type == UppercutCanon::EType::Object)
+        {
+            for (const TPair<FString, UppercutCanon::FValue>& F : Files->Members)
+            {
+                if (!UppercutCanon::KeyEquals(F.Key, Rel)) { continue; }
+                for (const TPair<FString, UppercutCanon::FValue>& S : F.Value.Members)
+                {
+                    if (UppercutCanon::KeyEquals(S.Key, TEXT("non_authoritative"))
+                        && S.Value.Type == UppercutCanon::EType::Array)
+                    {
+                        for (const UppercutCanon::FValue& It : S.Value.Items)
+                        {
+                            if (It.Type == UppercutCanon::EType::String) { Patterns.Add(It.Str); }
+                        }
+                    }
+                }
+            }
+        }
+
+        FString SchemaId;
+        if (!SchemaIdentityFor(Text, Rel, SchemaId, OutError)) { return false; }
+
+        FString Raw, Semantic;
+        if (!UppercutCanonHashes(Text, Patterns, SchemaId, ManifestId,
+                                 ManifestVersion, Raw, Semantic, OutError))
+        {
+            OutError = FString::Printf(TEXT("%s: %s"), *Rel, *OutError);
+            return false;
+        }
+        OutLines.Add(FString::Printf(TEXT("H|canon_%s_semantic=%s"), *Label, *Semantic));
+        OutLines.Add(FString::Printf(TEXT("H|canon_%s_raw=%s"), *Label, *Raw));
+    }
     return true;
 }
 

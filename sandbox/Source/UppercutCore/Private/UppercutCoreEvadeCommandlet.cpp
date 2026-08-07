@@ -5,6 +5,7 @@
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "UppercutEvadeCore.h"
+#include "UppercutCanonHash.h"
 
 // NEITHER THE RULES, THE CANON READER, NOR THE LOOP LIVE HERE ANY MORE.
 //
@@ -56,10 +57,22 @@ int32 UUppercutCoreEvadeCommandlet::Main(const FString& Params)
     // ---- the header: canon before any tick --------------------------------
     FString Out;
     Out += TEXT("H|phase=R\n");
+
+    // Decision 0023: dual identities, from the shared builder. Migrated
+    // 2026-08-07 with no authoritative row moved.
+    TArray<TPair<FString, FString>> Entries;
     for (const FUppercutCanonSource& Src : Sources)
     {
-        Out += FString::Printf(TEXT("H|canon_%s=%s\n"), *Src.Label, *Src.Sha256);
+        Entries.Add(TPair<FString, FString>(Src.Label, Src.RelPath));
     }
+    TArray<FString> HeaderLines;
+    if (!UppercutCanonHeaderLines(Repo, Entries, HeaderLines, Error))
+    {
+        UE_LOG(LogTemp, Error, TEXT("UppercutCoreEvade: header: %s"), *Error);
+        return 1;
+    }
+    for (const FString& L : HeaderLines) { Out += L + TEXT("\n"); }
+
     Out += FString::Printf(TEXT("H|seed=%u\nH|ticks=%d\n"), Seed, Ticks);
     TArray<FString> EvIds;
     C.Evasions.GetKeys(EvIds);

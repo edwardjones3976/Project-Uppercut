@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-07 02:55 UTC** at `626a5f1 Adopt semantic canon hashing with raw provenance`.
+Generated **2026-08-07 04:16 UTC** at `fa83193 feat(evidence): the C++ canonicalizer, and parity proven - Decision 0023 steps 3, 4`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **874 passed** |
+| Test suite | **882 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |

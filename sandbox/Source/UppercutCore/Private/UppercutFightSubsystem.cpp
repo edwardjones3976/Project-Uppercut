@@ -46,10 +46,10 @@ void UUppercutFightSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     // The project lives at <repo>/sandbox, so the repository is one level up.
     // Failing here is not fatal - the arena comes up with no fight and says so,
     // which is more useful than a crash on a machine with a different layout.
-    const FString RepoDir = FPaths::ConvertRelativePathToFull(
+    const FString InferredRepo = FPaths::ConvertRelativePathToFull(
         FPaths::ProjectDir() / TEXT(".."));
     FString Error;
-    if (!LoadCanon(RepoDir, Error))
+    if (!LoadCanon(InferredRepo, Error))
     {
         UE_LOG(LogTemp, Warning, TEXT("UppercutFight: no canon (%s)"), *Error);
     }
@@ -74,14 +74,16 @@ TStatId UUppercutFightSubsystem::GetStatId() const
     RETURN_QUICK_DECLARE_CYCLE_STAT(UUppercutFightSubsystem, STATGROUP_Tickables);
 }
 
-bool UUppercutFightSubsystem::LoadCanon(const FString& RepoDir, FString& OutError)
+bool UUppercutFightSubsystem::LoadCanon(const FString& InRepoDir, FString& OutError)
 {
-    if (!UppercutLoadRangeCanon(RepoDir, Canon, Sources, OutError))
+    if (!UppercutLoadRangeCanon(InRepoDir, Canon, Sources, OutError))
     {
         State = EUppercutFightState::NoCanon;
         return false;
     }
-    TickRateHz = ReadTickRateHz(RepoDir);
+    RepoDir = InRepoDir;
+    const FString& RepoDirRef = RepoDir;
+    TickRateHz = ReadTickRateHz(RepoDirRef);
     ResetSession(Seed);
     State = EUppercutFightState::Ready;
     UE_LOG(LogTemp, Display,
@@ -290,7 +292,8 @@ bool UUppercutFightSubsystem::DumpStream(const FString& Path, FString& OutError)
     // actually run keeps the file honest when a fight is dumped mid-round; it
     // also means a mid-round dump will not match a full-round pin, which is
     // correct - they are not the same run.
-    FString Out = UppercutRangeStreamHeader(Canon, Sources, Seed, Session.Tick);
+    FString Out = UppercutRangeStreamHeader(Canon, Sources, Seed, Session.Tick,
+                                            RepoDir);
     for (const FString& Row : CapturedRows) { Out += Row; }
 
     // The property rows are hashed, so a dump has to fold them in exactly where

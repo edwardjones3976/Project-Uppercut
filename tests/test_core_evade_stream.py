@@ -37,8 +37,13 @@ def test_the_stream_is_a_function_of_its_arguments(rs):
 
 
 def test_the_header_names_every_canon_file_the_phase_reads(rs):
+    # Updated 2026-08-07 for Decision 0023's dual-hash header: every canon file
+    # appears with BOTH identities, so a file gaining only one of the two fails.
     named = {l.split("=")[0][len("H|canon_"):] for l in rs.splitlines()
              if l.startswith("H|canon_")}
+    named -= {"hash_contract", "hash_roles", "hash_roles_id"}
+    assert all(n.endswith("_semantic") or n.endswith("_raw") for n in named)
+    named = {n.rsplit("_", 1)[0] for n in named}
     assert named == {"guard_evasion", "moves", "animation"}
 
 

@@ -65,6 +65,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import analyze_core_round as O  # noqa: E402
 
 REPO = O.REPO
+
+sys.path.insert(0, REPO)
+from tools.uppercut_canon.header import canon_header_lines  # noqa: E402
 GUARD_EVASION = os.path.join("data", "guard_evasion_model.json")
 MOVES = os.path.join("data", "moves", "generic_sandbox_moves.json")
 
@@ -307,8 +310,13 @@ def stream_pack() -> dict:
 def expected_stream(seed: int, ticks: int) -> str:
     c = stream_pack()
     lines = ["H|phase=R"]
-    for k in ("guard_evasion", "moves", "animation"):
-        lines.append("H|canon_%s=%s" % (k, c["sha"][k]))
+    # Decision 0023: dual identities. Migrated 2026-08-07 with no authoritative
+    # row moved; the superseded whole-file hashes are in the phase evidence.
+    lines += canon_header_lines(REPO, [
+        ("guard_evasion", "data/guard_evasion_model.json"),
+        ("moves", "data/moves/generic_sandbox_moves.json"),
+        ("animation", "data/animation_model.json"),
+    ])
     lines.append("H|seed=%d" % seed)
     lines.append("H|ticks=%d" % ticks)
     for eid in sorted(c["evasions"]):

@@ -69,6 +69,9 @@ REGIONS, GRADED = N.REGIONS, N.GRADED
 q, fnv1a64 = N.q, N.fnv1a64
 
 CANON = dict(N.CANON, clock="data/clock_model.json")
+
+from tools.uppercut_canon.header import (canon_header_lines,  # noqa: E402
+                                         verify_header)
 CANON_ORDER = N.CANON_ORDER + ("clock",)
 
 # Decision 0018 (gate G5). The default rulebook, by id. Overridable per run via
@@ -88,6 +91,9 @@ def load_ruleset(rid: str) -> dict:
     r = json.loads(io.open(p, "rb").read())
     import hashlib
     r["_sha"] = hashlib.sha256(io.open(p, "rb").read()).hexdigest()
+    # Repo-relative, so the dual-hash header can name the same file the
+    # hash-role manifest does.
+    r["_path"] = "%s/%s.json" % (RULESETS.replace(os.sep, "/"), rid)
     return r
 # Rounds are scored on landings; a knockdown costs the man who suffered it a
 # point on top of losing the round. 10-point must, from judge.py.
@@ -278,13 +284,17 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True,
                     with_terms: bool = False) -> str:
     c = canon_pack()
     lines = ["H|phase=O"]
-    lines += ["H|canon_%s=%s" % (k, c["sha"][k]) for k in CANON_ORDER]
-    # Decision 0018: the rulebook is part of the artifact. A stream that does not
-    # say which rules it ran under cannot be compared with one that ran under
-    # different ones, and this project spent a week doing exactly that.
+    # Decision 0023: dual identities. Migrated 2026-08-07 with no authoritative
+    # row moved.
+    lines += canon_header_lines(REPO, [(k, CANON[k]) for k in CANON_ORDER])
+    # Decision 0018 (implemented by 0019): the rulebook is part of the artifact.
+    # A stream that does not say which rules it ran under cannot be compared
+    # with one that ran under different ones, and this project spent a week
+    # doing exactly that. The selected ruleset gets both identities too - a
+    # reworded `note` in a rulebook must not read as a different rulebook.
     lines += ["H|ruleset=%s" % c["ruleset"]["id"],
-              "H|ruleset_version=%s" % c["ruleset"]["version"],
-              "H|canon_ruleset=%s" % c["ruleset"]["_sha"]]
+              "H|ruleset_version=%s" % c["ruleset"]["version"]]
+    lines += canon_header_lines(REPO, [("ruleset", c["ruleset"]["_path"])])[3:]
     lines += ["H|seed=%d" % seed, "H|rounds=%d" % rounds,
               "H|round_ticks=%d" % c["round_ticks"],
               "H|break_ticks=%d" % c["break_ticks"],
@@ -776,9 +786,10 @@ def analyse(path: str) -> dict:
         return rep
     seed, rounds = int(heads["seed"]), int(heads["rounds"])
     rep["seed"], rep["rounds_requested"] = seed, rounds
-    for k in CANON_ORDER:
-        if heads.get("canon_" + k) != c["sha"][k]:
-            rep["errors"].append("canon_%s hash does not match the local file" % k)
+    # Decision 0023: raw AND semantic, for every canon file and the ruleset.
+    rep["errors"].extend(
+        verify_header(REPO, heads, [(k, CANON[k]) for k in CANON_ORDER]
+                      + [("ruleset", c["ruleset"]["_path"])]))
 
     got = "\n".join(l for l in lines if not l.startswith("F|")) + "\n"
     want = expected_stream(seed, rounds, with_floats=False)

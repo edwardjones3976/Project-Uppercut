@@ -58,4 +58,18 @@ UPPERCUTCORE_API bool UppercutCanonManifestIdentity(const FString& ManifestJson,
                                                     FString& OutIdentity,
                                                     FString& OutVersion,
                                                     FString& OutError);
+
+// The dual-hash stream header, byte-identical to
+// tools/uppercut_canon/header.py::canon_header_lines. `Entries` is
+// (label, repo-relative path) in the phase's declared order.
+//
+// Each returned line has NO trailing newline, so a caller joins them the way
+// its own stream does. Decision 0023 prohibits an unlabelled `canon_<name>`
+// hash in a new contract - the header must say which question its number
+// answers.
+UPPERCUTCORE_API bool UppercutCanonHeaderLines(
+    const FString& RepoDir,
+    const TArray<TPair<FString, FString>>& Entries,
+    TArray<FString>& OutLines,
+    FString& OutError);
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 03:20 UTC | END ]

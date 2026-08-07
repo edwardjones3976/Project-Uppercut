@@ -60,6 +60,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import analyze_core_round as O  # noqa: E402
 
 REPO = O.REPO
+
+sys.path.insert(0, REPO)
+from tools.uppercut_canon.header import canon_header_lines  # noqa: E402
 q = O.q
 
 MOVEMENT = os.path.join("data", "movement_model.json")
@@ -443,8 +446,15 @@ def uppercut_is_reachable(c: dict) -> bool:
 def expected_stream(seed: int, ticks: int) -> str:
     c = stream_pack()
     lines = ["H|phase=Q"]
-    for k in ("movement", "moves", "animation", "pose"):
-        lines.append("H|canon_%s=%s" % (k, c["sha"][k]))
+    # Decision 0023: dual identities. Migrated 2026-08-07; the whole-file hashes
+    # this replaced are recorded in the phase evidence, and not one
+    # authoritative row moved.
+    lines += canon_header_lines(REPO, [
+        ("movement", "data/movement_model.json"),
+        ("moves", "data/moves/generic_sandbox_moves.json"),
+        ("animation", "data/animation_model.json"),
+        ("pose", "data/pose_geometry.json"),
+    ])
     lines.append("H|seed=%d" % seed)
     lines.append("H|ticks=%d" % ticks)
     for i, (key, lo, hi) in enumerate(c["bands"]):

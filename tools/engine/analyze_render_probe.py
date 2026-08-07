@@ -35,6 +35,12 @@ import sys
 
 REPO = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, REPO)
+import analyze_core_condition as N  # noqa: E402  - for the canon path table
+from tools.uppercut_canon.header import (canon_header_lines,  # noqa: E402
+                                         verify_header)
+
 LCG_A, LCG_C, LCG_M = 1664525, 1013904223, 2 ** 32
 FNV_OFFSET, FNV_PRIME = 14695981039346656037, 1099511628211
 
@@ -161,8 +167,13 @@ def _ext(c: dict, mid: str, m: int) -> int:
 def expected_stream(seed: int, ticks: int, with_floats: bool = True) -> str:
     c = canon_pack()
     lines = ["H|phase=K"]
-    lines += [f"H|canon_{k}={c['sha'][k]}" for k in
-              ("movement", "condition", "guard", "cpu", "moves", "animation", "collision", "pose")]
+    # Decision 0023: dual identities. Migrated 2026-08-07 with no authoritative
+    # row moved. Phase K declares eight files, one fewer than Phase N - it does
+    # not read punch_model - and that difference is preserved exactly.
+    lines += canon_header_lines(REPO, [
+        (k, N.CANON[k]) for k in
+        ("movement", "condition", "guard", "cpu", "moves", "animation",
+         "collision", "pose")])
     lines += [f"H|seed={seed}", f"H|ticks={ticks}", f"H|interval={c['interval']}"]
 
     pos = [c["axis"] // 2 - 4500, c["axis"] // 2 + 4500]
@@ -300,9 +311,11 @@ def analyse(path: str) -> dict:
     seed, ticks = int(heads["seed"]), int(heads["ticks"])
     rep["seed"], rep["ticks"] = seed, ticks
 
-    for k in CANON:
-        if heads.get("canon_" + k) != c["sha"][k]:
-            rep["errors"].append(f"canon_{k} hash does not match the local file")
+    # Decision 0023: raw AND semantic. Phase K reads eight files, not N's nine.
+    rep["errors"].extend(verify_header(REPO, heads, [
+        (k, N.CANON[k]) for k in
+        ("movement", "condition", "guard", "cpu", "moves", "animation",
+         "collision", "pose")]))
 
     got_core = "\n".join(l for l in lines if not l.startswith("F|")) + "\n"
     want = expected_stream(seed, ticks, with_floats=False)

@@ -6,6 +6,7 @@
 // piece of code would prove nothing about the first.
 
 #include "UppercutRangeCore.h"
+#include "UppercutCanonHash.h"
 
 namespace
 {
@@ -28,14 +29,30 @@ uint64 UppercutFnv1a64(uint64 Running, const FString& Row)
 
 FString UppercutRangeStreamHeader(const FUppercutRangeCanon& C,
                                   const TArray<FUppercutCanonSource>& Sources,
-                                  uint32 Seed, int32 Ticks)
+                                  uint32 Seed, int32 Ticks,
+                                  const FString& RepoDir)
 {
     FString Out;
     Out += TEXT("H|phase=Q\n");
+
+    // Decision 0023: dual identities, built by the SHARED builder so the
+    // commandlet and the Python contract cannot drift into two opinions about
+    // what a header says. Migrated 2026-08-07 with no authoritative row moved.
+    TArray<TPair<FString, FString>> Entries;
     for (const FUppercutCanonSource& Src : Sources)
     {
-        Out += FString::Printf(TEXT("H|canon_%s=%s\n"), *Src.Label, *Src.Sha256);
+        Entries.Add(TPair<FString, FString>(Src.Label, Src.RelPath));
     }
+    TArray<FString> HeaderLines;
+    FString Error;
+    if (!UppercutCanonHeaderLines(RepoDir, Entries, HeaderLines, Error))
+    {
+        // Refusing loudly. A stream with no canon identity is worse than no
+        // stream: it looks like evidence and is not.
+        return FString::Printf(TEXT("H|phase=Q\nH|ERROR=%s\n"), *Error);
+    }
+    for (const FString& L : HeaderLines) { Out += L + TEXT("\n"); }
+
     Out += FString::Printf(TEXT("H|seed=%u\nH|ticks=%d\n"), Seed, Ticks);
     for (int32 i = 0; i < C.BandKey.Num(); ++i)
     {
