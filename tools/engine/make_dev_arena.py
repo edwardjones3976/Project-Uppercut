@@ -29,21 +29,7 @@ PROJECT = os.path.join(REPO, "sandbox", "UppercutSandbox.uproject")
 SCRIPT = os.path.join(REPO, "tools", "engine", "build_dev_arena.py")
 OUT = os.path.join(REPO, "sandbox", "Saved", "dev_arena.json")
 
-PS_LIST = ("Get-CimInstance Win32_Process | "
-           "ForEach-Object { $_.ProcessId.ToString() + '|' + $_.Name + '|' "
-           "+ [string]$_.CommandLine }")
-
-
-def kill_the_wedge():
-    out = subprocess.run(["powershell", "-NoProfile", "-Command", PS_LIST],
-                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    for line in out.stdout.decode("utf-8", "replace").splitlines():
-        low = line.lower()
-        if "validateplatforms" in low or "|ping.exe|" in low:
-            pid = line.split("|")[0].strip()
-            subprocess.run(["powershell", "-NoProfile", "-Command",
-                            "Stop-Process -Id %s -Force -ErrorAction SilentlyContinue"
-                            % pid])
+from tools.engine.wedge import kill_the_wedge  # noqa: E402
 
 
 def main() -> int:
