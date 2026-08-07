@@ -1,0 +1,1117 @@
+{
+  "$comment": "Wind/Reserve trajectories for Decision 0021 runtime parity. Every value is q10000 and must match EXACTLY - an integer economy that agrees approximately has already failed. Regenerate with python -m tools.uppercut_stamina.vectors.",
+  "round_ticks": 10800,
+  "canon": {
+    "wind_max": 1000000,
+    "wind_low": 250000,
+    "wind_exhausted": 100000,
+    "wind_start": 1000000,
+    "reserve_start": 1000000,
+    "reserve_max": 1000000,
+    "sustained_exertion": 12,
+    "wind_per_ru": 6000,
+    "reserve_per_ru": 80,
+    "wind_between_rounds": 3500,
+    "reserve_between_rounds": 20000,
+    "ceiling_floor": 5500,
+    "ceiling_span": 4500,
+    "recovery_floor": 4000,
+    "recovery_span": 6000
+  },
+  "cases": [
+    {
+      "name": "rest_from_empty",
+      "start_wind": 0,
+      "start_reserve": 1000000,
+      "script": [
+        {
+          "repeat": 10800,
+          "action": "rest",
+          "move": null,
+          "disp": 0
+        }
+      ],
+      "between_rounds_after": false,
+      "wind": 648000,
+      "reserve": 1000000,
+      "checkpoints": [
+        {
+          "tick": 1,
+          "wind": 60,
+          "reserve": 1000000
+        },
+        {
+          "tick": 100,
+          "wind": 6000,
+          "reserve": 1000000
+        },
+        {
+          "tick": 5000,
+          "wind": 300000,
+          "reserve": 1000000
+        },
+        {
+          "tick": 10800,
+          "wind": 648000,
+          "reserve": 1000000
+        }
+      ]
+    },
+    {
+      "name": "round_at_65_punches",
+      "start_wind": 1000000,
+      "start_reserve": 1000000,
+      "script": [
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 165,
+          "action": "observe",
+          "move": null,
+          "disp": 0
+        }
+      ],
+      "between_rounds_after": false,
+      "wind": 857650,
+      "reserve": 972700,
+      "checkpoints": [
+        {
+          "tick": 166,
+          "wind": 997810,
+          "reserve": 999580
+        },
+        {
+          "tick": 1660,
+          "wind": 978100,
+          "reserve": 995800
+        },
+        {
+          "tick": 9960,
+          "wind": 868600,
+          "reserve": 974800
+        }
+      ]
+    },
+    {
+      "name": "grinding_below_low_wind",
+      "start_wind": 249999,
+      "start_reserve": 1000000,
+      "script": [
+        {
+          "repeat": 600,
+          "action": "attack",
+          "move": "jab_lead",
+          "disp": 0
+        }
+      ],
+      "between_rounds_after": false,
+      "wind": 0,
+      "reserve": 902800,
+      "checkpoints": [
+        {
+          "tick": 1,
+          "wind": 247799,
+          "reserve": 999838
+        },
+        {
+          "tick": 300,
+          "wind": 0,
+          "reserve": 951400
+        },
+        {
+          "tick": 600,
+          "wind": 0,
+          "reserve": 902800
+        }
+      ]
+    },
+    {
+      "name": "displacement_pricing",
+      "start_wind": 1000000,
+      "start_reserve": 1000000,
+      "script": [
+        {
+          "repeat": 1,
+          "action": "move",
+          "move": "step_in",
+          "disp": 2200
+        },
+        {
+          "repeat": 1,
+          "action": "move",
+          "move": "step_out",
+          "disp": 1717
+        },
+        {
+          "repeat": 1,
+          "action": "move",
+          "move": "step_lateral",
+          "disp": 3
+        },
+        {
+          "repeat": 1,
+          "action": "move",
+          "move": "step_in",
+          "disp": 0
+        }
+      ],
+      "between_rounds_after": false,
+      "wind": 997649,
+      "reserve": 999970,
+      "checkpoints": [
+        {
+          "tick": 1,
+          "wind": 998680,
+          "reserve": 999983
+        },
+        {
+          "tick": 2,
+          "wind": 997650,
+          "reserve": 999970
+        },
+        {
+          "tick": 3,
+          "wind": 997649,
+          "reserve": 999970
+        },
+        {
+          "tick": 4,
+          "wind": 997649,
+          "reserve": 999970
+        }
+      ]
+    },
+    {
+      "name": "between_rounds",
+      "start_wind": 250000,
+      "start_reserve": 500000,
+      "script": [],
+      "between_rounds_after": true,
+      "wind": 436900,
+      "reserve": 520000,
+      "checkpoints": []
+    },
+    {
+      "name": "rest_on_low_reserve",
+      "start_wind": 0,
+      "start_reserve": 200000,
+      "script": [
+        {
+          "repeat": 10800,
+          "action": "rest",
+          "move": null,
+          "disp": 0
+        }
+      ],
+      "between_rounds_after": false,
+      "wind": 334800,
+      "reserve": 200000,
+      "checkpoints": [
+        {
+          "tick": 1,
+          "wind": 31,
+          "reserve": 200000
+        },
+        {
+          "tick": 1000,
+          "wind": 31000,
+          "reserve": 200000
+        },
+        {
+          "tick": 10800,
+          "wind": 334800,
+          "reserve": 200000
+        }
+      ]
+    },
+    {
+      "name": "spend_and_recover_same_tick",
+      "start_wind": 1000000,
+      "start_reserve": 1000000,
+      "script": [
+        {
+          "repeat": 1,
+          "action": "rest",
+          "move": "jab_lead",
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "observe",
+          "move": "cross_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "hold_position",
+          "move": "step_in",
+          "disp": 1500
+        },
+        {
+          "repeat": 1,
+          "action": "micro_adjust",
+          "move": "jab_lead",
+          "disp": 0
+        }
+      ],
+      "between_rounds_after": false,
+      "wind": 987033,
+      "reserve": 999268,
+      "checkpoints": [
+        {
+          "tick": 1,
+          "wind": 997859,
+          "reserve": 999850
+        },
+        {
+          "tick": 2,
+          "wind": 990093,
+          "reserve": 999430
+        },
+        {
+          "tick": 3,
+          "wind": 989222,
+          "reserve": 999418
+        },
+        {
+          "tick": 4,
+          "wind": 987033,
+          "reserve": 999268
+        }
+      ]
+    },
+    {
+      "name": "spent_past_empty",
+      "start_wind": 100000,
+      "start_reserve": 100000,
+      "script": [
+        {
+          "repeat": 400,
+          "action": "attack",
+          "move": "cross_rear",
+          "disp": 0
+        }
+      ],
+      "between_rounds_after": false,
+      "wind": 0,
+      "reserve": 0,
+      "checkpoints": [
+        {
+          "tick": 1,
+          "wind": 92200,
+          "reserve": 99568
+        },
+        {
+          "tick": 50,
+          "wind": 0,
+          "reserve": 78400
+        },
+        {
+          "tick": 200,
+          "wind": 0,
+          "reserve": 13600
+        },
+        {
+          "tick": 400,
+          "wind": 0,
+          "reserve": 0
+        }
+      ]
+    },
+    {
+      "name": "negative_intermediate_reserve",
+      "start_wind": 100000,
+      "start_reserve": 450,
+      "script": [
+        {
+          "repeat": 1,
+          "action": "rest",
+          "move": "overhand_rear",
+          "disp": 0
+        }
+      ],
+      "between_rounds_after": false,
+      "wind": 89523,
+      "reserve": 0,
+      "checkpoints": [
+        {
+          "tick": 1,
+          "wind": 89523,
+          "reserve": 0
+        }
+      ]
+    }
+  ]
+}

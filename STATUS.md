@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-07 04:16 UTC** at `fa83193 feat(evidence): the C++ canonicalizer, and parity proven - Decision 0023 steps 3, 4`.
+Generated **2026-08-07 07:26 UTC** at `9929b9c feat(evidence): Decision 0024 - precise dependency scope, and the RFC 6901 fix`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **882 passed** |
+| Test suite | **1046 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |
