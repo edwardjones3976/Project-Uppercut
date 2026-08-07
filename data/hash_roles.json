@@ -163,7 +163,8 @@
         "/wind/ceiling_from_reserve/$comment",
         "/wind/recovery_from_reserve/$comment",
         "/wind/recovery_notes",
-        "/wind/recovery_per_tick_by_action/$comment"
+        "/wind/recovery_per_tick_by_action/$comment",
+        "/wind/recovery_per_tick_by_action/units_correction_2026_08_07"
       ],
       "review_note": "`/authority/reader_rule`, `/prohibitions` and every `/invariants/*` field are left AUTHORITATIVE deliberately, even though they read as prose. They are declarative rules a validator may come to enforce, and Decision 0023's default is that an unclassified field stays load-bearing. The cost is that improving that wording moves the semantic hash; the alternative is deciding by vibe which sentences are rules, which is the failure this manifest exists to prevent."
     },

@@ -321,7 +321,11 @@ EXPECTED_EXPANSION = {
     "data/pose_geometry.json": 7,
     "data/guard_evasion_model.json": 29,
     "data/condition_model.json": 17,
-    "data/stamina_economy.json": 16,
+    # 16 -> 17 on 2026-08-07: `units_correction_2026_08_07` was added to
+    # stamina_economy and classified as documentation. The snapshot moving is
+    # the mechanism working - a new exclusion is a visible number change in a
+    # test, not a field quietly leaving the evidence envelope.
+    "data/stamina_economy.json": 17,
     "data/moves/generic_sandbox_effort.json": 25,
 }
 

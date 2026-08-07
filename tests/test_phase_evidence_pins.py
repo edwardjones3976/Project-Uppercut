@@ -103,22 +103,37 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 # C++ artifact after the change, which is why this is a migration and not a
 # re-bless: the fights are provably the same fights.
 #
+# AND ONCE MORE the same day, for a reason that is the design working rather
+# than a defect. `units_correction_2026_08_07` was added to stamina_economy.json
+# and classified as documentation in the hash-role manifest. Director
+# requirement 1 binds the MANIFEST'S OWN identity into every semantic payload,
+# so changing a classification moves every hash taken under it - including
+# phases that do not read the file whose classification changed.
+#
+# That is deliberate and fail-safe: it is what stops someone reclassifying a
+# live combat field as documentation and having the evidence system politely
+# look away. The cost is real and worth stating - ANY manifest edit re-blesses
+# every active stream. The migration verifier was re-run and again found no
+# authoritative row moved, so this is header identity and nothing else.
+#
 #   Phase N  88af6f30... (2026-08-04, flat step cost)
 #            -> 7b2b9000... (2026-08-05, displacement pricing)
 #            -> 3df854f4... (2026-08-06, PROSE ONLY - no value changed)
 #            -> ff2e793f... (2026-08-07, DUAL-HASH HEADER - no row changed)
+#            -> 74e0c48b... (2026-08-07, MANIFEST IDENTITY - no row changed)
 #   Phase K  b6f1c24b... (2026-08-04)
 #            -> 4826e82c... (2026-08-05, same cause)
 #            -> d2032592... (2026-08-06, PROSE ONLY - no value changed)
 #            -> 6aba9c09... (2026-08-07, DUAL-HASH HEADER - no row changed)
+#            -> 16e3efa8... (2026-08-07, MANIFEST IDENTITY - no row changed)
 #
 # (module, callable args, the hash the phase record swears to, where it is recorded)
 PINS = [
     ("analyze_core_condition", (4242, 5400),
-     "ff2e793f8234fbc542bbade617c0c87889840fdd980581ac922bdfda6be162b2",
+     "74e0c48b1cfa49451fb2b95773270a4e869a71dc0189e79b440c9f1cb69c346b",
      "Phase N - visible stamina and condition"),
     ("analyze_render_probe", (4242, 5400),
-     "6aba9c099255e6f451fe93df713bcf545c398602e9bcefd893ee91c6fc55dce0",
+     "16e3efa814ffe7cfb25936dc3bbae72a95b02862cd4265b054bc741b5c604ad9",
      "Phase K / the rendered slice - primitives, mannequins and the arena alike"),
 ]
 
