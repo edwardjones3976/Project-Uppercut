@@ -60,8 +60,11 @@ def test_a_tampered_row_is_caught(tmp_path):
 
 def test_a_wrong_canon_hash_is_caught(tmp_path):
     s = arp.expected_stream(SEED, TICKS)
-    line = next(l for l in s.splitlines() if l.startswith("H|canon_pose="))
-    s = s.replace(line, "H|canon_pose=" + "0" * 64)
+    # Decision 0023: tamper with the SEMANTIC identity, because that is the one
+    # that answers "is this the same fight". Corrupting the raw hash alone would
+    # only prove provenance is checked.
+    line = next(l for l in s.splitlines() if l.startswith("H|canon_pose_semantic="))
+    s = s.replace(line, "H|canon_pose_semantic=" + "0" * 64)
     rep = arp.analyse(_write(tmp_path, s))
     assert any("canon_pose" in e for e in rep["errors"])
 # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 06:25 UTC | END ]

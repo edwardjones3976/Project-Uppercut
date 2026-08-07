@@ -103,6 +103,10 @@ CANON = {
 CANON_ORDER = ("movement", "condition", "guard", "cpu", "moves", "animation",
                "collision", "pose", "punch")
 
+sys.path.insert(0, REPO)
+from tools.uppercut_canon.header import (canon_header_lines,  # noqa: E402
+                                         verify_header)
+
 ACTIONS = ("step_in", "step_out", "step_lateral", "jab_lead", "cross_rear",
            "hook_lead", "uppercut_rear", "body_straight_rear", "switch_guard",
            "slip_lead", "idle")
@@ -320,7 +324,12 @@ def _extent(c: dict, posture: str, height: str, gmult: int, committed: bool) -> 
 def expected_stream(seed: int, ticks: int, with_floats: bool = True) -> str:
     c = canon_pack()
     lines = ["H|phase=N"]
-    lines += [f"H|canon_{k}={c['sha'][k]}" for k in CANON_ORDER]
+    # Decision 0023: dual identities. Migrated 2026-08-07 with no authoritative
+    # row moved. Three of these files - cpu, collision, punch - have no entry in
+    # the hash-role manifest, so they are hashed WHOLE and every byte of them is
+    # authoritative. That is the manifest's safe default working as intended:
+    # silence never means exclusion.
+    lines += canon_header_lines(REPO, [(k, CANON[k]) for k in CANON_ORDER])
     lines += [f"H|seed={seed}", f"H|ticks={ticks}", f"H|interval={c['interval']}",
               f"H|graded={GRADED}"]
 
@@ -517,9 +526,12 @@ def analyse(path: str) -> dict:
         rep["errors"].append("the stream does not declare the graded simplification "
                              "this contract is written against")
 
-    for k in CANON_ORDER:
-        if heads.get("canon_" + k) != c["sha"][k]:
-            rep["errors"].append(f"canon_{k} hash does not match the local file")
+    # Decision 0023: both identities are checked. `raw` answers "is this the
+    # same file?", `semantic` answers "is it the same fight that file
+    # describes?" - and a migration that carried a semantic hash nothing ever
+    # verified would be cosmetic.
+    rep["errors"].extend(
+        verify_header(REPO, heads, [(k, CANON[k]) for k in CANON_ORDER]))
 
     got_core = "\n".join(l for l in lines if not l.startswith("F|")) + "\n"
     want = expected_stream(seed, ticks, with_floats=False)

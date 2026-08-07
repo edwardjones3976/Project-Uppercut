@@ -42,7 +42,7 @@ int32 UUppercutCoreRangeCommandlet::Main(const FString& Params)
         return 1;
     }
 
-    FString Out = UppercutRangeStreamHeader(C, Sources, Seed, Ticks);
+    FString Out = UppercutRangeStreamHeader(C, Sources, Seed, Ticks, Repo);
 
     FUppercutRangeSession S;
     S.Reset(C, Seed);

@@ -154,13 +154,23 @@ def test_trailer_hash_covers_the_condition_rows(tmp_path, stream):
 
 
 def test_a_shifted_canon_hash_is_caught(tmp_path, stream):
-    lines = stream.splitlines()
-    for n, l in enumerate(lines):
-        if l.startswith("H|canon_punch="):
-            lines[n] = "H|canon_punch=" + "0" * 64
-            break
-    rep = A.analyse(_write(tmp_path, "\n".join(lines) + "\n"))
-    assert not rep["ok"]
+    """Decision 0023: BOTH identities are load-bearing, so both are tested.
+
+    The loop below used to break on the first match and silently pass if the
+    field had been renamed - which is what happened when the dual-hash header
+    landed. It now asserts it found something to tamper with.
+    """
+    for field in ("H|canon_punch_semantic=", "H|canon_punch_raw="):
+        lines = stream.splitlines()
+        tampered = False
+        for n, l in enumerate(lines):
+            if l.startswith(field):
+                lines[n] = field + "0" * 64
+                tampered = True
+                break
+        assert tampered, "no %s line to corrupt - has the header changed?" % field
+        rep = A.analyse(_write(tmp_path, "\n".join(lines) + "\n"))
+        assert not rep["ok"], "%s was not checked on readback" % field
 
 
 def test_a_single_flipped_digit_anywhere_is_caught(tmp_path, stream):

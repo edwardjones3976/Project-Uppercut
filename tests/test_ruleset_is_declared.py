@@ -63,11 +63,19 @@ def test_the_contract_runs_under_the_professional_default():
 def test_every_stream_says_which_rulebook_it_ran_under():
     """A stream that does not name its rules cannot be compared with one that
     ran under different ones, and this project spent a week doing that."""
-    head = O.expected_stream(4242, 1, with_floats=False).splitlines()[:16]
+    # The whole header, not a fixed slice: Decision 0023's dual hashes made it
+    # longer, and a test that reads the first N lines silently stops checking
+    # the moment a header grows.
+    head = [l for l in O.expected_stream(4242, 1, with_floats=False).splitlines()
+            if l.startswith("H|")]
     fields = {l.split("=")[0] for l in head if l.startswith("H|")}
     assert "H|ruleset" in fields
     assert "H|ruleset_version" in fields
-    assert "H|canon_ruleset" in fields
+    # Decision 0023 migrated this to dual identities: the rulebook is a canon
+    # dependency like any other, so a reworded `note` in it must not read as a
+    # different rulebook.
+    assert "H|canon_ruleset_semantic" in fields
+    assert "H|canon_ruleset_raw" in fields
 
 
 def test_the_legacy_condition_fields_still_echo_the_arcade_ruleset():

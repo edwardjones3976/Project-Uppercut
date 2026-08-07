@@ -261,6 +261,9 @@ private:
 
     FUppercutRangeCanon Canon;
     TArray<FUppercutCanonSource> Sources;
+    // Kept so a dumped stream can build the same dual-hash header the
+    // commandlet does - the header needs the repo, not just the parsed canon.
+    FString RepoDir;
     FUppercutRangeSession Session;
 
     EUppercutFightState State = EUppercutFightState::NoCanon;

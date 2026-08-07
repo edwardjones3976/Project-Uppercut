@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-06 18:49 UTC** at `97bc87d docs(canon): open gate G7 - the stamina economy cannot pay for a round of boxing`.
+Generated **2026-08-07 04:16 UTC** at `fa83193 feat(evidence): the C++ canonicalizer, and parity proven - Decision 0023 steps 3, 4`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **796 passed** |
+| Test suite | **882 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |

@@ -74,20 +74,75 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 # whole-file hashing cannot distinguish a retuned value from a fixed typo, so it
 # trains re-blessing as routine, which is exactly how pin discipline dies.
 #
+# MIGRATED 2026-08-07 under Decision 0023, and this is the ONE move that ruling
+# permits. The whole-file `H|canon_<name>=` lines became a dual-hash header:
+#
+#     H|canon_hash_contract=uppercut-hash-contract-v1
+#     H|canon_hash_roles=uppercut-hash-roles-v1
+#     H|canon_hash_roles_id=<the manifest's own semantic identity>
+#     H|canon_<label>_semantic=<moves when the fight can>
+#     H|canon_<label>_raw=<moves whenever the file does>
+#
+# Every `_raw` value is IDENTICAL to the whole-file hash it replaced, so the
+# provenance the old pins carried is not lost - it is relabelled with the
+# question it was always answering.
+#
+# Migration acceptance, run as `python -m tools.engine.migrate_canon_headers`
+# with baselines captured BEFORE the change and verified after:
+#
+#     OK  phase N   5688 authoritative rows unchanged
+#     OK  phase K   3025 authoritative rows unchanged
+#     OK  phase O  10952 authoritative rows unchanged
+#     OK  phase Q   1312 authoritative rows unchanged
+#     OK  phase R   1007 authoritative rows unchanged
+#     MIGRATION CLEAN - no authoritative row moved
+#
+# 21,984 authoritative rows across five phases, not one of them different. The
+# ruling says any event-row divergence aborts migration and requires separate
+# diagnosis; there was none to diagnose. Every phase also re-proved against its
+# C++ artifact after the change, which is why this is a migration and not a
+# re-bless: the fights are provably the same fights.
+#
+# AND ONCE MORE the same day, for a reason that is the design working rather
+# than a defect. `units_correction_2026_08_07` was added to stamina_economy.json
+# and classified as documentation in the hash-role manifest. Director
+# requirement 1 binds the MANIFEST'S OWN identity into every semantic payload,
+# so changing a classification moves every hash taken under it - including
+# phases that do not read the file whose classification changed.
+#
+# That is deliberate and fail-safe: it is what stops someone reclassifying a
+# live combat field as documentation and having the evidence system politely
+# look away. The cost is real and worth stating - ANY manifest edit re-blesses
+# every active stream. The migration verifier was re-run and again found no
+# authoritative row moved, so this is header identity and nothing else.
+#
 #   Phase N  88af6f30... (2026-08-04, flat step cost)
 #            -> 7b2b9000... (2026-08-05, displacement pricing)
 #            -> 3df854f4... (2026-08-06, PROSE ONLY - no value changed)
+#            -> ff2e793f... (2026-08-07, DUAL-HASH HEADER - no row changed)
+#            -> 74e0c48b... (2026-08-07, MANIFEST IDENTITY - no row changed)
+#            -> 8108c027... (2026-08-07, DECISION 0024 SCOPE - no row changed)
 #   Phase K  b6f1c24b... (2026-08-04)
 #            -> 4826e82c... (2026-08-05, same cause)
 #            -> d2032592... (2026-08-06, PROSE ONLY - no value changed)
+#            -> 6aba9c09... (2026-08-07, DUAL-HASH HEADER - no row changed)
+#            -> 16e3efa8... (2026-08-07, MANIFEST IDENTITY - no row changed)
+#            -> 274c597b... (2026-08-07, DECISION 0024 SCOPE - no row changed)
+#
+# The last move is Decision 0024 replacing the whole-manifest binding with a
+# GLOBAL POLICY identity plus a PER-FILE role set - the narrowing that stops a
+# classification change in one file from moving phases that never read it. This
+# is the final shape of the header, and the cost it removes is the one recorded
+# in the entry above: from here, editing one file's classification moves that
+# file and nothing else.
 #
 # (module, callable args, the hash the phase record swears to, where it is recorded)
 PINS = [
     ("analyze_core_condition", (4242, 5400),
-     "3df854f401d7168d1a73c021c05ff0cee3a1ebb7bb07399e6965610f5c68d5e3",
+     "8108c027abeebaa63425a4f0da155fe771f1775638d1482a1dead935a485c76b",
      "Phase N - visible stamina and condition"),
     ("analyze_render_probe", (4242, 5400),
-     "d2032592e01d897015bebef6799bd002959fd8e7a854034064bb753c985d8c82",
+     "274c597b5d54001cf737dc965160e9d9d87aadcc2fa0f03e40d8ee7da37c10bd",
      "Phase K / the rendered slice - primitives, mannequins and the arena alike"),
 ]
 

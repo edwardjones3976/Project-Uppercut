@@ -200,9 +200,23 @@ def test_the_stream_is_a_function_of_its_arguments(qs):
 
 
 def test_the_header_names_every_canon_file_the_phase_reads(qs):
+    """Updated 2026-08-07 for Decision 0023's dual-hash header.
+
+    Every canon file must appear with BOTH identities. Asserting the exact set
+    means a file gaining only one of the two - which would look fine in a diff
+    and leave half the dependency unverified - fails here.
+    """
     named = {l.split("=")[0][len("H|canon_"):] for l in qs.splitlines()
              if l.startswith("H|canon_")}
-    assert named == {"movement", "moves", "animation", "pose"}
+    files = {"movement", "moves", "animation", "pose"}
+    # Decision 0024: each file carries THREE identities - what it is
+    # (semantic), which bytes it came from (raw), and which classification
+    # governed it (roles) - beside the contract-wide policy header.
+    assert named == ({"hash_contract", "hash_roles", "hash_policy",
+                      "hash_roles_raw"}
+                     | {"%s_semantic" % f for f in files}
+                     | {"%s_raw" % f for f in files}
+                     | {"%s_roles" % f for f in files})
 
 
 def test_a_stream_read_back_cold_is_coherent(qs, tmp_path):

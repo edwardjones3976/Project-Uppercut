@@ -182,7 +182,8 @@ struct UPPERCUTCORE_API FUppercutRangeSession
 UPPERCUTCORE_API FString UppercutRangeStreamHeader(
     const FUppercutRangeCanon& Canon,
     const TArray<FUppercutCanonSource>& Sources,
-    uint32 Seed, int32 Ticks);
+    uint32 Seed, int32 Ticks,
+    const FString& RepoDir);
 
 // The five V rows. Hashed, because a property that is not inside the hash is a
 // claim rather than evidence.
