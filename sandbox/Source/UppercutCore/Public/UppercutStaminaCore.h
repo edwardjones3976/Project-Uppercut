@@ -86,6 +86,26 @@ UPPERCUTCORE_API bool UppercutLoadStaminaCanon(const FString& RepoDir,
                                                FUppercutStaminaCanon& Out,
                                                FString& OutError);
 
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 09:00 UTC | START edit: Decision 0025 ]
+// What a tick REQUESTED, as opposed to what the balance could absorb.
+//
+// Decision 0025 proof 8: a fighter with 0.5 Reserve who throws a 2.0-load
+// punch must not be recorded as having spent 0.5. He ran out of tank, and the
+// model should remember what the action demanded - otherwise every later
+// reading of what the fight took out of him is a number the economy invented
+// rather than one it charged.
+struct UPPERCUTCORE_API FUppercutStepTelemetry
+{
+    int64 RequestedWindCost = 0;
+    int64 RequestedReserveLoad = 0;   // the move's declared load
+    int64 SustainedExertion = 0;      // charged only when working below low Wind
+    int64 RequestedReserveTotal = 0;
+    int64 ReserveApplied = 0;         // what the balance could actually absorb
+    int64 ReserveUnpaid = 0;
+    bool bReserveSaturated = false;
+};
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 09:00 UTC | END edit ]
+
 // One fighter's two resources.
 struct UPPERCUTCORE_API FUppercutStamina
 {
@@ -100,10 +120,28 @@ struct UPPERCUTCORE_API FUppercutStamina
     // draft returned zero cost for an unrecognised id and a fighter throwing
     // 120 punches a round finished with a full pool - nothing raised, and the
     // model simply reported that boxing is not tiring.
+    //
+    // Decision 0025: Reserve saturates at zero IMMEDIATELY after each debit,
+    // so no Reserve-derived formula ever consumes a negative fraction and the
+    // authored ceiling and recovery floors are true lower bounds. State
+    // arriving with Reserve outside [0, ReserveMax] is REFUSED, not normalised
+    // - negative Reserve is an invalid hidden state, not "extra tired".
+    //
+    // `OutTelemetry` is optional and records what the tick requested rather
+    // than what the balance could absorb.
     bool Step(const FUppercutStaminaCanon& C, EUppercutAction Action,
-              const FString& MoveId, int64 DisplacementRu, FString& OutError);
+              const FString& MoveId, int64 DisplacementRu, FString& OutError,
+              FUppercutStepTelemetry* OutTelemetry = nullptr);
 
-    // The corner. Wind comes back substantially; Reserve barely.
-    void BetweenRounds(const FUppercutStaminaCanon& C);
+    // The corner. Wind comes back substantially; Reserve barely, and never
+    // past ReserveMax.
+    bool BetweenRounds(const FUppercutStaminaCanon& C, FString& OutError);
 };
+
+// Decision 0025's input rule and clamp, shared so there is one home for each.
+UPPERCUTCORE_API bool UppercutCheckStaminaState(const FUppercutStaminaCanon& C,
+                                                int64 Wind, int64 Reserve,
+                                                FString& OutError);
+UPPERCUTCORE_API int64 UppercutSaturateReserve(const FUppercutStaminaCanon& C,
+                                               int64 Reserve);
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 10:45 UTC | END ]

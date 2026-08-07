@@ -252,11 +252,46 @@ void FUppercutStamina::Reset(const FUppercutStaminaCanon& C)
     Reserve = C.ReserveStart;
 }
 
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 09:05 UTC | START edit: Decision 0025 ]
+bool UppercutCheckStaminaState(const FUppercutStaminaCanon& C,
+                               int64 Wind, int64 Reserve, FString& OutError)
+{
+    // Refused, not normalised. Quietly clamping an invalid input would make a
+    // corrupt save, a bad fixture or a mis-wired caller indistinguishable from
+    // an exhausted fighter - and Decision 0025 is precisely that negative
+    // Reserve is not "extra tired", it is an invalid hidden state.
+    if (Reserve < 0)
+    {
+        OutError = FString::Printf(
+            TEXT("Reserve %lld is negative. Decision 0025: Reserve is "
+                 "authoritative on [0, %lld] and a negative value is rejected "
+                 "rather than normalised."), Reserve, C.ReserveMax);
+        return false;
+    }
+    if (Reserve > C.ReserveMax)
+    {
+        OutError = FString::Printf(
+            TEXT("Reserve %lld exceeds the declared maximum %lld. The interval "
+                 "is closed at both ends."), Reserve, C.ReserveMax);
+        return false;
+    }
+    return true;
+}
+
+int64 UppercutSaturateReserve(const FUppercutStaminaCanon& C, int64 Reserve)
+{
+    if (Reserve < 0) { return 0; }
+    if (Reserve > C.ReserveMax) { return C.ReserveMax; }
+    return Reserve;
+}
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 09:05 UTC | END edit ]
+
 bool FUppercutStamina::Step(const FUppercutStaminaCanon& C,
                             EUppercutAction Action,
                             const FString& MoveId,
                             int64 DisplacementRu,
-                            FString& OutError)
+                            FString& OutError,
+                            FUppercutStepTelemetry* OutTelemetry)
 {
     // ORDER MATTERS AND IS DELIBERATE:
     //   1. pay for the move, if this tick commits one;
@@ -267,6 +302,14 @@ bool FUppercutStamina::Step(const FUppercutStaminaCanon& C,
     // not refunded before he has paid. Paying first also means the low-Wind
     // test sees the Wind he actually has after the spend, which is the honest
     // reading of "working while already short of breath".
+    if (!UppercutCheckStaminaState(C, Wind, Reserve, OutError))
+    {
+        return false;
+    }
+
+    const int64 ReserveBefore = Reserve;
+    int64 RequestedWind = 0, RequestedReserve = 0;
+
     if (!MoveId.IsEmpty())
     {
         const FUppercutMoveCost* Cost = C.Moves.Find(MoveId);
@@ -288,37 +331,69 @@ bool FUppercutStamina::Step(const FUppercutStaminaCanon& C,
         }
         if (Cost->bDisplacement)
         {
-            Wind -= UppercutFloorDiv(DisplacementRu * C.WindPerRu, 10000);
-            Reserve -= UppercutFloorDiv(DisplacementRu * C.ReservePerRu, 10000);
+            RequestedWind = UppercutFloorDiv(DisplacementRu * C.WindPerRu, 10000);
+            RequestedReserve = UppercutFloorDiv(DisplacementRu * C.ReservePerRu, 10000);
         }
         else
         {
-            Wind -= Cost->Wind;
-            Reserve -= Cost->Reserve;
+            RequestedWind = Cost->Wind;
+            RequestedReserve = Cost->Reserve;
         }
+        Wind -= RequestedWind;
+        Reserve -= RequestedReserve;
+        // Decision 0025 step 3: saturate IMMEDIATELY, before anything reads it.
+        Reserve = UppercutSaturateReserve(C, Reserve);
     }
 
+    int64 Exertion = 0;
     if (IsWorking(Action) && Wind < C.WindLow)
     {
-        Reserve -= C.SustainedExertion;
+        Exertion = C.SustainedExertion;
+        Reserve -= Exertion;
+        Reserve = UppercutSaturateReserve(C, Reserve);
     }
 
+    // Reserve is now guaranteed inside [0, ReserveMax], so neither
+    // Reserve-derived formula below can see a negative fraction and neither can
+    // fall through its authored floor. Decision 0025 makes RecoveryFloor and
+    // CeilingFloor true lower bounds rather than suggestions that disappear
+    // when arithmetic underflows.
     Wind += C.RecoveryRate(Action, Reserve);
 
-    if (Reserve < 0) { Reserve = 0; }
-    if (Reserve > C.ReserveMax) { Reserve = C.ReserveMax; }
     const int64 Ceiling = C.WindCeiling(Reserve);
     if (Wind > Ceiling) { Wind = Ceiling; }
     if (Wind < 0) { Wind = 0; }
+
+    if (OutTelemetry)
+    {
+        // Decision 0025 proof 8: what the action DEMANDED, not what the balance
+        // could absorb. Recording only the affordable part would report a
+        // 2.0-load punch as having cost 0.5.
+        OutTelemetry->RequestedWindCost = RequestedWind;
+        OutTelemetry->RequestedReserveLoad = RequestedReserve;
+        OutTelemetry->SustainedExertion = Exertion;
+        OutTelemetry->RequestedReserveTotal = RequestedReserve + Exertion;
+        OutTelemetry->ReserveApplied = ReserveBefore - Reserve;
+        OutTelemetry->ReserveUnpaid =
+            OutTelemetry->RequestedReserveTotal - OutTelemetry->ReserveApplied;
+        OutTelemetry->bReserveSaturated = OutTelemetry->ReserveUnpaid > 0;
+    }
     return true;
 }
 
-void FUppercutStamina::BetweenRounds(const FUppercutStaminaCanon& C)
+bool FUppercutStamina::BetweenRounds(const FUppercutStaminaCanon& C,
+                                     FString& OutError)
 {
-    Reserve = FMath::Min(C.ReserveMax, Reserve + C.ReserveBetweenRounds);
+    if (!UppercutCheckStaminaState(C, Wind, Reserve, OutError))
+    {
+        return false;
+    }
+    // Decision 0025: the corner saturates at ReserveMax.
+    Reserve = UppercutSaturateReserve(C, Reserve + C.ReserveBetweenRounds);
     const int64 Ceiling = C.WindCeiling(Reserve);
     Wind = FMath::Min(Ceiling,
                       Wind + UppercutFloorDiv((Ceiling - Wind) * C.WindBetweenRounds,
                                               10000));
+    return true;
 }
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 10:45 UTC | END ]

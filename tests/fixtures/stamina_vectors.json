@@ -1,4 +1,30 @@
 {
+  "rejection_cases": [
+    {
+      "name": "negative_reserve_start",
+      "wind": 1000000,
+      "reserve": -1,
+      "why": "Reserve below the authoritative interval",
+      "python_reason": "Reserve -1 is negative. Decision 0025: Reserve is authoritative on [0, 1000000], and a negative value is rejected rather than normalised - it is an invalid state, not a third exhaustion regime.",
+      "expect_rejected": true
+    },
+    {
+      "name": "deeply_negative_reserve",
+      "wind": 1000000,
+      "reserve": -1000000,
+      "why": "a whole pool below zero is still just invalid, not extra tired",
+      "python_reason": "Reserve -1000000 is negative. Decision 0025: Reserve is authoritative on [0, 1000000], and a negative value is rejected rather than normalised - it is an invalid state, not a third exhaustion regime.",
+      "expect_rejected": true
+    },
+    {
+      "name": "reserve_above_max",
+      "wind": 1000000,
+      "reserve": 1000001,
+      "why": "the interval is closed at both ends",
+      "python_reason": "Reserve 1000001 exceeds the declared maximum 1000000. The interval is closed at both ends; a fighter cannot arrive with more conditioning than canon declares.",
+      "expect_rejected": true
+    }
+  ],
   "$comment": "Wind/Reserve trajectories for Decision 0021 runtime parity. Every value is q10000 and must match EXACTLY - an integer economy that agrees approximately has already failed. Regenerate with python -m tools.uppercut_stamina.vectors.",
   "round_ticks": 10800,
   "canon": {
@@ -38,22 +64,58 @@
         {
           "tick": 1,
           "wind": 60,
-          "reserve": 1000000
+          "reserve": 1000000,
+          "telemetry": {
+            "requested_wind_cost": 0,
+            "requested_reserve_load": 0,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 0,
+            "reserve_applied": 0,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 100,
           "wind": 6000,
-          "reserve": 1000000
+          "reserve": 1000000,
+          "telemetry": {
+            "requested_wind_cost": 0,
+            "requested_reserve_load": 0,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 0,
+            "reserve_applied": 0,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 5000,
           "wind": 300000,
-          "reserve": 1000000
+          "reserve": 1000000,
+          "telemetry": {
+            "requested_wind_cost": 0,
+            "requested_reserve_load": 0,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 0,
+            "reserve_applied": 0,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 10800,
           "wind": 648000,
-          "reserve": 1000000
+          "reserve": 1000000,
+          "telemetry": {
+            "requested_wind_cost": 0,
+            "requested_reserve_load": 0,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 0,
+            "reserve_applied": 0,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         }
       ]
     },
@@ -850,17 +912,44 @@
         {
           "tick": 166,
           "wind": 997810,
-          "reserve": 999580
+          "reserve": 999580,
+          "telemetry": {
+            "requested_wind_cost": 0,
+            "requested_reserve_load": 0,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 0,
+            "reserve_applied": 0,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 1660,
           "wind": 978100,
-          "reserve": 995800
+          "reserve": 995800,
+          "telemetry": {
+            "requested_wind_cost": 0,
+            "requested_reserve_load": 0,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 0,
+            "reserve_applied": 0,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 9960,
           "wind": 868600,
-          "reserve": 974800
+          "reserve": 974800,
+          "telemetry": {
+            "requested_wind_cost": 0,
+            "requested_reserve_load": 0,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 0,
+            "reserve_applied": 0,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         }
       ]
     },
@@ -883,17 +972,44 @@
         {
           "tick": 1,
           "wind": 247799,
-          "reserve": 999838
+          "reserve": 999838,
+          "telemetry": {
+            "requested_wind_cost": 2200,
+            "requested_reserve_load": 150,
+            "sustained_exertion": 12,
+            "requested_reserve_total": 162,
+            "reserve_applied": 162,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 300,
           "wind": 0,
-          "reserve": 951400
+          "reserve": 951400,
+          "telemetry": {
+            "requested_wind_cost": 2200,
+            "requested_reserve_load": 150,
+            "sustained_exertion": 12,
+            "requested_reserve_total": 162,
+            "reserve_applied": 162,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 600,
           "wind": 0,
-          "reserve": 902800
+          "reserve": 902800,
+          "telemetry": {
+            "requested_wind_cost": 2200,
+            "requested_reserve_load": 150,
+            "sustained_exertion": 12,
+            "requested_reserve_total": 162,
+            "reserve_applied": 162,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         }
       ]
     },
@@ -934,22 +1050,58 @@
         {
           "tick": 1,
           "wind": 998680,
-          "reserve": 999983
+          "reserve": 999983,
+          "telemetry": {
+            "requested_wind_cost": 1320,
+            "requested_reserve_load": 17,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 17,
+            "reserve_applied": 17,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 2,
           "wind": 997650,
-          "reserve": 999970
+          "reserve": 999970,
+          "telemetry": {
+            "requested_wind_cost": 1030,
+            "requested_reserve_load": 13,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 13,
+            "reserve_applied": 13,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 3,
           "wind": 997649,
-          "reserve": 999970
+          "reserve": 999970,
+          "telemetry": {
+            "requested_wind_cost": 1,
+            "requested_reserve_load": 0,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 0,
+            "reserve_applied": 0,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 4,
           "wind": 997649,
-          "reserve": 999970
+          "reserve": 999970,
+          "telemetry": {
+            "requested_wind_cost": 0,
+            "requested_reserve_load": 0,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 0,
+            "reserve_applied": 0,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         }
       ]
     },
@@ -982,17 +1134,44 @@
         {
           "tick": 1,
           "wind": 31,
-          "reserve": 200000
+          "reserve": 200000,
+          "telemetry": {
+            "requested_wind_cost": 0,
+            "requested_reserve_load": 0,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 0,
+            "reserve_applied": 0,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 1000,
           "wind": 31000,
-          "reserve": 200000
+          "reserve": 200000,
+          "telemetry": {
+            "requested_wind_cost": 0,
+            "requested_reserve_load": 0,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 0,
+            "reserve_applied": 0,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 10800,
           "wind": 334800,
-          "reserve": 200000
+          "reserve": 200000,
+          "telemetry": {
+            "requested_wind_cost": 0,
+            "requested_reserve_load": 0,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 0,
+            "reserve_applied": 0,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         }
       ]
     },
@@ -1033,22 +1212,58 @@
         {
           "tick": 1,
           "wind": 997859,
-          "reserve": 999850
+          "reserve": 999850,
+          "telemetry": {
+            "requested_wind_cost": 2200,
+            "requested_reserve_load": 150,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 150,
+            "reserve_applied": 150,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 2,
           "wind": 990093,
-          "reserve": 999430
+          "reserve": 999430,
+          "telemetry": {
+            "requested_wind_cost": 7800,
+            "requested_reserve_load": 420,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 420,
+            "reserve_applied": 420,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 3,
           "wind": 989222,
-          "reserve": 999418
+          "reserve": 999418,
+          "telemetry": {
+            "requested_wind_cost": 900,
+            "requested_reserve_load": 12,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 12,
+            "reserve_applied": 12,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 4,
           "wind": 987033,
-          "reserve": 999268
+          "reserve": 999268,
+          "telemetry": {
+            "requested_wind_cost": 2200,
+            "requested_reserve_load": 150,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 150,
+            "reserve_applied": 150,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         }
       ]
     },
@@ -1071,27 +1286,63 @@
         {
           "tick": 1,
           "wind": 92200,
-          "reserve": 99568
+          "reserve": 99568,
+          "telemetry": {
+            "requested_wind_cost": 7800,
+            "requested_reserve_load": 420,
+            "sustained_exertion": 12,
+            "requested_reserve_total": 432,
+            "reserve_applied": 432,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 50,
           "wind": 0,
-          "reserve": 78400
+          "reserve": 78400,
+          "telemetry": {
+            "requested_wind_cost": 7800,
+            "requested_reserve_load": 420,
+            "sustained_exertion": 12,
+            "requested_reserve_total": 432,
+            "reserve_applied": 432,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 200,
           "wind": 0,
-          "reserve": 13600
+          "reserve": 13600,
+          "telemetry": {
+            "requested_wind_cost": 7800,
+            "requested_reserve_load": 420,
+            "sustained_exertion": 12,
+            "requested_reserve_total": 432,
+            "reserve_applied": 432,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
         },
         {
           "tick": 400,
           "wind": 0,
-          "reserve": 0
+          "reserve": 0,
+          "telemetry": {
+            "requested_wind_cost": 7800,
+            "requested_reserve_load": 420,
+            "sustained_exertion": 12,
+            "requested_reserve_total": 432,
+            "reserve_applied": 0,
+            "reserve_unpaid": 432,
+            "reserve_saturated": true
+          }
         }
       ]
     },
     {
-      "name": "negative_intermediate_reserve",
+      "name": "overdraw_then_recover",
       "start_wind": 100000,
       "start_reserve": 450,
       "script": [
@@ -1103,13 +1354,316 @@
         }
       ],
       "between_rounds_after": false,
-      "wind": 89523,
+      "wind": 89524,
       "reserve": 0,
       "checkpoints": [
         {
           "tick": 1,
-          "wind": 89523,
-          "reserve": 0
+          "wind": 89524,
+          "reserve": 0,
+          "telemetry": {
+            "requested_wind_cost": 10500,
+            "requested_reserve_load": 600,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 600,
+            "reserve_applied": 450,
+            "reserve_unpaid": 150,
+            "reserve_saturated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "d0025_1_exact_spend_to_zero",
+      "start_wind": 100000,
+      "start_reserve": 600,
+      "script": [
+        {
+          "repeat": 1,
+          "action": "rest",
+          "move": "overhand_rear",
+          "disp": 0
+        }
+      ],
+      "between_rounds_after": false,
+      "wind": 89524,
+      "reserve": 0,
+      "checkpoints": [
+        {
+          "tick": 1,
+          "wind": 89524,
+          "reserve": 0,
+          "telemetry": {
+            "requested_wind_cost": 10500,
+            "requested_reserve_load": 600,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 600,
+            "reserve_applied": 600,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "d0025_2_overdraw_saturates",
+      "start_wind": 100000,
+      "start_reserve": 100,
+      "script": [
+        {
+          "repeat": 1,
+          "action": "rest",
+          "move": "overhand_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "rest",
+          "move": "overhand_rear",
+          "disp": 0
+        }
+      ],
+      "between_rounds_after": false,
+      "wind": 79048,
+      "reserve": 0,
+      "checkpoints": [
+        {
+          "tick": 1,
+          "wind": 89524,
+          "reserve": 0,
+          "telemetry": {
+            "requested_wind_cost": 10500,
+            "requested_reserve_load": 600,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 600,
+            "reserve_applied": 100,
+            "reserve_unpaid": 500,
+            "reserve_saturated": true
+          }
+        },
+        {
+          "tick": 2,
+          "wind": 79048,
+          "reserve": 0,
+          "telemetry": {
+            "requested_wind_cost": 10500,
+            "requested_reserve_load": 600,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 600,
+            "reserve_applied": 0,
+            "reserve_unpaid": 600,
+            "reserve_saturated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "d0025_5_ceiling_holds_at_empty",
+      "start_wind": 1000000,
+      "start_reserve": 100,
+      "script": [
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "overhand_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 600,
+          "action": "rest",
+          "move": null,
+          "disp": 0
+        }
+      ],
+      "between_rounds_after": false,
+      "wind": 550000,
+      "reserve": 0,
+      "checkpoints": [
+        {
+          "tick": 1,
+          "wind": 550000,
+          "reserve": 0,
+          "telemetry": {
+            "requested_wind_cost": 10500,
+            "requested_reserve_load": 600,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 600,
+            "reserve_applied": 100,
+            "reserve_unpaid": 500,
+            "reserve_saturated": true
+          }
+        },
+        {
+          "tick": 2,
+          "wind": 550000,
+          "reserve": 0,
+          "telemetry": {
+            "requested_wind_cost": 0,
+            "requested_reserve_load": 0,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 0,
+            "reserve_applied": 0,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
+        },
+        {
+          "tick": 600,
+          "wind": 550000,
+          "reserve": 0,
+          "telemetry": {
+            "requested_wind_cost": 0,
+            "requested_reserve_load": 0,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 0,
+            "reserve_applied": 0,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "d0025_7_corner_cannot_exceed_max",
+      "start_wind": 333333,
+      "start_reserve": 1000000,
+      "script": [],
+      "between_rounds_after": true,
+      "wind": 566666,
+      "reserve": 1000000,
+      "checkpoints": []
+    },
+    {
+      "name": "d0025_7b_corner_from_empty",
+      "start_wind": 0,
+      "start_reserve": 0,
+      "script": [],
+      "between_rounds_after": true,
+      "wind": 195650,
+      "reserve": 20000,
+      "checkpoints": []
+    },
+    {
+      "name": "d0025_8_telemetry_keeps_requested_load",
+      "start_wind": 200000,
+      "start_reserve": 900,
+      "script": [
+        {
+          "repeat": 1,
+          "action": "rest",
+          "move": "overhand_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "rest",
+          "move": "overhand_rear",
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "rest",
+          "move": "overhand_rear",
+          "disp": 0
+        }
+      ],
+      "between_rounds_after": false,
+      "wind": 168572,
+      "reserve": 0,
+      "checkpoints": [
+        {
+          "tick": 1,
+          "wind": 189524,
+          "reserve": 300,
+          "telemetry": {
+            "requested_wind_cost": 10500,
+            "requested_reserve_load": 600,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 600,
+            "reserve_applied": 600,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
+        },
+        {
+          "tick": 2,
+          "wind": 179048,
+          "reserve": 0,
+          "telemetry": {
+            "requested_wind_cost": 10500,
+            "requested_reserve_load": 600,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 600,
+            "reserve_applied": 300,
+            "reserve_unpaid": 300,
+            "reserve_saturated": true
+          }
+        },
+        {
+          "tick": 3,
+          "wind": 168572,
+          "reserve": 0,
+          "telemetry": {
+            "requested_wind_cost": 10500,
+            "requested_reserve_load": 600,
+            "sustained_exertion": 0,
+            "requested_reserve_total": 600,
+            "reserve_applied": 0,
+            "reserve_unpaid": 600,
+            "reserve_saturated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "d0025_8b_telemetry_separates_exertion",
+      "start_wind": 249999,
+      "start_reserve": 200,
+      "script": [
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "jab_lead",
+          "disp": 0
+        },
+        {
+          "repeat": 1,
+          "action": "attack",
+          "move": "jab_lead",
+          "disp": 0
+        }
+      ],
+      "between_rounds_after": false,
+      "wind": 245599,
+      "reserve": 0,
+      "checkpoints": [
+        {
+          "tick": 1,
+          "wind": 247799,
+          "reserve": 38,
+          "telemetry": {
+            "requested_wind_cost": 2200,
+            "requested_reserve_load": 150,
+            "sustained_exertion": 12,
+            "requested_reserve_total": 162,
+            "reserve_applied": 162,
+            "reserve_unpaid": 0,
+            "reserve_saturated": false
+          }
+        },
+        {
+          "tick": 2,
+          "wind": 245599,
+          "reserve": 0,
+          "telemetry": {
+            "requested_wind_cost": 2200,
+            "requested_reserve_load": 150,
+            "sustained_exertion": 12,
+            "requested_reserve_total": 162,
+            "reserve_applied": 38,
+            "reserve_unpaid": 124,
+            "reserve_saturated": true
+          }
         }
       ]
     }

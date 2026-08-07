@@ -53,11 +53,17 @@ def _case(c, name, script, wind=None, reserve=None, checkpoints=(),
     tick = 0
     for repeat, action, move_id, disp in script:
         for _ in range(repeat):
+            # Decision 0025 proof 8: the telemetry travels with the checkpoint,
+            # so the C++ is asked to reproduce what the tick REQUESTED and not
+            # merely where the balance ended up. Those two numbers are equal
+            # everywhere except exactly where the ruling matters.
+            tel = {}
             w, r = E.step(c, w, r, action, move_id=move_id,
-                          displacement_ru=disp)
+                          displacement_ru=disp, telemetry=tel)
             tick += 1
             if tick in checkpoints:
-                marks.append({"tick": tick, "wind": w, "reserve": r})
+                marks.append({"tick": tick, "wind": w, "reserve": r,
+                              "telemetry": tel})
 
     missed = sorted(set(checkpoints) - {m["tick"] for m in marks})
     if missed:
@@ -79,6 +85,44 @@ def _case(c, name, script, wind=None, reserve=None, checkpoints=(),
         "wind": w, "reserve": r,
         "checkpoints": marks,
     }
+
+
+def _rejections(c):
+    """Decision 0025 proof 6: state both languages must REFUSE.
+
+    Refusals are evidence in their own right and are easy to skip, because a
+    C++ side that merely fails to crash looks like it agrees. What actually
+    protects the model is that both implementations say no to the same things:
+    a fixture, a replay or a save carrying an out-of-interval Reserve must not
+    be silently normalised into a plausible fighter.
+
+    `expect_rejected` is always true. It is written out anyway so the fixture
+    states its own expectation rather than relying on a reader knowing what
+    section they are in.
+    """
+    out = []
+    for name, wind, reserve, why in (
+        ("negative_reserve_start", c["wind_start"], -1,
+         "Reserve below the authoritative interval"),
+        ("deeply_negative_reserve", c["wind_start"], -c["reserve_max"],
+         "a whole pool below zero is still just invalid, not extra tired"),
+        ("reserve_above_max", c["wind_start"], c["reserve_max"] + 1,
+         "the interval is closed at both ends"),
+    ):
+        rejected, reason = True, ""
+        try:
+            E.check_state(c, wind, reserve)
+            rejected = False
+        except E.InvalidState as exc:
+            reason = str(exc)
+        if not rejected:
+            raise ValueError(
+                "%s was ACCEPTED by the contract. Decision 0025 requires it to "
+                "be rejected rather than normalised." % name)
+        out.append({"name": name, "wind": wind, "reserve": reserve,
+                    "why": why, "python_reason": reason,
+                    "expect_rejected": True})
+    return out
 
 
 def build():
@@ -176,33 +220,103 @@ def build():
         wind=c["wind_exhausted"], reserve=c["reserve_max"] // 10,
         checkpoints={1, 50, 200, 400}))
 
-    # 9. THE FLOOR-VERSUS-TRUNCATE VECTOR, and the only one in this file that
-    #    discriminates the two.
+    # 9. THE SEAM THAT PROMPTED DECISION 0025, now closed.
     #
-    #    `step` computes the recovery multiplier from Reserve BEFORE Reserve is
-    #    clamped at zero, so a tick that spends past empty divides a NEGATIVE
-    #    numerator - the one place in this economy where Python's // and C++'s
-    #    / disagree. Measured, not assumed: over reserve in [-199, -1] the two
-    #    give 23 and 24 units of rest recovery respectively, so a port that
-    #    used '/' would gain one unit of Wind per such tick and read correct
-    #    everywhere else in this file.
+    #    `step` used to compute the recovery multiplier from Reserve BEFORE
+    #    Reserve was clamped, so a tick that spent past empty divided a
+    #    NEGATIVE numerator - the one place in this economy where Python's //
+    #    and C++'s / disagreed. Measured, not assumed: over reserve in
+    #    [-199, -1] the two gave 23 and 24 units of rest recovery.
     #
-    #    Reserve 450 minus overhand_rear's load of 600 lands at -150, inside
-    #    that window. Wind starts far below the ceiling so the difference is
-    #    not swallowed by the clamp - which is how this seam stayed invisible:
-    #    at a full pool the clamp erases the evidence.
-    #
-    #    This vector pins CURRENT behaviour. Whether reading recovery off an
-    #    unclamped negative Reserve is correct at all is a contract question,
-    #    raised separately - see docs/plans. The parity requirement holds
-    #    either way.
+    #    Decision 0025 saturates at zero immediately after the debit, so the
+    #    divergent input can no longer occur. The vector is KEPT rather than
+    #    deleted: it is the exact state that used to be wrong, and a future
+    #    edit that reintroduces the unclamped read would move this number.
+    #    Reserve 450 minus overhand_rear's load of 600 lands at -150 before
+    #    saturation; recovery is now read off 0.
     cases.append(_case(
-        c, "negative_intermediate_reserve",
+        c, "overdraw_then_recover",
         [(1, "rest", "overhand_rear", 0)],
         wind=100000, reserve=450,
         checkpoints={1}))
 
+    # ---- Decision 0025's eight required proofs -----------------------------
+    #
+    # Proofs 3, 4 and 5 - stored Reserve never negative, and neither declared
+    # floor breached by underflow - are checked by the commandlet at EVERY tick
+    # of EVERY case rather than by one vector each. A floor that holds in the
+    # one scenario written to test it, and is never looked at again in 10800
+    # ticks of the others, is not a floor. The cases below cover the rest.
+
+    # Proof 1. Exact spend to zero. overhand_rear's load is 600, so a fighter
+    # holding exactly 600 lands precisely on the boundary - the value where an
+    # off-by-one in the clamp is invisible in both directions unless it is
+    # asked for directly.
+    cases.append(_case(
+        c, "d0025_1_exact_spend_to_zero",
+        [(1, "rest", "overhand_rear", 0)],
+        wind=100000, reserve=600,
+        checkpoints={1}))
+
+    # Proof 2. Overdraw saturates. The Director's own worked example: the tank
+    # holds less than the punch asks for, the punch is still thrown, and the
+    # balance stops at zero rather than going into credit.
+    cases.append(_case(
+        c, "d0025_2_overdraw_saturates",
+        [(1, "rest", "overhand_rear", 0),
+         (1, "rest", "overhand_rear", 0)],
+        wind=100000, reserve=100,
+        checkpoints={1, 2}))
+
+    # Proof 5, stated once explicitly as well as continuously. At Reserve zero
+    # the Wind ceiling must sit exactly at its declared floor fraction and go
+    # no lower - the fighter is as limited as canon allows and not one unit
+    # more.
+    cases.append(_case(
+        c, "d0025_5_ceiling_holds_at_empty",
+        [(1, "attack", "overhand_rear", 0),
+         (600, "rest", None, 0)],
+        wind=c["wind_max"], reserve=100,
+        checkpoints={1, 2, 600}))
+
+    # Proof 7. Between-round recovery from a FULL tank cannot push past max.
+    cases.append(_case(
+        c, "d0025_7_corner_cannot_exceed_max", [],
+        wind=c["wind_max"] // 3, reserve=c["reserve_max"],
+        between_rounds_after=True))
+
+    # And the same corner from empty, which is where the flat recovery is
+    # actually meant to matter.
+    cases.append(_case(
+        c, "d0025_7b_corner_from_empty", [],
+        wind=0, reserve=0,
+        between_rounds_after=True))
+
+    # Proof 8. Telemetry keeps the REQUESTED load. Three ticks: one that pays
+    # in full, one that pays part, one that can pay nothing at all. Every
+    # checkpoint carries its telemetry, so the C++ must reproduce what was
+    # demanded and not merely where the balance landed.
+    cases.append(_case(
+        c, "d0025_8_telemetry_keeps_requested_load",
+        [(1, "rest", "overhand_rear", 0),
+         (1, "rest", "overhand_rear", 0),
+         (1, "rest", "overhand_rear", 0)],
+        wind=200000, reserve=900,
+        checkpoints={1, 2, 3}))
+
+    # Sustained exertion is a Reserve debit too, and it must show up in the
+    # telemetry separately from the move's load - otherwise a fighter grinding
+    # below the low-Wind line looks like he is being charged for the punch
+    # alone.
+    cases.append(_case(
+        c, "d0025_8b_telemetry_separates_exertion",
+        [(1, "attack", "jab_lead", 0),
+         (1, "attack", "jab_lead", 0)],
+        wind=c["wind_low"] - 1, reserve=200,
+        checkpoints={1, 2}))
+
     return {
+        "rejection_cases": _rejections(c),
         "$comment": ("Wind/Reserve trajectories for Decision 0021 runtime "
                      "parity. Every value is q10000 and must match EXACTLY - "
                      "an integer economy that agrees approximately has already "

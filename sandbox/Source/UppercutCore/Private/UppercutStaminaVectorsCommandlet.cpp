@@ -7,6 +7,7 @@
 #include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
+#include "UppercutRangeCore.h"   // UppercutFloorDiv
 #include "UppercutStaminaCore.h"
 
 // The SCENARIOS LIVE IN THE FIXTURE. This file replays a script it is handed;
@@ -27,6 +28,16 @@ namespace
         EUppercutAction Action = EUppercutAction::Observe;
         FString Move;
         int64 Disp = 0;
+    };
+
+    // Decision 0025 proof 8: what the tick REQUESTED, carried per checkpoint.
+    struct FTel
+    {
+        int64 Load = 0;        // the move's declared reserve_load
+        int64 Exertion = 0;    // sustained exertion, charged separately
+        int64 Requested = 0;   // load + exertion
+        int64 Applied = 0;     // what the balance could absorb
+        int64 Unpaid = 0;
     };
 
     // The fixture's canon block against the canon the runtime actually loaded.
@@ -188,18 +199,43 @@ int32 UUppercutStaminaVectorsCommandlet::Main(const FString& Params)
             // checkpoint means the same tick in both languages however the
             // repeats happen to be grouped.
             TMap<int64, TPair<int64, int64>> Marks;
+            TMap<int64, FTel> TelMarks;
             const TArray<TSharedPtr<FJsonValue>>* CPs = nullptr;
             if (Obj->TryGetArrayField(TEXT("checkpoints"), CPs))
             {
                 for (const TSharedPtr<FJsonValue>& PV : *CPs)
                 {
                     const TSharedPtr<FJsonObject> P = PV->AsObject();
-                    Marks.Add((int64)P->GetNumberField(TEXT("tick")),
-                              TPair<int64, int64>(
+                    const int64 At = (int64)P->GetNumberField(TEXT("tick"));
+                    Marks.Add(At, TPair<int64, int64>(
                                   (int64)P->GetNumberField(TEXT("wind")),
                                   (int64)P->GetNumberField(TEXT("reserve"))));
+
+                    const TSharedPtr<FJsonObject>* T = nullptr;
+                    if (P->TryGetObjectField(TEXT("telemetry"), T))
+                    {
+                        FTel Tel;
+                        Tel.Load = (int64)(*T)->GetNumberField(
+                            TEXT("requested_reserve_load"));
+                        Tel.Exertion = (int64)(*T)->GetNumberField(
+                            TEXT("sustained_exertion"));
+                        Tel.Requested = (int64)(*T)->GetNumberField(
+                            TEXT("requested_reserve_total"));
+                        Tel.Applied = (int64)(*T)->GetNumberField(
+                            TEXT("reserve_applied"));
+                        Tel.Unpaid = (int64)(*T)->GetNumberField(
+                            TEXT("reserve_unpaid"));
+                        TelMarks.Add(At, Tel);
+                    }
                 }
             }
+
+            // Decision 0025 proofs 3, 4 and 5 are checked at EVERY tick of
+            // EVERY case, not by one vector each. A floor that holds in the
+            // single scenario written to test it, and is never looked at again
+            // across 10800 ticks of the others, is not a floor.
+            const int64 CeilingFloorValue =
+                UppercutFloorDiv(Canon.WindMax * Canon.CeilingFloor, 10000);
 
             int64 Tick = 0;
             int32 Diverged = 0;
@@ -209,7 +245,8 @@ int32 UUppercutStaminaVectorsCommandlet::Main(const FString& Params)
                 for (int32 r = 0; r < L.Repeat; ++r)
                 {
                     FString StepError;
-                    if (!St.Step(Canon, L.Action, L.Move, L.Disp, StepError))
+                    FUppercutStepTelemetry Tel;
+                    if (!St.Step(Canon, L.Action, L.Move, L.Disp, StepError, &Tel))
                     {
                         FirstDivergence = FString::Printf(
                             TEXT("  tick %lld refused: %s\n"), Tick + 1, *StepError);
@@ -217,6 +254,71 @@ int32 UUppercutStaminaVectorsCommandlet::Main(const FString& Params)
                         break;
                     }
                     ++Tick;
+
+                    if (St.Reserve < 0 || St.Reserve > Canon.ReserveMax)
+                    {
+                        if (Diverged == 0)
+                        {
+                            FirstDivergence = FString::Printf(
+                                TEXT("  D0025 proof 3 BROKEN at tick %lld: ")
+                                TEXT("stored Reserve is %lld, outside [0, %lld]\n"),
+                                Tick, St.Reserve, Canon.ReserveMax);
+                        }
+                        ++Diverged;
+                    }
+                    const int64 Base = Canon.Recover[(int32)L.Action];
+                    if (Base != 0)
+                    {
+                        const int64 Rate = Canon.RecoveryRate(L.Action, St.Reserve);
+                        const int64 FloorRate =
+                            UppercutFloorDiv(Base * Canon.RecoveryFloor, 10000);
+                        if (Rate < FloorRate)
+                        {
+                            if (Diverged == 0)
+                            {
+                                FirstDivergence = FString::Printf(
+                                    TEXT("  D0025 proof 4 BROKEN at tick %lld: ")
+                                    TEXT("recovery %lld is below the declared ")
+                                    TEXT("floor %lld\n"), Tick, Rate, FloorRate);
+                            }
+                            ++Diverged;
+                        }
+                    }
+                    if (Canon.WindCeiling(St.Reserve) < CeilingFloorValue)
+                    {
+                        if (Diverged == 0)
+                        {
+                            FirstDivergence = FString::Printf(
+                                TEXT("  D0025 proof 5 BROKEN at tick %lld: ")
+                                TEXT("Wind ceiling %lld is below the declared ")
+                                TEXT("floor %lld\n"), Tick,
+                                Canon.WindCeiling(St.Reserve), CeilingFloorValue);
+                        }
+                        ++Diverged;
+                    }
+
+                    const FTel* WantTel = TelMarks.Find(Tick);
+                    if (WantTel && (WantTel->Requested != Tel.RequestedReserveTotal
+                                    || WantTel->Applied != Tel.ReserveApplied
+                                    || WantTel->Unpaid != Tel.ReserveUnpaid
+                                    || WantTel->Load != Tel.RequestedReserveLoad
+                                    || WantTel->Exertion != Tel.SustainedExertion))
+                    {
+                        if (Diverged == 0)
+                        {
+                            // Proof 8. This is the number that would silently
+                            // report a 2.0-load punch as having cost 0.5.
+                            FirstDivergence = FString::Printf(
+                                TEXT("  D0025 proof 8 at tick %lld: requested ")
+                                TEXT("py=%lld cpp=%lld, applied py=%lld cpp=%lld, ")
+                                TEXT("unpaid py=%lld cpp=%lld\n"),
+                                Tick, WantTel->Requested, Tel.RequestedReserveTotal,
+                                WantTel->Applied, Tel.ReserveApplied,
+                                WantTel->Unpaid, Tel.ReserveUnpaid);
+                        }
+                        ++Diverged;
+                    }
+
                     const TPair<int64, int64>* Want = Marks.Find(Tick);
                     if (Want && (St.Wind != Want->Key || St.Reserve != Want->Value))
                     {
@@ -240,7 +342,31 @@ int32 UUppercutStaminaVectorsCommandlet::Main(const FString& Params)
 
             bool bBetween = false;
             Obj->TryGetBoolField(TEXT("between_rounds_after"), bBetween);
-            if (bBetween) { St.BetweenRounds(Canon); }
+            if (bBetween)
+            {
+                FString CornerError;
+                if (!St.BetweenRounds(Canon, CornerError))
+                {
+                    if (Diverged == 0)
+                    {
+                        FirstDivergence = FString::Printf(
+                            TEXT("  the corner refused: %s\n"), *CornerError);
+                    }
+                    ++Diverged;
+                }
+                else if (St.Reserve > Canon.ReserveMax)
+                {
+                    // Decision 0025 proof 7.
+                    if (Diverged == 0)
+                    {
+                        FirstDivergence = FString::Printf(
+                            TEXT("  D0025 proof 7 BROKEN: the corner left ")
+                            TEXT("Reserve at %lld against a maximum of %lld\n"),
+                            St.Reserve, Canon.ReserveMax);
+                    }
+                    ++Diverged;
+                }
+            }
 
             const int64 WantWind = (int64)Obj->GetNumberField(TEXT("wind"));
             const int64 WantReserve = (int64)Obj->GetNumberField(TEXT("reserve"));
@@ -261,6 +387,57 @@ int32 UUppercutStaminaVectorsCommandlet::Main(const FString& Params)
                     *Name, Tick, Marks.Num(), St.Wind, St.Reserve);
             }
         }
+    }
+
+    // ---- Decision 0025 proof 6: refusals --------------------------------
+    //
+    // Refusals are evidence in their own right, and they are the easiest thing
+    // to skip: a C++ side that merely fails to crash looks like agreement.
+    // What protects the model is that both implementations say no to the same
+    // states. A save, replay or fixture carrying an out-of-interval Reserve
+    // must not be silently normalised into a plausible fighter.
+    const TArray<TSharedPtr<FJsonValue>>* Rejects = nullptr;
+    if (Root->TryGetArrayField(TEXT("rejection_cases"), Rejects))
+    {
+        for (const TSharedPtr<FJsonValue>& RV : *Rejects)
+        {
+            const TSharedPtr<FJsonObject> R = RV->AsObject();
+            const FString Name = R->GetStringField(TEXT("name"));
+            FUppercutStamina St;
+            St.Wind = (int64)R->GetNumberField(TEXT("wind"));
+            St.Reserve = (int64)R->GetNumberField(TEXT("reserve"));
+
+            ++Checked;
+            FString StepError, CornerError;
+            const bool bStepped = St.Step(Canon, EUppercutAction::Rest,
+                                          FString(), 0, StepError);
+            FUppercutStamina St2;
+            St2.Wind = (int64)R->GetNumberField(TEXT("wind"));
+            St2.Reserve = (int64)R->GetNumberField(TEXT("reserve"));
+            const bool bCornered = St2.BetweenRounds(Canon, CornerError);
+
+            if (bStepped || bCornered)
+            {
+                Report += FString::Printf(
+                    TEXT("FAIL %-30s ACCEPTED invalid state (step=%s corner=%s) ")
+                    TEXT("- Decision 0025 requires rejection, not silent ")
+                    TEXT("normalisation\n"),
+                    *Name, bStepped ? TEXT("accepted") : TEXT("refused"),
+                    bCornered ? TEXT("accepted") : TEXT("refused"));
+                ++Failed;
+            }
+            else
+            {
+                Report += FString::Printf(TEXT("OK   %-30s refused: %s\n"),
+                                          *Name, *StepError);
+            }
+        }
+    }
+    else
+    {
+        Report += TEXT("FAIL the fixture carries no rejection_cases - ")
+                  TEXT("Decision 0025 proof 6 would go unchecked\n");
+        ++Failed;
     }
 
     // ---- fail closed ------------------------------------------------------
