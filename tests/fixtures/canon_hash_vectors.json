@@ -1,0 +1,143 @@
+{
+  "$comment": "Cross-language fixtures for Decision 0023 step 4. The C++ canonicalizer must reproduce every semantic_sha256 below byte for byte from the same input_json, patterns and schema_identity. A disagreement here means the two runtimes do not share one notion of canon identity, which would make every dual-hash header a guess.",
+  "canonicalizer_contract": "uppercut-semantic-json-v1",
+  "vectors": [
+    {
+      "name": "empty_object",
+      "schema_identity": "obj-v1",
+      "patterns": [],
+      "manifest_identity": "0000000000000000000000000000000000000000000000000000000000000000",
+      "manifest_version": "uppercut-hash-roles-v1",
+      "input_json": "{}",
+      "raw_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "semantic_sha256": "1c79a5140dfbdeb088fef19098b42847a73f82b057814df1d3f4d66ab8ab90d0"
+    },
+    {
+      "name": "negative_zero_is_zero",
+      "schema_identity": "negz-v1",
+      "patterns": [],
+      "manifest_identity": "0000000000000000000000000000000000000000000000000000000000000000",
+      "manifest_version": "uppercut-hash-roles-v1",
+      "input_json": "{\"a\": -0.0, \"b\": 0.0, \"c\": 0, \"d\": 0}",
+      "raw_sha256": "b31f0d7b630c7d699574145d5852965962f3aa0981264b7726057f6fe4b1fd73",
+      "semantic_sha256": "3f118fea6787b9077e7c73c5a015723ef87c3dfbaee95eb320b265be4e0894a2"
+    },
+    {
+      "name": "scalars",
+      "schema_identity": "scal-v1",
+      "patterns": [],
+      "manifest_identity": "0000000000000000000000000000000000000000000000000000000000000000",
+      "manifest_version": "uppercut-hash-roles-v1",
+      "input_json": "{\"n\": null, \"t\": true, \"f\": false, \"i\": 3500, \"fl\": 0.132, \"neg\": -12.5, \"zero\": 0, \"negzero\": -0.0}",
+      "raw_sha256": "23326e1012fdd2dc87ee6ba2c327f873e529a20fc1615ad26f780110c536e64a",
+      "semantic_sha256": "ea2c85827990486b113acf484149da0215068ccd51a9441696ee23942f5c1958"
+    },
+    {
+      "name": "key_sorting",
+      "schema_identity": "sort-v1",
+      "patterns": [],
+      "manifest_identity": "0000000000000000000000000000000000000000000000000000000000000000",
+      "manifest_version": "uppercut-hash-roles-v1",
+      "input_json": "{\"b\": 1, \"A\": 2, \"a\": 3, \"_\": 4, \"$c\": 5}",
+      "raw_sha256": "cdc96149bd7e7286f05a8b91f4c63918d3ffd01b18401779ad068c473961aef9",
+      "semantic_sha256": "f7eeb0db294c88eea095a3a0c4c0277ce4575a8caf8d1edce847f88ee1888c06"
+    },
+    {
+      "name": "unicode",
+      "schema_identity": "uni-v1",
+      "patterns": [],
+      "manifest_identity": "0000000000000000000000000000000000000000000000000000000000000000",
+      "manifest_version": "uppercut-hash-roles-v1",
+      "input_json": "{\"s\": \"caf\\u00e9 \\u2014 \\u65e5\\u672c\\u8a9e\"}",
+      "raw_sha256": "8bb58b849f4e3c4d18174c67dbd928e6d0d89961a99951221d01f36b5bc8b835",
+      "semantic_sha256": "89480e11afa69ac6d9747ed731b50910258903eb3e81bcf6f4d3e55448183539"
+    },
+    {
+      "name": "nested_arrays",
+      "schema_identity": "arr-v1",
+      "patterns": [],
+      "manifest_identity": "0000000000000000000000000000000000000000000000000000000000000000",
+      "manifest_version": "uppercut-hash-roles-v1",
+      "input_json": "{\"bands\": [[0, 1], [2, 3]], \"m\": [{\"i\": 1}]}",
+      "raw_sha256": "8f9e6182f3e09868d02f521d600e78dea3c5fde1f57ed6a5ef15088dae7146b6",
+      "semantic_sha256": "92612db8bf27f80dd6a12af9b3c7f8d2e5e351e3e299aae6999d02595e3e2c4e"
+    },
+    {
+      "name": "precision_edge",
+      "schema_identity": "prec-v1",
+      "patterns": [],
+      "manifest_identity": "0000000000000000000000000000000000000000000000000000000000000000",
+      "manifest_version": "uppercut-hash-roles-v1",
+      "input_json": "{\"x\": 1e-10, \"y\": 123.45678901}",
+      "raw_sha256": "5ea692ec04982819e616e4b0e9f5da35064a38cdd0166bb51a68775bb4670d8e",
+      "semantic_sha256": "8502b2f0013aa814c1784910acac66795d453fc94808737e95f5b5e5007f6731"
+    },
+    {
+      "name": "exclusions",
+      "schema_identity": "excl-v1",
+      "patterns": [
+        "/$comment",
+        "/contribution",
+        "/guard/$comment",
+        "/guard/authoring_margin_note",
+        "/moves/*/note"
+      ],
+      "manifest_identity": "0000000000000000000000000000000000000000000000000000000000000000",
+      "manifest_version": "uppercut-hash-roles-v1",
+      "input_json": "{\"$comment\": \"header prose\", \"contribution\": {\"agent\": \"a\", \"model\": \"m\"}, \"guard\": {\"$comment\": \"p\", \"authoring_margin\": 0.05, \"authoring_margin_note\": \"p2\", \"plane_interception_min_extent\": 0.6}, \"moves\": [{\"id\": \"jab_lead\", \"cost\": 1.0, \"note\": \"p\"}, {\"id\": \"step_in\", \"cost\": 0.132, \"cost_model\": \"displacement\", \"note\": \"p\"}], \"bands\": [0, 1, 2]}",
+      "raw_sha256": "6655990773c95d22b5a6c5d701135be0d8ea7c757389d60d5b301411e898fe4b",
+      "semantic_sha256": "b6b495ad46e0d1b4c0842d58aa47c5d5c7ba80e0aca8ad5e6acfb97aefee2427"
+    }
+  ],
+  "rejection_vectors": [
+    {
+      "name": "duplicate_keys",
+      "input_json": "{\"a\": 1, \"a\": 2}",
+      "patterns": [],
+      "schema_identity": "rej-v1",
+      "must_reject": "duplicate key"
+    },
+    {
+      "name": "nan",
+      "input_json": "{\"x\": NaN}",
+      "patterns": [],
+      "schema_identity": "rej-v1",
+      "must_reject": "non-finite"
+    },
+    {
+      "name": "infinity",
+      "input_json": "{\"x\": Infinity}",
+      "patterns": [],
+      "schema_identity": "rej-v1",
+      "must_reject": "non-finite"
+    },
+    {
+      "name": "too_precise",
+      "input_json": "{\"x\": 0.00000000001}",
+      "patterns": [],
+      "schema_identity": "rej-v1",
+      "must_reject": "precision"
+    },
+    {
+      "name": "dead_pattern",
+      "input_json": "{\"a\": 1}",
+      "patterns": [
+        "/nope"
+      ],
+      "schema_identity": "rej-v1",
+      "must_reject": "pattern matches nothing"
+    },
+    {
+      "name": "wildcard_terminal",
+      "input_json": "{\"m\": [{\"x\": 1}]}",
+      "patterns": [
+        "/m/*"
+      ],
+      "schema_identity": "rej-v1",
+      "must_reject": "wildcard may not end a pattern"
+    }
+  ],
+  "manifest_identity": "0000000000000000000000000000000000000000000000000000000000000000",
+  "manifest_version": "uppercut-hash-roles-v1",
+  "hash_contract_version": "uppercut-hash-contract-v1"
+}

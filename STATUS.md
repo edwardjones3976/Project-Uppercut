@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-06 18:49 UTC** at `97bc87d docs(canon): open gate G7 - the stamina economy cannot pay for a round of boxing`.
+Generated **2026-08-07 02:55 UTC** at `626a5f1 Adopt semantic canon hashing with raw provenance`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **796 passed** |
+| Test suite | **874 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |

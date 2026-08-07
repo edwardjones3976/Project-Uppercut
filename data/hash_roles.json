@@ -1,0 +1,188 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-07 01:10 UTC",
+    "end": "2026-08-07 01:10 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "$comment": "Decision 0023 step 1 - the versioned hash-role manifest. This is the ONLY place a canon field may be declared non-authoritative. Nothing is excluded because of what it is called: every pointer below was read and classified by hand against the ruling's test - a field that influences loading, validation, selection, formulas, tuning, rules, state or execution is authoritative even when its name sounds explanatory.",
+  "manifest_version": "uppercut-hash-roles-v1",
+  "canonicalizer_contract": "uppercut-semantic-json-v1",
+  "hash_contract_version": "uppercut-hash-contract-v1",
+  "default_role": "authoritative",
+  "self": {
+    "$comment": "Director requirement 1: THIS FILE IS CANON. A manifest that decides what counts as authoritative while sitting outside the evidence envelope is a way to reclassify a real combat field as documentation and have the evidence system politely look away. So the manifest has its own semantic identity, computed under its own declared exclusions below, and that identity is bound into every semantic payload. Changing a canon value moves the semantic hash; changing the CLASSIFICATION of a canon value now moves it too.",
+    "identity_is_bound_into_every_payload": true,
+    "recursion_note": "The manifest's own identity is computed binding only the canonicalizer version and manifest_version - not the manifest identity itself, which would not terminate. That is the one place the binding is shallower than everywhere else, and it is stated here rather than discovered in the C++ port.",
+    "non_authoritative": [
+      "/$comment",
+      "/contribution",
+      "/self/$comment",
+      "/self/recursion_note",
+      "/self/wildcard_note",
+      "/rules/$comment",
+      "/coverage/$comment",
+      "/files/data~1movement_model.json/review_note",
+      "/files/data~1moves~1generic_sandbox_moves.json/review_note",
+      "/files/data~1animation_model.json/review_note",
+      "/files/data~1pose_geometry.json/review_note",
+      "/files/data~1guard_evasion_model.json/review_note",
+      "/files/data~1condition_model.json/review_note",
+      "/files/data~1stamina_economy.json/review_note",
+      "/files/data~1moves~1generic_sandbox_effort.json/review_note"
+    ],
+    "wildcard_note": "Each review_note is named explicitly rather than swept by a wildcard, because `files` is an OBJECT keyed by path and '*' matches only array indices. The '/' inside each key is escaped as '~1' per RFC 6901. Verbose on purpose: a reviewer can see the entire exclusion surface of this file without knowing how the matcher works. Every `non_authoritative` LIST and every `rules` flag stays authoritative - the classifications themselves are exactly what requirement 1 exists to protect."
+  },
+  "rules": {
+    "$comment": "The properties that keep this manifest from becoming the trapdoor it exists to prevent.",
+    "unknown_fields_are_authoritative": true,
+    "name_based_exclusion_permitted": false,
+    "wildcard": "A single '*' segment matches ONE array index and nothing else. It may not match an object key, and there is no recursive wildcard. A pattern of '/moves/*/note' therefore excludes exactly the note of each element of the top-level moves array and can never reach anywhere else in the document.",
+    "last_segment_must_be_an_object_key": "A pattern may not end in '*'. Excluding a whole array element would renumber its neighbours, and array order is authoritative.",
+    "every_pattern_must_match": "A pattern matching no node in its file is an ERROR, not a no-op. Dead patterns are how an exclusion list silently widens to cover fields nobody reviewed.",
+    "expansion_is_snapshotted": "tests/test_semantic_canon_hashing.py pins the fully expanded list of concrete pointers excluded per file, so a newly added field that falls under an existing wildcard shows up as a test diff rather than vanishing quietly.",
+    "residual_risk": "A field added at an already-declared wildcard position - a nineteenth move's `note` - is covered automatically. The expansion snapshot makes that visible in review; it is not invisible, but it is automatic, and that is the one place this manifest trades strictness for practicality."
+  },
+  "files": {
+    "data/movement_model.json": {
+      "non_authoritative": [
+        "/$comment",
+        "/contribution",
+        "/facing/$comment",
+        "/facing/arc_note",
+        "/facing/back_exposed_note",
+        "/facing/mirroring_note",
+        "/locomotion/$comment",
+        "/locomotion/directional/$comment",
+        "/locomotion/directional/notes",
+        "/locomotion/displacement_note",
+        "/locomotion/modes/*/notes",
+        "/locomotion/threat_compression/$comment",
+        "/range_bands/$comment",
+        "/range_bands/hysteresis_note",
+        "/reference_model_coverage/$comment",
+        "/ring/note",
+        "/ring/track/$comment",
+        "/ring/track/notes",
+        "/separation/note",
+        "/spatial_units/reference_reach_note"
+      ],
+      "review_note": "`cost_model` and every numeric rate stay authoritative. `reference_model_coverage` itself stays authoritative because the coverage validator reads it - only its prose header is excluded."
+    },
+    "data/moves/generic_sandbox_moves.json": {
+      "non_authoritative": [
+        "/$comment",
+        "/contribution",
+        "/moves/*/cost_note"
+      ],
+      "review_note": "`cost_note` is excluded and its sibling `cost_model` is NOT: the note explains, the model SELECTS displacement pricing. That pair is the clearest case in the repository for why exclusion is per-pointer and not per-name. Every move's hit_reaction, counter_vulnerability and positional_consequence stay authoritative - they read as prose but they are authored behaviour the contract may come to consume."
+    },
+    "data/animation_model.json": {
+      "non_authoritative": [
+        "/$comment",
+        "/contribution",
+        "/authority/$comment",
+        "/blending/$comment",
+        "/damage_visualization/*/notes",
+        "/move_animations/*/notes",
+        "/state_animations/*/notes"
+      ],
+      "review_note": "`/authority` keeps every field but its $comment: writes_simulation_state, derivation, hitbox_transform_source and root_motion_drives_position are load-bearing declarations about who owns truth. `/stance/switch_mechanism` stays authoritative despite reading as prose."
+    },
+    "data/pose_geometry.json": {
+      "non_authoritative": [
+        "/$comment",
+        "/contribution",
+        "/body/half_depth_note",
+        "/fist/profile_note",
+        "/guard/authoring_margin_note",
+        "/guard/plane_note",
+        "/height_note"
+      ],
+      "review_note": "This is the file whose comment edit broke four pins on 2026-08-06. `authoring_margin` itself is authoritative; only the sentence describing it is not."
+    },
+    "data/guard_evasion_model.json": {
+      "non_authoritative": [
+        "/$comment",
+        "/contribution",
+        "/authority/$comment",
+        "/committed_defense/$comment",
+        "/committed_defense/notes",
+        "/evasion_economy/$comment",
+        "/evasion_economy/notes",
+        "/evasions/*/notes",
+        "/guard_integrity/$comment",
+        "/guard_integrity/notes",
+        "/posture_economy/$comment",
+        "/posture_economy/notes",
+        "/posture_economy/units_note",
+        "/postures/*/notes",
+        "/reference_model_coverage/$comment",
+        "/telegraph/$comment",
+        "/telegraph/notes"
+      ],
+      "review_note": "Every posture extent, every evasion window and `outranks_guard` stay authoritative. `/telegraph/notes` describes an invariant that a validator enforces; the invariant lives in the validator, not in the sentence."
+    },
+    "data/condition_model.json": {
+      "non_authoritative": [
+        "/$comment",
+        "/contribution",
+        "/chin/$comment",
+        "/chin/notes",
+        "/impairment/$comment",
+        "/impairment/notes",
+        "/knockdown/$comment",
+        "/knockdown/count_relief_note",
+        "/knockdown/notes",
+        "/knockdown/pressure_modifiers/$comment",
+        "/knockdown/pressure_modifiers/notes",
+        "/knockdown/pressure_threshold_note",
+        "/recovery/notes",
+        "/reference_model_coverage/$comment",
+        "/stamina/$comment",
+        "/stamina/notes",
+        "/stamina/units_note"
+      ],
+      "review_note": "`pressure_threshold` is authoritative; `pressure_threshold_note` is not. `/stamina/units_note` records the 2026-08-03 units correction and is excluded as history - the corrected RATES beside it are authoritative and are what the frozen Phase N and O contracts consume."
+    },
+    "data/stamina_economy.json": {
+      "non_authoritative": [
+        "/$comment",
+        "/contribution",
+        "/acceptance_bands/$comment",
+        "/authority/$comment",
+        "/calibration_status/$comment",
+        "/reserve/$comment",
+        "/reserve/between_rounds_recovery_note",
+        "/reserve/drains/$comment",
+        "/reserve/drains/body_damage_multiplier/note",
+        "/reserve/drains/per_move_reserve_load/note",
+        "/reserve/drains/sustained_exertion_per_tick_below_low_wind/note",
+        "/wind/$comment",
+        "/wind/ceiling_from_reserve/$comment",
+        "/wind/recovery_from_reserve/$comment",
+        "/wind/recovery_notes",
+        "/wind/recovery_per_tick_by_action/$comment"
+      ],
+      "review_note": "`/authority/reader_rule`, `/prohibitions` and every `/invariants/*` field are left AUTHORITATIVE deliberately, even though they read as prose. They are declarative rules a validator may come to enforce, and Decision 0023's default is that an unclassified field stays load-bearing. The cost is that improving that wording moves the semantic hash; the alternative is deciding by vibe which sentences are rules, which is the failure this manifest exists to prevent."
+    },
+    "data/moves/generic_sandbox_effort.json": {
+      "non_authoritative": [
+        "/$comment",
+        "/contribution",
+        "/authority/$comment",
+        "/calibration_status/$comment",
+        "/displacement_movement/$comment",
+        "/displacement_movement/reserve_per_ru_note",
+        "/displacement_movement/wind_per_ru_note",
+        "/moves/*/note"
+      ],
+      "review_note": "`/moves/*/cost_model` stays authoritative - it is the null-means-ask-the-locomotion-model selector, not a description. `/authority/migration_rule` stays authoritative for the same reason as stamina_economy's reader_rule."
+    }
+  },
+  "coverage": {
+    "$comment": "A canon file with no entry above is hashed WHOLE - every byte of it authoritative. That is the safe default and it is deliberate: silence in this manifest must never mean 'exclude something'.",
+    "files_not_listed_are_fully_authoritative": true
+  }
+}
