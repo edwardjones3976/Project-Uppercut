@@ -57,12 +57,18 @@ def canon_header_lines(repo, entries, manifest=None):
     lines = [
         "H|canon_hash_contract=%s" % C.HASH_CONTRACT_VERSION,
         "H|canon_hash_roles=%s" % man.version,
-        "H|canon_hash_roles_id=%s" % man.identity,
+        # Decision 0024: the GLOBAL policy identity - the rules that govern
+        # every file - and the manifest's raw bytes as exact provenance. The
+        # per-file role-set identity travels beside each file below, so a
+        # reader can see which classification governed which dependency.
+        "H|canon_hash_policy=%s" % man.policy_identity,
+        "H|canon_hash_roles_raw=%s" % man.raw_hash,
     ]
     for label, rel in entries:
         raw, sem, _ = man.hashes_for(repo, rel, schema_identity_for(repo, rel))
         lines.append("H|canon_%s_semantic=%s" % (label, sem))
         lines.append("H|canon_%s_raw=%s" % (label, raw))
+        lines.append("H|canon_%s_roles=%s" % (label, man.role_set_identity(rel)))
     return lines
 
 
@@ -88,11 +94,12 @@ def verify_header(repo, heads, entries, manifest=None):
         errors.append("the stream was written under hash contract %r, not %r"
                       % (heads.get("canon_hash_contract"),
                          C.HASH_CONTRACT_VERSION))
-    if heads.get("canon_hash_roles_id") != man.identity:
+    if heads.get("canon_hash_policy") != man.policy_identity:
         errors.append(
-            "the stream was written under a different hash-role manifest "
-            "(%s), so its exclusions were decided by rules this checkout does "
-            "not have" % (heads.get("canon_hash_roles_id") or "none"))
+            "the stream was written under a different global hash policy (%s), "
+            "so the rules that decide what counts as authoritative are not the "
+            "rules this checkout has"
+            % (heads.get("canon_hash_policy") or "none"))
 
     for label, rel in entries:
         raw, sem, _ = man.hashes_for(repo, rel, schema_identity_for(repo, rel))
@@ -101,5 +108,10 @@ def verify_header(repo, heads, entries, manifest=None):
         if heads.get("canon_%s_semantic" % label) != sem:
             errors.append("canon_%s_semantic does not match the local file - "
                           "an authoritative value moved" % label)
+        # Decision 0024: per-file scope. This catches a classification change
+        # for THIS file without being moved by one for any other.
+        if heads.get("canon_%s_roles" % label) != man.role_set_identity(rel):
+            errors.append("canon_%s_roles does not match - this file's "
+                          "classification changed" % label)
     return errors
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 04:40 UTC | END ]

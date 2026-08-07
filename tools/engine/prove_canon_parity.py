@@ -81,20 +81,39 @@ def main():
         failed = 1
         print("\nC++ did not agree with the vectors.")
 
-    # The manifest identity, derived independently on the Python side.
+    # Decision 0024 required proof 8: global policy AND per-file role sets, both
+    # derived independently on the Python side and compared.
     manifest = C.Manifest.load(os.path.join(REPO, "data", "hash_roles.json"))
-    line = [l for l in report.splitlines() if l.startswith("MANIFEST ")]
+
+    line = [l for l in report.splitlines() if l.startswith("POLICY ")]
     if not line:
-        print("the report carries no manifest identity")
+        print("the report carries no global policy identity")
         return 1
     _, version, identity = line[0].split()
-    if version != manifest.version or identity != manifest.identity:
+    if version != manifest.version or identity != manifest.policy_identity:
         failed = 1
-        print("\nMANIFEST IDENTITY DISAGREES")
-        print("  python %s %s" % (manifest.version, manifest.identity))
+        print("\nGLOBAL POLICY IDENTITY DISAGREES")
+        print("  python %s %s" % (manifest.version, manifest.policy_identity))
         print("  cpp    %s %s" % (version, identity))
     else:
-        print("\nMANIFEST IDENTITY AGREES  %s %s" % (version, identity))
+        print("\nGLOBAL POLICY AGREES  %s %s" % (version, identity))
+
+    role_lines = [l.split() for l in report.splitlines() if l.startswith("ROLESET ")]
+    if not role_lines:
+        failed = 1
+        print("the report carries no per-file role-set identities - Decision "
+              "0024 requires them, and a global match alone would hide a "
+              "divergent dependency graph")
+    checked_roles = 0
+    for _, rel, ident in role_lines:
+        want = manifest.role_set_identity(rel)
+        if ident != want:
+            failed = 1
+            print("ROLE SET DISAGREES for %s\n  python %s\n  cpp    %s"
+                  % (rel, want, ident))
+        checked_roles += 1
+    if checked_roles and not failed:
+        print("ROLE SETS AGREE       %d files" % checked_roles)
 
     # And every vector, recomputed in Python from the same file, so a vectors
     # file edited to match a broken C++ implementation still fails.
@@ -103,9 +122,11 @@ def main():
                              encoding="utf-8"))
     for v in data["vectors"]:
         raw, sem, _ = C.hashes(v["input_json"], v["patterns"],
-                               v["schema_identity"], v["manifest_identity"],
-                               v["manifest_version"])
-        if raw != v["raw_sha256"] or sem != v["semantic_sha256"]:
+                               v["schema_identity"], v["policy_identity"],
+                               v["role_set_identity"])
+        hexed = C.canonical_bytes(v["input_json"], v["patterns"]).hex()
+        if (raw != v["raw_sha256"] or sem != v["semantic_sha256"]
+                or hexed != v["canonical_hex"]):
             failed = 1
             print("PYTHON DRIFTED from vector %s" % v["name"])
 

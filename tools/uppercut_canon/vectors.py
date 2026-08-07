@@ -24,9 +24,13 @@ from tools.uppercut_canon import canonical as C  # noqa: E402
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "tests", "fixtures", "canon_hash_vectors.json")
 
-# Fixed, deliberately not the real manifest's identity: the vectors must be
+# Fixed, deliberately not the real manifest's identities: the vectors must be
 # checkable by an implementation that has never read data/hash_roles.json.
-MANIFEST_ID = "0" * 64
+# Decision 0024 splits the binding into GLOBAL policy and PER-FILE role set, so
+# the vectors carry both and a C++ side that collapsed them into one would
+# reproduce neither.
+POLICY_ID = "0" * 64
+ROLE_SET_ID = "1" * 64
 MANIFEST_VERSION = "uppercut-hash-roles-v1"
 
 CASES = [
@@ -40,6 +44,19 @@ CASES = [
     ("unicode", "uni-v1", [], {"s": "café — 日本語"}),
     ("nested_arrays", "arr-v1", [], {"bands": [[0, 1], [2, 3]], "m": [{"i": 1}]}),
     ("precision_edge", "prec-v1", [], {"x": 0.0000000001, "y": 123.45678901}),
+    # Decision 0024's pointer-identity requirement, as a vector so the C++ has
+    # to get it right too. `/a~1b/note` names the literal key "a/b"; the nested
+    # a -> b must survive untouched. An implementation that joins segments with
+    # "/" strips both and produces a different canonical payload here.
+    ("rfc6901_literal_slash_key", "ptr-v1", ["/a~1b/note"],
+     {"a/b": {"v": 1, "note": "literal"},
+      "a": {"b": {"v": 2, "note": "nested"}}}),
+    ("rfc6901_nested_path", "ptr-v1", ["/a/b/note"],
+     {"a/b": {"v": 1, "note": "literal"},
+      "a": {"b": {"v": 2, "note": "nested"}}}),
+    ("rfc6901_tilde_escapes", "ptr-v1", ["/~01/note"],
+     {"~1": {"note": "key literally named tilde-one"},
+      "/": {"note": "key literally named slash"}}),
     ("exclusions", "excl-v1",
      ["/$comment", "/contribution", "/guard/$comment",
       "/guard/authoring_margin_note", "/moves/*/note"],
@@ -81,16 +98,20 @@ def build():
     # and the C++ side does not need the real manifest to check parity. The
     # values are part of the binding under requirement 6, so they are stated per
     # vector rather than assumed.
-    out["manifest_identity"] = MANIFEST_ID
+    out["policy_identity"] = POLICY_ID
+    out["role_set_identity"] = ROLE_SET_ID
     out["manifest_version"] = MANIFEST_VERSION
     out["hash_contract_version"] = C.HASH_CONTRACT_VERSION
     for name, schema, pats, doc in CASES:
         text = json.dumps(doc)
-        raw, sem, _ = C.hashes(text, pats, schema, MANIFEST_ID, MANIFEST_VERSION)
+        raw, sem, _ = C.hashes(text, pats, schema, POLICY_ID, ROLE_SET_ID)
         out["vectors"].append({
             "name": name, "schema_identity": schema, "patterns": pats,
-            "manifest_identity": MANIFEST_ID, "manifest_version": MANIFEST_VERSION,
+            "policy_identity": POLICY_ID, "role_set_identity": ROLE_SET_ID,
             "input_json": text, "raw_sha256": raw, "semantic_sha256": sem,
+            # Decision 0024: canonical BYTES first, hashes second. A hex
+            # mismatch says two encoders disagree; these say where.
+            "canonical_hex": C.canonical_bytes(text, pats).hex(),
         })
     for name, text, pats, why in REJECTIONS:
         out["rejection_vectors"].append({

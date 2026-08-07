@@ -43,11 +43,30 @@ UPPERCUTCORE_API extern const TCHAR* UppercutHashContractVersion;    // uppercut
 UPPERCUTCORE_API bool UppercutCanonHashes(const FString& JsonText,
                                           const TArray<FString>& Patterns,
                                           const FString& SchemaIdentity,
-                                          const FString& ManifestIdentity,
-                                          const FString& ManifestVersion,
+                                          const FString& PolicyIdentity,
+                                          const FString& RoleSetIdentity,
                                           FString& OutRaw,
                                           FString& OutSemantic,
                                           FString& OutError);
+
+// The canonical payload WITHOUT the identity envelope. Decision 0024 asks for
+// canonical BYTES to be compared before hashes, so a cross-language
+// disagreement names WHERE the encoders differ instead of only that two hex
+// strings do.
+UPPERCUTCORE_API bool UppercutCanonicalBytes(const FString& JsonText,
+                                             const TArray<FString>& Patterns,
+                                             TArray<uint8>& OutBytes,
+                                             FString& OutError);
+
+// Decision 0024's per-file scope: only this file's excluded pointers, binding
+// the global policy. `bClassified` distinguishes "declared with no exclusions"
+// from "not declared at all", so classifying a previously unlisted file MOVES
+// its identity rather than silently changing what it covers.
+UPPERCUTCORE_API bool UppercutCanonRoleSetIdentity(const FString& PolicyIdentity,
+                                                   const FString& Rel,
+                                                   const TArray<FString>& Patterns,
+                                                   bool bClassified,
+                                                   FString& OutIdentity);
 
 // The hash-role manifest's own semantic identity, under its own declared
 // exclusions (`/self/non_authoritative`). Bound with only the canonicalizer and

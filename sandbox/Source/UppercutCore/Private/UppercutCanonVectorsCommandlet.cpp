@@ -65,10 +65,11 @@ int32 UUppercutCanonVectorsCommandlet::Main(const FString& Params)
             const FString Name = Obj->GetStringField(TEXT("name"));
             const FString Input = Obj->GetStringField(TEXT("input_json"));
             const FString Schema = Obj->GetStringField(TEXT("schema_identity"));
-            const FString ManId = Obj->GetStringField(TEXT("manifest_identity"));
-            const FString ManVer = Obj->GetStringField(TEXT("manifest_version"));
+            const FString PolicyId = Obj->GetStringField(TEXT("policy_identity"));
+            const FString RoleSetId = Obj->GetStringField(TEXT("role_set_identity"));
             const FString WantRaw = Obj->GetStringField(TEXT("raw_sha256"));
             const FString WantSem = Obj->GetStringField(TEXT("semantic_sha256"));
+            const FString WantHex = Obj->GetStringField(TEXT("canonical_hex"));
 
             TArray<FString> Patterns;
             const TArray<TSharedPtr<FJsonValue>>* Pats = nullptr;
@@ -79,10 +80,36 @@ int32 UUppercutCanonVectorsCommandlet::Main(const FString& Params)
 
             FString GotRaw, GotSem, Error;
             ++Checked;
-            if (!UppercutCanonHashes(Input, Patterns, Schema, ManId, ManVer,
+
+            // Decision 0024: canonical BYTES first. A hash mismatch says two
+            // encoders disagree; the bytes say where, and that is the
+            // difference between a lead and a shrug.
+            TArray<uint8> GotBytes;
+            if (!UppercutCanonicalBytes(Input, Patterns, GotBytes, Error))
+            {
+                Report += FString::Printf(TEXT("FAIL %-26s refused: %s\n"), *Name, *Error);
+                ++Failed;
+                continue;
+            }
+            FString GotHex;
+            for (uint8 B : GotBytes) { GotHex += FString::Printf(TEXT("%02x"), B); }
+            if (GotHex != WantHex)
+            {
+                int32 At = 0;
+                while (At < GotHex.Len() && At < WantHex.Len()
+                       && GotHex[At] == WantHex[At]) { ++At; }
+                Report += FString::Printf(
+                    TEXT("FAIL %-26s canonical bytes differ at hex offset %d\n")
+                    TEXT("  py  %s\n  cpp %s\n"),
+                    *Name, At, *WantHex, *GotHex);
+                ++Failed;
+                continue;
+            }
+
+            if (!UppercutCanonHashes(Input, Patterns, Schema, PolicyId, RoleSetId,
                                      GotRaw, GotSem, Error))
             {
-                Report += FString::Printf(TEXT("FAIL %-24s refused: %s\n"), *Name, *Error);
+                Report += FString::Printf(TEXT("FAIL %-26s refused: %s\n"), *Name, *Error);
                 ++Failed;
                 continue;
             }
@@ -148,7 +175,55 @@ int32 UUppercutCanonVectorsCommandlet::Main(const FString& Params)
         ++Checked;
         if (UppercutCanonManifestIdentity(ManifestText, Identity, Version, Error))
         {
-            Report += FString::Printf(TEXT("MANIFEST %s %s\n"), *Version, *Identity);
+            Report += FString::Printf(TEXT("POLICY %s %s\n"), *Version, *Identity);
+
+            // Decision 0024 required proof 8: the PER-FILE role sets must agree
+            // too. A global policy that matched while the per-file scopes
+            // diverged would be the worst of both - parity claimed, dependency
+            // graph different.
+            TSharedPtr<FJsonObject> ManRoot;
+            const TSharedRef<TJsonReader<>> MR = TJsonReaderFactory<>::Create(ManifestText);
+            if (FJsonSerializer::Deserialize(MR, ManRoot) && ManRoot.IsValid())
+            {
+                const TSharedPtr<FJsonObject>* FilesObj = nullptr;
+                if (ManRoot->TryGetObjectField(TEXT("files"), FilesObj))
+                {
+                    TArray<FString> Rels;
+                    for (const TPair<FString, TSharedPtr<FJsonValue>>& KV
+                         : (*FilesObj)->Values)
+                    {
+                        Rels.Add(KV.Key);
+                    }
+                    Rels.Sort();
+                    for (const FString& Rel : Rels)
+                    {
+                        TArray<FString> Patterns;
+                        const TArray<TSharedPtr<FJsonValue>>* Arr = nullptr;
+                        if ((*FilesObj)->GetObjectField(Rel)->TryGetArrayField(
+                                TEXT("non_authoritative"), Arr))
+                        {
+                            for (const TSharedPtr<FJsonValue>& P : *Arr)
+                            {
+                                Patterns.Add(P->AsString());
+                            }
+                        }
+                        FString RoleSetId;
+                        ++Checked;
+                        if (UppercutCanonRoleSetIdentity(Identity, Rel, Patterns,
+                                                         true, RoleSetId))
+                        {
+                            Report += FString::Printf(TEXT("ROLESET %s %s\n"),
+                                                      *Rel, *RoleSetId);
+                        }
+                        else
+                        {
+                            Report += FString::Printf(
+                                TEXT("FAIL roleset %s\n"), *Rel);
+                            ++Failed;
+                        }
+                    }
+                }
+            }
         }
         else
         {

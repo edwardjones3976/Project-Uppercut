@@ -41,8 +41,11 @@ def test_the_header_names_every_canon_file_the_phase_reads(rs):
     # appears with BOTH identities, so a file gaining only one of the two fails.
     named = {l.split("=")[0][len("H|canon_"):] for l in rs.splitlines()
              if l.startswith("H|canon_")}
-    named -= {"hash_contract", "hash_roles", "hash_roles_id"}
-    assert all(n.endswith("_semantic") or n.endswith("_raw") for n in named)
+    named -= {"hash_contract", "hash_roles", "hash_policy", "hash_roles_raw"}
+    # Decision 0024: semantic, raw and roles - what it is, which bytes, and
+    # which classification governed it.
+    assert all(n.endswith("_semantic") or n.endswith("_raw")
+               or n.endswith("_roles") for n in named)
     named = {n.rsplit("_", 1)[0] for n in named}
     assert named == {"guard_evasion", "moves", "animation"}
 

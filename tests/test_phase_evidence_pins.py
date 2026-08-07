@@ -121,19 +121,28 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 #            -> 3df854f4... (2026-08-06, PROSE ONLY - no value changed)
 #            -> ff2e793f... (2026-08-07, DUAL-HASH HEADER - no row changed)
 #            -> 74e0c48b... (2026-08-07, MANIFEST IDENTITY - no row changed)
+#            -> 8108c027... (2026-08-07, DECISION 0024 SCOPE - no row changed)
 #   Phase K  b6f1c24b... (2026-08-04)
 #            -> 4826e82c... (2026-08-05, same cause)
 #            -> d2032592... (2026-08-06, PROSE ONLY - no value changed)
 #            -> 6aba9c09... (2026-08-07, DUAL-HASH HEADER - no row changed)
 #            -> 16e3efa8... (2026-08-07, MANIFEST IDENTITY - no row changed)
+#            -> 274c597b... (2026-08-07, DECISION 0024 SCOPE - no row changed)
+#
+# The last move is Decision 0024 replacing the whole-manifest binding with a
+# GLOBAL POLICY identity plus a PER-FILE role set - the narrowing that stops a
+# classification change in one file from moving phases that never read it. This
+# is the final shape of the header, and the cost it removes is the one recorded
+# in the entry above: from here, editing one file's classification moves that
+# file and nothing else.
 #
 # (module, callable args, the hash the phase record swears to, where it is recorded)
 PINS = [
     ("analyze_core_condition", (4242, 5400),
-     "74e0c48b1cfa49451fb2b95773270a4e869a71dc0189e79b440c9f1cb69c346b",
+     "8108c027abeebaa63425a4f0da155fe771f1775638d1482a1dead935a485c76b",
      "Phase N - visible stamina and condition"),
     ("analyze_render_probe", (4242, 5400),
-     "16e3efa814ffe7cfb25936dc3bbae72a95b02862cd4265b054bc741b5c604ad9",
+     "274c597b5d54001cf737dc965160e9d9d87aadcc2fa0f03e40d8ee7da37c10bd",
      "Phase K / the rendered slice - primitives, mannequins and the arena alike"),
 ]
 

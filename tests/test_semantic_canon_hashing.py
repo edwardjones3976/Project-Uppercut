@@ -382,10 +382,17 @@ def test_a_prose_edit_to_real_canon_does_not_move_its_semantic_hash():
 
 # --- the Director's six additional requirements (Issue #17) ------------------
 
-def test_r1_the_manifest_has_its_own_semantic_identity():
-    """Requirement 1: the manifest is canon and cannot judge from outside."""
+def test_r1_the_manifest_has_its_own_semantic_identities():
+    """Requirement 1: the manifest is canon and cannot judge from outside.
+
+    Decision 0024 split the single manifest identity into a global policy
+    identity and a per-file role set. Both are tested here; the scoping
+    properties themselves live in tests/test_hash_dependency_scope.py.
+    """
     m = C.Manifest.load(MANIFEST)
-    assert len(m.identity) == 64
+    assert len(m.policy_identity) == 64
+    assert len(m.role_set_identity("data/pose_geometry.json")) == 64
+    assert len(m.raw_hash) == 64
     assert m.version == "uppercut-hash-roles-v1"
 
 
@@ -393,34 +400,35 @@ def test_r1b_reclassifying_a_field_moves_the_semantic_hash():
     """The attack requirement 1 exists to stop.
 
     Convert a live combat field into an "excluded documentation field" and the
-    evidence system must NOT politely look away. Two things have to move: the
-    manifest's own identity, and therefore every file hashed under it.
+    evidence system must NOT politely look away.
     """
     doc = json.load(io.open(MANIFEST, encoding="utf-8"))
     honest = C.Manifest(copy.deepcopy(doc))
 
     # Someone decides `authoring_margin` - a real threshold - is documentation.
-    doc["files"]["data/pose_geometry.json"]["non_authoritative"].append(
-        "/guard/authoring_margin")
+    rel = "data/pose_geometry.json"
+    doc["files"][rel]["non_authoritative"].append("/guard/authoring_margin")
     tampered = C.Manifest(doc)
 
-    assert tampered.identity != honest.identity, (
-        "reclassifying a combat field left the manifest identity unchanged - "
+    assert tampered.role_set_identity(rel) != honest.role_set_identity(rel), (
+        "reclassifying a combat field left this file's role set unchanged - "
         "the classification is not inside the evidence envelope")
 
-    rel = "data/pose_geometry.json"
     _, sem_honest, _ = honest.hashes_for(ROOT, rel, "pose-v1")
     _, sem_tampered, _ = tampered.hashes_for(ROOT, rel, "pose-v1")
     assert sem_honest != sem_tampered
 
 
-def test_r1c_a_manifest_prose_edit_does_not_move_its_identity():
+def test_r1c_a_manifest_prose_edit_does_not_move_its_identities():
     """The manifest gets the same treatment it gives everything else."""
     doc = json.load(io.open(MANIFEST, encoding="utf-8"))
-    before = C.Manifest(copy.deepcopy(doc)).identity
+    before = C.Manifest(copy.deepcopy(doc))
     doc["$comment"] = "a completely rewritten explanation of this manifest"
     doc["files"]["data/pose_geometry.json"]["review_note"] = "reworded"
-    assert C.Manifest(doc).identity == before
+    after = C.Manifest(doc)
+    assert after.policy_identity == before.policy_identity
+    assert (after.role_set_identity("data/pose_geometry.json")
+            == before.role_set_identity("data/pose_geometry.json"))
 
 
 def test_r3_negative_zero_is_the_same_gameplay_quantity_as_zero():
@@ -458,13 +466,13 @@ def test_r5c_a_wildcard_classified_note_still_leaves_membership_authoritative():
     assert sem(doc2) != BASE, "adding a move must still move identity"
 
 
-def test_r6_all_four_identities_are_bound_into_the_payload():
-    """Requirement 6: changing any rule that decides sameness changes sameness."""
-    base = C.hashes(json.dumps(FIXTURE), PATTERNS, "s1", "m1", "v1")[1]
-    assert C.hashes(json.dumps(FIXTURE), PATTERNS, "s2", "m1", "v1")[1] != base
-    assert C.hashes(json.dumps(FIXTURE), PATTERNS, "s1", "m2", "v1")[1] != base
-    assert C.hashes(json.dumps(FIXTURE), PATTERNS, "s1", "m1", "v2")[1] != base
-    head = C.payload(FIXTURE, "s1", "m1", "v1")
+def test_r6_every_bound_identity_changes_sameness():
+    """Requirement 6, under Decision 0024's split scope."""
+    base = C.hashes(json.dumps(FIXTURE), PATTERNS, "s1", "p1", "r1")[1]
+    assert C.hashes(json.dumps(FIXTURE), PATTERNS, "s2", "p1", "r1")[1] != base
+    assert C.hashes(json.dumps(FIXTURE), PATTERNS, "s1", "p2", "r1")[1] != base
+    assert C.hashes(json.dumps(FIXTURE), PATTERNS, "s1", "p1", "r2")[1] != base
+    head = C.payload(FIXTURE, "s1", "p1", "r1")
     assert C.CANONICALIZER_VERSION.encode() in head
     assert C.HASH_CONTRACT_VERSION.encode() in head
 
@@ -564,9 +572,13 @@ def test_the_cross_language_vectors_still_reproduce():
     data = json.load(io.open(VECTORS, encoding="utf-8"))
     assert data["canonicalizer_contract"] == C.CONTRACT
     for v in data["vectors"]:
+        # Decision 0024: canonical BYTES first, hashes second. A byte mismatch
+        # names where two encoders differ; a hash mismatch only says they do.
+        got_bytes = C.canonical_bytes(v["input_json"], v["patterns"]).hex()
+        assert got_bytes == v["canonical_hex"], "%s canonical bytes" % v["name"]
         raw_h, sem_h, _ = C.hashes(v["input_json"], v["patterns"],
-                                   v["schema_identity"], v["manifest_identity"],
-                                   v["manifest_version"])
+                                   v["schema_identity"], v["policy_identity"],
+                                   v["role_set_identity"])
         assert raw_h == v["raw_sha256"], "%s raw" % v["name"]
         assert sem_h == v["semantic_sha256"], "%s semantic" % v["name"]
 
