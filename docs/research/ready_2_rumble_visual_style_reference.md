@@ -1,3 +1,5 @@
+<!-- [ ChatGPT | GPT-5.6 Sol | 2026-08-08 22:42 UTC | START ] -->
+
 # Ready 2 Rumble visual-language reference for Project Uppercut
 
 **Status:** Non-authoritative visual/reference research
@@ -5,6 +7,8 @@
 **Purpose:** Give Claude/Cowork and future artists a concrete visual target for the *spiritual* Ready 2 Rumble influence without copying Midway's characters, branding, UI, animation, likenesses, dialogue, signature poses, or other protected expression.
 
 Project Uppercut is not attempting to reproduce Ready 2 Rumble. The useful inheritance is a design language: **arcade caricature, readable silhouettes, fast theatrical boxing, expressive damage, large personality, and a ring presented as a stage.** Project Uppercut then combines that language with its own deeper boxing logic, original roster, original Crowd system, original commentary, and modern Unreal presentation.
+
+> **Mandatory companion reading:** `docs/research/2026_2029_arcade_boxing_modernization_mandate.md`. This historical style reference describes the creative spirit to study. The modernization mandate governs how that spirit must be translated into a game designed for 2026–2029, from backend logic and AI through animation, UI, accessibility, networking readiness, audio, presentation and visual design.
 
 ---
 
@@ -352,6 +356,12 @@ It is:
 
 > **Stylized 3D boxing caricature with believable weight, fast readable motion, strong comedy, modern materials and real boxing bones.**
 
+And the era requirement is explicit:
+
+> **Ready 2 Rumble spirit. 2026–2029 brain, body and production values. Project Uppercut identity.**
+
+That requirement applies to the backend and player experience alike: simulation logic, CPU intelligence, combat state, animation, input, accessibility, UI/UX, audio, networking readiness, presentation, replay, training, arenas and character art.
+
 ---
 
 # 8. Claude/Cowork visual implementation brief
@@ -368,6 +378,7 @@ When proposing Project Uppercut art, animation or presentation, use these constr
 8. **Comedy emerges from character and consequence.** No gag should make the combat unreadable.
 9. **UI must survive couch distance and motion.** Chunky, clean, original.
 10. **Do not clone the reference.** Design new visual grammar from these principles.
+11. **Never preserve an old limitation merely because it existed in the reference.** Preserve the creative intent and redesign the implementation for 2026–2029.
 
 ---
 
@@ -380,7 +391,8 @@ When proposing Project Uppercut art, animation or presentation, use these constr
 5. Round 2 gameplay videos — movement, recoil and pacing.
 6. Manuals — how arcade boxing concepts were communicated.
 7. Contemporary reviews — what players/reviewers perceived as the game's identity.
-8. Return to Project Uppercut canon and translate principles rather than assets.
+8. Read `2026_2029_arcade_boxing_modernization_mandate.md`.
+9. Return to Project Uppercut canon and translate principles rather than assets.
 
 ---
 
@@ -410,3 +422,5 @@ Render the same short exchange in three stylization levels:
 The Director then chooses the visual ceiling before named fighters are built.
 
 That is far safer than discovering on Fighter #7 that the roster lives in the wrong art universe.
+
+<!-- [ ChatGPT | GPT-5.6 Sol | 2026-08-08 22:42 UTC | END ] -->
