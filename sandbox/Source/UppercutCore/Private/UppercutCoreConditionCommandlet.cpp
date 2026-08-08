@@ -7,6 +7,9 @@
 #include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 05:10 UTC | START edit: Decision 0023 header ]
+#include "UppercutCanonHash.h"   // UppercutCanonHeaderLines
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 05:10 UTC | END edit ]
 
 // SHA-256 (FIPS 180-4), file-local like every evidence probe's.
 namespace UppercutCondSha256
@@ -382,13 +385,37 @@ int32 UUppercutCoreConditionCommandlet::Main(const FString& Params)
     // ---- the loop -----------------------------------------------------------
     FString Out;
     Out += TEXT("H|phase=N\n");
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 05:10 UTC | START edit: Decision 0023 header ]
+    // Decision 0023's migration reached this phase's ANALYZER and not this
+    // commandlet, so the two had disagreed since 2026-08-07 - the analyzer
+    // emitting the dual-hash header while this still wrote the whole-file one.
+    // Nothing caught it because Phase N had no runner that re-derives the C++
+    // stream; tools/engine/prove_phase.py, written 2026-08-08, found it on its
+    // first run. All 1274 event rows were already identical and every old
+    // H|canon_X= equalled the contract's H|canon_X_raw=, so this finishes an
+    // ordered migration rather than moving a fight. The pins are generated
+    // from the already-migrated analyzer, so this brings the C++ INTO
+    // agreement with them and no pin moves.
     const TCHAR* ShaName[9] = { TEXT("movement"), TEXT("condition"), TEXT("guard"), TEXT("cpu"),
                                 TEXT("moves"), TEXT("animation"), TEXT("collision"), TEXT("pose"),
                                 TEXT("punch") };
+    TArray<TPair<FString, FString>> Entries;
     for (int32 i = 0; i < 9; ++i)
     {
-        Out += FString::Printf(TEXT("H|canon_%s=%s\n"), ShaName[i], *Sha[i]);
+        Entries.Add(TPair<FString, FString>(FString(ShaName[i]), FString(Rel[i])));
     }
+    {
+        TArray<FString> HeaderLines;
+        FString HeaderError;
+        if (!UppercutCanonHeaderLines(Repo, Entries, HeaderLines, HeaderError))
+        {
+            UE_LOG(LogTemp, Error, TEXT("UppercutCoreCondition: header: %s"),
+                   *HeaderError);
+            return 1;
+        }
+        for (const FString& L : HeaderLines) { Out += L + TEXT("\n"); }
+    }
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 05:10 UTC | END edit ]
     Out += FString::Printf(TEXT("H|seed=%u\nH|ticks=%d\nH|interval=%d\nH|graded=solid\n"),
                            Seed, Ticks, Interval);
 
