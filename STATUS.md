@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-08 05:38 UTC** at `2bfbf72 Finish the Decision 0023 C++ header migration and complete phase reproving`.
+Generated **2026-08-08 06:22 UTC** at `a9eeaec Put the phase matrix in the nightly, and close the loose ends behind it`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **1109 passed** |
+| Test suite | **1172 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |
