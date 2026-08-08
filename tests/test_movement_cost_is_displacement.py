@@ -99,9 +99,9 @@ def test_zero_displacement_costs_zero():
     """The ropes case, which is where this rule earns its keep.
 
     `rope_retreat_multiplier` is 0.0: with your back on the ropes a backward step
-    buys nothing. If it still charged, the anti-running rule would double as a
-    stamina tax on the fighter already in trouble, which is not what canon says
-    it is for.
+    buys nothing. If it still charged, the ring would double as a stamina tax on
+    the fighter already in trouble - a fighter paying breath for ground he was
+    not given, which is not what canon says the ring is for.
     """
     c = O.canon_pack()
     mul = (c["dir"]["retreat"] * c["rope_retreat"]) // 10000

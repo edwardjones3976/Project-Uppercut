@@ -83,7 +83,9 @@ struct UPPERCUTCORE_API FUppercutRangeCanon
     int64 ClampSeparation(int64 Sep) const;
 
     // A retreat with your back on the ropes buys nothing - canon's
-    // `rope_retreat_multiplier` of 0.0, which is the whole anti-running rule.
+    // `rope_retreat_multiplier` of 0.0. This is the RING, not a rule against
+    // movement: lateral is untouched at full rate, so circling off the ropes
+    // stays open and free. What ends is free retreat in a straight line.
     int64 RopeScaled(int64 Pos, int64 Delta, int64 Opponent) const;
 
     // How far the fist has travelled at tick K of its own animation.

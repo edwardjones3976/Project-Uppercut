@@ -241,6 +241,90 @@ def check_invariants(doc: dict) -> list:
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-03 09:52 UTC | START ]
 # Added inside the original author's file; their tags above and below are theirs
 # and are left exactly as written.
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 19:20 UTC | START edit: Director correction ]
+def check_defensive_purity_is_not_penalised(doc: dict) -> list:
+    """Nothing may charge a fighter for hitting without being hit.
+
+    DIRECTOR CORRECTION, 2026-08-08. There is no anti-running rule and there
+    never was one; the phrase was invented in this repository's comments and
+    spread to six files. What Rule 4 names is an ABUSE - neither hitting nor
+    being hit, for long periods - and what canon has is a RING that ends.
+
+    Hitting without being hit is the opposite of that abuse. "Swim without
+    getting wet." It is the most admired thing in the sport and the model may
+    never make it expensive.
+
+    The concrete failure this guards against is the easy fix somebody will
+    eventually propose: tax movement, or tax the fighter who is not being hit,
+    and call it anti-running. Every clause below is a place that fix would land.
+    """
+    errs = []
+    loco = doc["locomotion"]
+    d = loco["directional"]
+    track = doc["ring"]["track"]
+
+    # Circling off the ropes is the boxing answer to being backed up, and canon
+    # says so in its own notes. If lateral is ever scaled at the ropes, a
+    # cornered fighter is being charged for the correct response.
+    if track.get("rope_lateral_multiplier") != 1.0:
+        errs.append(
+            "rope_lateral_multiplier is %r, not 1.0 - circling off the ropes is "
+            "being taxed, which charges a fighter for the one answer canon says "
+            "remains open to him" % (track.get("rope_lateral_multiplier"),))
+
+    # The ring is a bound on RETREAT IN A STRAIGHT LINE ONTO THE ROPES, and
+    # nothing else. In open ring a retreating step must still buy ground, or the
+    # out-boxer has been deleted rather than answered.
+    if d["retreat_stride_multiplier"] <= 0:
+        errs.append(
+            "retreat covers no ground at all, so a fighter cannot box on the "
+            "back foot - that answers non-engagement by removing a legitimate "
+            "style rather than by letting the ring close")
+
+    # Lateral must remain a real option, not a token one.
+    if d["lateral_stride_multiplier"] <= 0:
+        errs.append("lateral movement covers no ground, so there is no circling "
+                    "and the ropes become a trap rather than a bound")
+
+    # The tell that somebody has built the thing this check exists to stop: a
+    # movement or stamina term keyed on output, on being hit, or on not being
+    # hit. Movement is priced by DISTANCE (Decision 0014) and by nothing else.
+    #
+    # THE FIRST VERSION OF THIS SCAN FAILED ON ARRIVAL, and correctly. It read
+    # the whole block as text and tripped on the word "engagement" inside a
+    # `$comment` explaining that the reference model resolves engagement along
+    # one axis - prose, not a term. A test written too broadly tempts you to
+    # widen its exemption; the right move is to narrow the claim. So it reads
+    # KEY NAMES only. A penalty has to be a field before it can be a penalty.
+    forbidden = ("punches_landed", "punches_thrown", "output", "engagement",
+                 "inactivity", "passivity", "damage_taken", "unhit",
+                 "not_hit", "avoidance", "evasion_penalty")
+
+    def key_names(node, out):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                out.add(str(k).lower())
+                key_names(v, out)
+        elif isinstance(node, list):
+            for v in node:
+                key_names(v, out)
+        return out
+
+    names = key_names(loco, set()) | key_names(track, set())
+    blob = " ".join(n for n in names if not n.startswith("$")
+                    and not n.endswith(("note", "notes", "comment")))
+    for token in forbidden:
+        if token in blob:
+            errs.append(
+                "the movement model references %r. Movement is priced by "
+                "distance travelled and by nothing else; a movement or stamina "
+                "term keyed on output or on being hit would charge a fighter "
+                "for defensive success. Non-engagement is answered by the "
+                "scorecard, not by the locomotion table." % token)
+    return errs
+# [ ... | 2026-08-08 19:20 UTC | END edit ]
+
+
 def check_directional_footwork(doc: dict) -> list:
     """Rule 4: excessive running must lose to boxing, not to a prohibition.
 
@@ -309,6 +393,8 @@ ALL_CHECKS = [
     ("anti_cheat_rule13", check_anti_cheat),
     ("threat_compression", check_threat_compression),
     ("directional_footwork_rule4", check_directional_footwork),
+    ("defensive purity is not penalised",
+     check_defensive_purity_is_not_penalised),
     ("ring_track_rule13", check_ring_track),
     ("event_vocabulary", check_events),
     ("invariants_declared", check_invariants),
