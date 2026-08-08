@@ -130,6 +130,20 @@ GATES = [
      False, 300),
     ("phase Q",    [sys.executable, "-m", "tools.engine.prove_core_range"],
      True, 1800),
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 07:20 UTC | START edit ]
+    # Added 2026-08-08. Phase Q above answers "does Q's C++ still reproduce its
+    # contract?" for exactly one phase. H, I, J, K, L and N had no such check at
+    # all, and that gap is what let Phase N's C++ sit on the pre-Decision-0023
+    # header for a day with a fully green suite - the Python side had migrated,
+    # every Python-side guard agreed with itself, and nothing compared the two.
+    #
+    # It is slow, because it boots the editor once per phase and Phase K renders
+    # a real world. That is the correct trade for a NIGHTLY: this is precisely
+    # the class of drift nobody finds by looking, and the only way it gets found
+    # is something running while nobody is looking.
+    ("phase matrix", [sys.executable, "-m", "tools.engine.prove_phase"],
+     True, 3600),
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 07:20 UTC | END edit ]
 ]
 
 
@@ -173,6 +187,18 @@ def interesting(label, text):
         return [l for l in lines
                 if l.startswith("DRIFT") or l.startswith("PROVEN")
                 or l.strip().startswith("commandlet")
+                or l.strip().startswith("contract")][-40:]
+    if label == "phase matrix":
+        # Keep the phase headings too, so a drift says WHICH phase without
+        # anyone having to re-run it to find out.
+        return [l for l in lines
+                if l.startswith("Phase ")
+                or l.strip().startswith("DRIFT")
+                or l.strip().startswith("NO STREAM")
+                or l.strip().startswith("MATCHED-BUT-INCOHERENT")
+                or l.strip().startswith("HEADER ONLY")
+                or l.strip().startswith("EVENT ROWS DIFFER")
+                or l.strip().startswith("artifact")
                 or l.strip().startswith("contract")][-40:]
     return [l for l in lines if l.strip()][-40:]
 

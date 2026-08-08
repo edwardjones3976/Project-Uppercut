@@ -116,3 +116,53 @@ divergences in one diff, and the first rule here is that a change to proven code
 must be falsifiable on its own.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 04:40 UTC | END ] -->
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 07:15 UTC | START addendum ] -->
+
+## What happened next, the same day
+
+Everything above describes the state before the repair. It is left standing
+rather than edited, because the forward-looking parts of it were how the work
+was decided and rewriting them would hide that. This records what the repair
+actually did, and where each claim above landed.
+
+**The coverage gap is closed.** `prove_phase.py` no longer covers four of six.
+It gained the runner strategies the Director specified, so the two phases named
+above as uncovered are now proven by the same tool and the same definition of
+proof:
+
+```text
+CommandletRepoTicksRunner    -seed -ticks -repo -out      I, J, L, N
+CommandletCanonStepsRunner   -seed -steps -canon -out     H
+RenderedPhaseRunner          UnrealEditor -game + URL     K
+```
+
+A different launch mechanism turned out to be an adapter problem, exactly as it
+should have been — not a reason to leave a phase unproven or to write a second
+proof script.
+
+**K was measured, not inferred.** The section above states K's divergence as an
+expectation and says so. That was the right way to write it: the renderer-side
+prover was built first, run against the real rendered slice, and reported
+header-only divergence with the same signature N showed. Only then was the
+emitter changed.
+
+**Both are repaired and the whole matrix is green.** H, I, J, K, L, N by
+`prove_phase`; Q, R, the live arena and canon parity by their own runners.
+
+**The "no pin moves" prediction is now a measurement.** Phase K reproduces
+`274c597b5d54001cf737dc965160e9d9d87aadcc2fa0f03e40d8ee7da37c10bd`, which is
+the exact hash `test_phase_evidence_pins` already pinned. The repair brought the
+C++ into agreement with the pins and moved none of them.
+
+**One thing above was incomplete.** The table gives no tick count, and it
+matters: Phase K at 1200 ticks passes the byte comparison and fails its
+analyzer's coherence check — "the uppercut never landed". That was a parameter
+choice, not a defect. K's contract is only meaningful at its recorded 5400.
+
+**The overstated 0023 claim is corrected** in `test_phase_evidence_pins.py`
+itself, beside the original wording rather than in place of it.
+
+So the precondition this document set for the loader unification is met.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 07:15 UTC | END addendum ] -->

@@ -59,10 +59,30 @@ def test_every_gate_is_a_real_module():
             "gate %r runs %s, which does not exist" % (label, mod))
 
 
-def test_the_engine_gate_is_marked_as_needing_the_engine():
-    """If this flag were lost, a nightly run would fight the Director's editor."""
+def test_the_engine_gates_are_marked_as_needing_the_engine():
+    """If this flag were lost, a nightly run would fight the Director's editor.
+
+    Updated 2026-08-08 when the phase matrix joined. The list is asserted
+    exactly rather than loosely so that ADDING an engine gate is a deliberate
+    act: the flag is what drives both the skip-while-the-editor-is-open rule
+    and the wedge killer, and a gate that silently arrived without it would
+    hang the nightly behind Turnkey.
+    """
     engine_gates = [g[0] for g in NV.GATES if g[2]]
-    assert engine_gates == ["phase Q"], (
+    assert engine_gates == ["phase Q", "phase matrix"], (
         "the set of engine-dependent gates changed to %s - the skip rule and "
         "the wedge killer are wired to that flag" % engine_gates)
+
+
+def test_the_phase_matrix_is_actually_in_the_nightly():
+    """The gap that hid Phase N's drift, closed and kept closed.
+
+    Every Python-side guard agreed with itself while the C++ sat on a stale
+    header for a day. Only a runner that re-derives the C++ stream could see
+    it, so the nightly has to actually run one.
+    """
+    labels = [g[0] for g in NV.GATES]
+    assert "phase matrix" in labels, (
+        "prove_phase is no longer in the nightly - the only check that "
+        "compares C++ against its contract for H/I/J/K/L/N has been removed")
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 19:05 UTC | END ]
