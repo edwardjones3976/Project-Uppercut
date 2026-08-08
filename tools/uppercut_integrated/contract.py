@@ -46,6 +46,22 @@ STREAM_PHASE = "INTEGRATED"
 DEFAULT_PARTICIPANTS = ("red_corner", "blue_corner")
 # [ ... | 2026-08-08 09:20 UTC | END edit ]
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 00:30 UTC | START edit: Phase R enters the bout ]
+# The integrated contract's own declared vocabulary. The frozen phases each
+# declare these as literal tuples inside their analyzers - `REGIONS` and
+# `PUNCHES` live in `analyze_core_condition` - and the integrated package may
+# not import a phase analyzer, so it declares its own.
+#
+# That is a fork, and it is a fork with a guard rather than a shrug:
+# `tests/test_evasion_in_the_bout.py` asserts these match the frozen phases'
+# vocabulary today, so the day they diverge it is a visible test failure rather
+# than two systems quietly disagreeing about what a body is.
+REGIONS = ("head", "jaw_chin", "torso_upper", "torso_lower",
+           "arm_left", "arm_right")
+PUNCHES = ("jab_lead", "cross_rear", "hook_lead", "uppercut_rear",
+           "body_straight_rear")
+# [ ... | 2026-08-09 00:30 UTC | END edit ]
+
 # Every canon file the integrated bout reads, in a DECLARED order. Declared,
 # because the header must not depend on dictionary iteration - the same rule
 # Decision 0022 states for random ownership applies to evidence identity.

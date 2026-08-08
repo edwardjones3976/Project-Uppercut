@@ -108,8 +108,18 @@ class FighterState(object):
                  # band a punch is judged against is derived from them by the
                  # shared range core, not stored alongside them, so there is no
                  # second opinion about where a fighter is.
-                 "pos", "pending")
-                 # [ ... | 2026-08-08 13:40 UTC | END edit ]
+                 "pos", "pending",
+                 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+                 #   2026-08-09 00:35 UTC | START edit: Phase R enters ]
+                 # A punch in flight: (move_id, tick it was thrown, the band it
+                 # was thrown from). An evasion in force: (evasion_id, the tick
+                 # it stops being active). Both are None most of the time, and
+                 # both are TIMING - which is the whole reason there is no
+                 # evasion die. A slip that has expired is not passed to the
+                 # resolver at all, so a mistimed evasion is a vulnerability
+                 # rather than a wasted input.
+                 "punch", "evasion")
+                 # [ ... | 2026-08-09 00:35 UTC | END edit ]
 
     def __init__(self, fighter_id, economy, profile=None, band="mid"):
         # `fighter_id` is the STABLE PARTICIPANT IDENTITY from the contract's
@@ -140,6 +150,8 @@ class FighterState(object):
         self.recovery_seeking = False
         self.pos = 0
         self.pending = 0
+        self.punch = None
+        self.evasion = None
         # Decision 0025's input rule applies to constructed state too, not only
         # to state that has been stepped. A fixture that starts a fighter
         # outside the interval is exactly the corrupt-save case the ruling
@@ -153,7 +165,24 @@ class FighterState(object):
         return Observable(
             band=self.band,
             committed=self.committed,
-            recovering=self.recovery_ticks > 0,
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+            #   2026-08-09 01:50 UTC | START edit: the punish window is AFTER ]
+            # RECOVERING MEANS THE PUNCH IS OVER AND HE HAS NOT RESET, which is
+            # when a boxer is open. It does not mean "busy".
+            #
+            # Until this line, `recovering` was `recovery_ticks > 0` - true for
+            # the WHOLE animation, including the startup and active frames when
+            # the man is actually throwing at you. Once commitment lasted the
+            # authored animation instead of a placeholder 14 ticks, that made
+            # each fighter permanently "recovering" in the other's eyes, so the
+            # policy's punish branch fired on every tick for both of them: a
+            # mutual-punish deadlock, 146 punches a minute each, and not one
+            # step taken in sixty seconds.
+            #
+            # A punch in flight is a threat. A punch just finished is an
+            # opening. They are opposite things and they were the same flag.
+            recovering=self.recovery_ticks > 0 and self.punch is None,
+            # [ ... | 2026-08-09 01:50 UTC | END edit ]
             advancing=self.advancing,
             recent_moves=tuple(self.recent_moves[-4:]),
             on_ropes=self.on_ropes,

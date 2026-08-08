@@ -257,7 +257,10 @@ def test_every_declared_product_lands_on_a_declared_quantity():
 def test_the_stream_records_value_and_basis_not_one_opaque_number():
     """Decision 0029's telemetry rule, on the real stream."""
     bout = IntegratedBout(seed=4242).run(120)
-    rows = [r for r in bout.rows if r.startswith("W|")]
+    # `E` for energy. The stamina row moved off `W` when Phase R's evasion
+    # WINDOW rows arrived and the two collided - one letter, two meanings, in a
+    # stream whose entire value is being parseable.
+    rows = [r for r in bout.rows if r.startswith("E|")]
     assert rows
     row = rows[0]
     for field in ("movement_displacement=", "movement_wind_rate=",

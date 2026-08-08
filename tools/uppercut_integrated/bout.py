@@ -37,6 +37,7 @@ if REPO not in sys.path:
     sys.path.insert(0, REPO)
 
 from tools.uppercut_range import core as RANGE          # noqa: E402
+from tools.uppercut_evade import core as EVADE          # noqa: E402
 from tools.uppercut_stamina import economy as E         # noqa: E402
 from tools.uppercut_integrated import contract as C     # noqa: E402
 from tools.uppercut_integrated import fighter as F      # noqa: E402
@@ -102,6 +103,18 @@ class IntegratedBout(object):
         if self.range["canon_errors"]:
             raise SystemExit("the range canon fails its own contract: %s"
                              % "; ".join(self.range["canon_errors"]))
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+        #   2026-08-09 00:40 UTC | START edit: Phase R enters the bout ]
+        # The evasion authority, called and not rebuilt. `punch_frames` is what
+        # tells the loop WHEN a punch resolves, which is the only thing an
+        # evasion window has to be compared against.
+        self.evade = EVADE.evade_pack(C.REGIONS)
+        if self.evade["canon_errors"]:
+            raise SystemExit("the evasion canon fails its own contract: %s"
+                             % "; ".join(self.evade["canon_errors"]))
+        self.frames = EVADE.punch_frames(C.PUNCHES)
+        self.contact = {r: 0 for r in EVADE.REASONS}
+        # [ ... | 2026-08-09 00:40 UTC | END edit ]
 
         self.state, self.rng, self.header_lines = C.new_bout(
             repo, seed, rounds, round_ticks)
@@ -215,11 +228,98 @@ class IntegratedBout(object):
         me.pending += own
         return own
 
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 00:50 UTC | START edit: Phase R enters the bout ]
+    def _expire_evasion(self, me, t):
+        """An evasion is a window, and windows close.
+
+        This is where a mistimed slip becomes a vulnerability rather than a
+        wasted input: once the window has closed the evasion is simply gone,
+        and the resolver is never told it existed.
+        """
+        if me.evasion and t >= me.evasion[1]:
+            self.rows.append("W|%d|%s|%s|close" % (t, me.id, me.evasion[0]))
+            me.evasion = None
+
+    def _open_evasion(self, me, t, evasion_id):
+        """Commit to an evasion, for exactly as long as canon says it lasts.
+
+        AN EVASION IS A COMMITMENT, not a state you hold. The first version of
+        this re-opened the window every tick an attack was incoming, which made
+        a slip permanently active - and a permanently active slip is the "+20%
+        dodge chance" the ruling forbids, arrived at from the other direction.
+        A fighter who is already slipping cannot slip again; he is committed
+        until the window closes, and if he timed it wrong he is caught.
+
+        NAMED GAP: canon authors an evasion's recovery - the C++
+        `FUppercutEvasion` carries `Startup`, `Active` and `Recovery` - and
+        Phase R's Python pack only carries the active window. So the commitment
+        here lasts exactly the active window and no longer. A mistimed evasion
+        already costs the fighter the punch that lands during it; it does not
+        yet cost him the recovery afterwards. That is a real difference from
+        the C++ side and it is written down rather than approximated with a
+        number nobody authored.
+        """
+        if me.evasion is not None:
+            return
+        window = self.evade["evasions"].get(evasion_id)
+        if window is None or window["kind"] != "active_window":
+            # A positional action is not a lane-vacating dodge. `pivot_lead`
+            # and `step_out` are in canon's table with an empty `vacates` and a
+            # zero window, so they may be chosen and cannot dodge.
+            return
+        me.evasion = (evasion_id, t + window["active"])
+        self.rows.append("W|%d|%s|%s|open|until=%d"
+                         % (t, me.id, evasion_id, me.evasion[1]))
+
+    def _resolve_punches(self, t):
+        """Every punch whose active window ends this tick, against whatever the
+        defender actually had in force at that instant.
+
+        THE ORDERING THE RULING FIXES: movement/range, then attack commitment,
+        then EVASION, then guard, then contact. Guard and contact do not exist
+        yet, so this chain stops here - and it stops honestly rather than
+        pretending. Phase R declares `outranks_guard`, so a punch resolved as
+        dodged here would not have reached the guard stage anyway; the two
+        later stages will hang off `arrived` being true.
+
+        NO DIE. The result is timing plus trajectory plus the vacated region
+        plus the authored counter relationship, and the shared evasion
+        authority computes it.
+        """
+        for i, me in enumerate(self.fighters):
+            if not me.punch:
+                continue
+            move, t0, band = me.punch
+            span = self.frames[move]["startup"] + self.frames[move]["active"]
+            if t - t0 < span:
+                continue
+            foe = self.fighters[1 - i]
+            active = foe.evasion[0] if foe.evasion else None
+            arrived, reason, region = EVADE.resolve(
+                self.evade, C.PUNCHES, move, active)
+            self.contact[reason] += 1
+            me.punch = None
+            if not arrived:
+                me.failed_attacks += 1
+            self.rows.append(
+                "P|%d|%s|%s|%s|region=%s|evasion=%s|%s|%s"
+                % (t, me.id, foe.id, move, region, active or "-",
+                   "arrived" if arrived else "dodged", reason))
+
     def step(self):
         """One tick of the integrated bout, for every fighter, in order."""
         self.tick += 1
         t = self.tick
         left = self.state.round_ticks - (t % self.state.round_ticks)
+
+        # 0. Windows close before anything is resolved against them, and
+        #    punches resolve before anyone decides again. Both are outside the
+        #    per-fighter loop on purpose: a punch thrown by red resolves
+        #    against the evasion blue actually had, not against whatever blue
+        #    decides later in the same tick.
+        for f in self.fighters:
+            self._expire_evasion(f, t)
+        self._resolve_punches(t)
 
         for i, me in enumerate(self.fighters):
             foe = self.fighters[1 - i]
@@ -238,7 +338,13 @@ class IntegratedBout(object):
             # 2. Decide, from what a fighter can see, on his own stream.
             me.on_ropes = self._on_ropes(me)
             me.update_recovery_intent(self.econ)
-            d = P.decide(me.observation(self.econ, foe, ticks_left_in_round=left),
+            # A punch already in the air is observable. Canon declares telegraphs,
+            # and this is where the defender gets to see one: without it the
+            # policy's evasion branch can never fire and every punch
+            # resolves `clear` against a fighter who was never told.
+            d = P.decide(me.observation(self.econ, foe,
+                                        ticks_left_in_round=left,
+                                        incoming_attack=foe.punch is not None),
                          self.streams[me.id], me.profile)
             self.rows.append("D|%d|%s|%s|%s|%s|%s|%d"
                              % (t, me.id, d.strategic, d.tactical,
@@ -257,8 +363,21 @@ class IntegratedBout(object):
             family = FAMILY[d.tactical]
             move_id = None
             if d.tactical == P.ATTACK:
-                me.committed_to(d.execution, 14)
+                me.committed_to(d.execution,
+                                self.frames[d.execution]["frames"]
+                                if d.execution in self.frames else 14)
                 move_id = d.execution
+                # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+                #   2026-08-09 00:55 UTC | START edit: Phase R enters ]
+                # ATTACK COMMITMENT. The punch goes in the air now and resolves
+                # when its authored window ends - it is not decided here, and
+                # nothing can cancel it, which is the rule the panel's arcade
+                # designer asked to be defended above everything.
+                if d.execution in self.frames:
+                    me.punch = (d.execution, t, me.band)
+            elif d.tactical == P.EVADE and d.execution:
+                self._open_evasion(me, t, d.execution)
+                # [ ... | 2026-08-09 00:55 UTC | END edit ]
             me.tick_recovery()
 
             # `travel_ru` is charged in addition to whatever was committed, so
@@ -305,7 +424,7 @@ class IntegratedBout(object):
                     % (wind_debit.telemetry("wind"), applied_wind, t, me.id))
 
             self.rows.append(
-                "W|%d|%s|wind=%d|reserve=%d|%s|%s|%s"
+                "E|%d|%s|wind=%d|reserve=%d|%s|%s|%s"
                 % (t, me.id, me.wind, me.reserve,
                    travelled_ru.telemetry("movement_displacement"),
                    self.rates.wind_per_ru.telemetry("movement_wind_rate"),
@@ -332,8 +451,10 @@ class IntegratedBout(object):
         h = FNV_OFFSET
         for row in lines:
             h = fnv1a64(h, row)
-        lines.append("S|ticks=%d|rows=%d|moved_ru=%d|charged_ru=%d|fnv=%016x"
+        lines.append("S|ticks=%d|rows=%d|moved_ru=%d|charged_ru=%d|%s|fnv=%016x"
                      % (self.tick, len(self.rows), self.moved_ru,
-                        self.charged_ru, h))
+                        self.charged_ru,
+                        "|".join("%s=%d" % (r, self.contact[r])
+                                 for r in EVADE.REASONS), h))
         return "\n".join(lines) + "\n"
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 14:00 UTC | END ]
