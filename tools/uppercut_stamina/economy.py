@@ -190,6 +190,51 @@ class UnknownMove(KeyError):
     economy. Raised rather than returning zero - see move_cost."""
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 08:50 UTC | START edit: Decision 0025 ]
+class InvalidState(ValueError):
+    """State outside Reserve's authoritative interval, refused not normalised.
+
+    Decision 0025: Reserve is authoritative on the CLOSED interval [0, max].
+    Initial, replay, fixture and externally supplied state carrying a Reserve
+    outside it is invalid. Quietly clamping such an input would make a corrupt
+    save, a bad fixture or a mis-wired caller indistinguishable from an
+    exhausted fighter - and the whole point of the ruling is that negative
+    Reserve is not "extra tired", it is an invalid hidden state.
+    """
+
+
+def check_state(c, wind, reserve):
+    """Decision 0025's input rule. Called on entry to every state transition."""
+    if reserve < 0:
+        raise InvalidState(
+            "Reserve %d is negative. Decision 0025: Reserve is authoritative "
+            "on [0, %d], and a negative value is rejected rather than "
+            "normalised - it is an invalid state, not a third exhaustion "
+            "regime." % (reserve, c["reserve_max"]))
+    if reserve > c["reserve_max"]:
+        raise InvalidState(
+            "Reserve %d exceeds the declared maximum %d. The interval is "
+            "closed at both ends; a fighter cannot arrive with more "
+            "conditioning than canon declares." % (reserve, c["reserve_max"]))
+
+
+def saturate_reserve(c, reserve):
+    """Clamp to [0, max] IMMEDIATELY after a debit, before anything reads it.
+
+    Decision 0025 step 3. Arithmetic inside a step may cross below zero
+    transiently; the stored authoritative value may not, because every
+    Reserve-derived formula downstream - the Wind ceiling, the recovery
+    multiplier - would then be computed from a fraction canon never authorised
+    and would breach its own declared floor.
+    """
+    if reserve < 0:
+        return 0
+    if reserve > c["reserve_max"]:
+        return c["reserve_max"]
+    return reserve
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 08:50 UTC | END edit ]
+
+
 def move_cost(c, move_id, displacement_ru=0):
     """(wind, reserve) for committing one authored move.
 
@@ -218,8 +263,15 @@ def move_cost(c, move_id, displacement_ru=0):
     return m["wind"] or 0, m["reserve"] or 0
 
 
-def step(c, wind, reserve, action, move_id=None, displacement_ru=0):
+def step(c, wind, reserve, action, move_id=None, displacement_ru=0,
+         telemetry=None):
     """One tick. Returns (wind, reserve).
+
+    `telemetry`, if given, is a dict this fills with what the tick REQUESTED as
+    opposed to what the balance could absorb (Decision 0025 proof 8). It is an
+    out-parameter rather than a second return value or a second function on
+    purpose: one implementation of the rule, and callers that do not care are
+    unchanged.
 
     `action` is one of the eight FAMILIES and decides recovery.
     `move_id` is an authored move and decides cost; None means this tick
@@ -239,26 +291,57 @@ def step(c, wind, reserve, action, move_id=None, displacement_ru=0):
     if action not in ACTIONS:
         raise ValueError("%r is not one of the declared action families: %s"
                          % (action, ", ".join(ACTIONS)))
+    check_state(c, wind, reserve)
+
+    reserve_before = reserve
+    requested_wind = 0
+    requested_reserve = 0
+
     if move_id is not None:
         dw, dr = move_cost(c, move_id, displacement_ru)
+        requested_wind, requested_reserve = dw, dr
         wind -= dw
         reserve -= dr
+        # Decision 0025 step 3: saturate IMMEDIATELY, before anything reads it.
+        reserve = saturate_reserve(c, reserve)
 
     working = action in NO_RECOVERY
+    exertion = 0
     if working and wind < c["wind_low"]:
-        reserve -= c["sustained_exertion"]
+        exertion = c["sustained_exertion"]
+        reserve -= exertion
+        reserve = saturate_reserve(c, reserve)
 
+    # Reserve is now guaranteed inside [0, max], so neither Reserve-derived
+    # formula below can see a negative fraction and neither can fall through
+    # its authored floor. Decision 0025 makes floor_multiplier and
+    # floor_fraction true lower bounds rather than suggestions that disappear
+    # when arithmetic underflows.
     wind += recovery_rate(c, action, reserve)
 
-    if reserve < 0:
-        reserve = 0
-    if reserve > c["reserve_max"]:
-        reserve = c["reserve_max"]
     ceiling = wind_ceiling(c, reserve)
     if wind > ceiling:
         wind = ceiling
     if wind < 0:
         wind = 0
+
+    if telemetry is not None:
+        # Decision 0025 proof 8. The fighter ran out of tank; the model should
+        # remember what the action DEMANDED. Recording only what the balance
+        # could absorb would report a 2.0-load punch as having cost 0.5, and
+        # every later analysis of what the fight took out of him would be
+        # reading a number the economy invented rather than one it charged.
+        requested_total = requested_reserve + exertion
+        applied = reserve_before - reserve
+        telemetry.update({
+            "requested_wind_cost": requested_wind,
+            "requested_reserve_load": requested_reserve,
+            "sustained_exertion": exertion,
+            "requested_reserve_total": requested_total,
+            "reserve_applied": applied,
+            "reserve_unpaid": requested_total - applied,
+            "reserve_saturated": requested_total > applied,
+        })
     return wind, reserve
 
 
@@ -267,7 +350,12 @@ def between_rounds(c, wind, reserve):
 
     This is the whole two-tier claim in four lines: a fighter walks out for the
     next round breathing again and still not fresh.
+
+    Decision 0025: the incoming state is validated, and the corner's recovery
+    saturates at reserve.max rather than carrying a fighter past what canon
+    declares he can hold.
     """
+    check_state(c, wind, reserve)
     reserve = min(c["reserve_max"], reserve + c["reserve_between_rounds"])
     ceiling = wind_ceiling(c, reserve)
     wind = min(ceiling,

@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-07 04:16 UTC** at `fa83193 feat(evidence): the C++ canonicalizer, and parity proven - Decision 0023 steps 3, 4`.
+Generated **2026-08-07 09:06 UTC** at `3d4ca96 Merge remote-tracking branch 'origin/main' into impl/0021-wind-reserve-runtime`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **882 passed** |
+| Test suite | **1100 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |
