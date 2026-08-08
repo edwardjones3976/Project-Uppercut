@@ -72,152 +72,33 @@ GUARD_EVASION = os.path.join("data", "guard_evasion_model.json")
 MOVES = os.path.join("data", "moves", "generic_sandbox_moves.json")
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 23:45 UTC | START edit: the evasion seam ]
+# THE RULE SET MOVED to `tools/uppercut_evade/core.py`, and this module calls
+# it - exactly as `UppercutCoreEvadeCommandlet` became a caller of
+# `UppercutEvadeCore` on the C++ side, and exactly as `analyze_core_range`
+# became a caller of `tools/uppercut_range/core.py`.
+#
+# The wrappers below hand the shared rules the vocabulary this phase owns, so
+# every existing caller - the golden runner, the parity prover, the tests -
+# keeps the signature it had, and Phase R's stream must come out byte-identical.
+from tools.uppercut_evade.core import (                    # noqa: E402,F401
+    beats, evades, a_body_shot_beats_the_slip, the_uppercut_beats_the_roll,
+    the_slip_evades_a_straight,
+)
+from tools.uppercut_evade import core as _evade_core       # noqa: E402
+
+
 def evade_pack() -> dict:
-    """Canon's evasion model, loaded without touching a sealed phase.
-
-    Phase N's `canon_pack` never loaded the evasions and Phase N is SEALED - its
-    recomputation is pinned evidence and editing it would change the past. So
-    this phase reads the same canon files itself, exactly as Phase Q reads the
-    range bands, and the two packs sit side by side rather than one mutating the
-    other.
-    """
-    import hashlib
-    raw = io.open(os.path.join(REPO, GUARD_EVASION), "rb").read()
-    ge = json.loads(raw)
-    raw_m = io.open(os.path.join(REPO, MOVES), "rb").read()
-    mt = json.loads(raw_m)
-    key = "moves" if "moves" in mt else next(
-        k for k, v in mt.items()
-        if isinstance(v, list) and v and isinstance(v[0], dict) and "id" in v[0])
-    table = {m["id"]: m for m in mt[key]}
-
-    evasions = {}
-    for e in ge["evasions"]:
-        mv = table.get(e["move_id"], {})
-        evasions[e["id"]] = {
-            "kind": e["kind"],
-            "vacates": tuple(e.get("vacates", ())),
-            "active": int(e.get("active_ticks", 0)),
-            "beaten_by": tuple(e.get("beaten_by", ())),
-            "startup": int(mv.get("startup_frames", 0)),
-            "recovery": int(mv.get("recovery_frames", 0)),
-            "cost": O.q(mv.get("stamina_cost", 0.0)),
-            "band": mv.get("range_band"),
-        }
-    econ = ge["evasion_economy"]
-    c = {
-        "evasions": evasions,
-        "outranks_guard": bool(econ["outranks_guard"]),
-        "mistime_ticks": int(econ["mistime_penalty_ticks"]),
-        "category": {m["id"]: m.get("category") for m in mt[key]},
-        "region": {m["id"]: (m.get("target_regions") or [None])[0]
-                   for m in mt[key]},
-        "sha": {"guard_evasion": hashlib.sha256(raw).hexdigest(),
-                "moves": hashlib.sha256(raw_m).hexdigest()},
-    }
-
-    errs = []
-    active = [k for k, v in evasions.items() if v["kind"] == "active_window"]
-    if not active:
-        errs.append("no evasion has an active window, so the stage is inert")
-    for k in active:
-        v = evasions[k]
-        if v["active"] <= 0:
-            errs.append("%s is an active_window evasion with no window" % k)
-        if not v["vacates"]:
-            errs.append("%s vacates nothing, so it can never evade anything" % k)
-        if not v["beaten_by"]:
-            errs.append("%s has no counter, which would make it a strictly "
-                        "better guard rather than a different one" % k)
-        if v["band"] is None:
-            errs.append("%s has no authored range band" % k)
-    for k, v in evasions.items():
-        if v["kind"] == "positional" and v["vacates"]:
-            errs.append("%s is positional yet vacates a lane" % k)
-    if not c["outranks_guard"]:
-        errs.append("evasion does not outrank the guard, so a slipped punch "
-                    "could also be a blocked punch and the stage order is "
-                    "undefined")
-    if c["mistime_ticks"] <= 0:
-        errs.append("a mistimed evasion costs nothing, so slipping is strictly "
-                    "better than blocking and stops being a decision")
-    # Every region an evasion claims to vacate must be a region the condition
-    # model actually damages, or the vacating is decorative.
-    for k in active:
-        for r in evasions[k]["vacates"]:
-            if r not in O.REGIONS:
-                errs.append("%s vacates '%s', which is not a damage region"
-                            % (k, r))
-    c["canon_errors"] = errs
-    return c
-
-
-def beats(c: dict, evasion: str, move_id: str) -> bool:
-    """Is this punch the authored punishment for this evasion?
-
-    `beaten_by` names categories ('uppercut', 'body_shot') and tactics
-    ('feint_then_commit', 'ring_cutting'). Only the categories can be matched to
-    a move; a tactic that the core cannot yet express simply never matches, which
-    is the honest behaviour - it must not silently match everything or nothing
-    would ever be evaded, and it must not silently match nothing or the tactic
-    would look implemented.
-    """
-    cat = c["category"].get(move_id)
-    return cat is not None and cat in c["evasions"][evasion]["beaten_by"]
-
-
-def evades(c: dict, evasion: str, move_id: str, region: str) -> bool:
-    """The whole rule.
-
-    True means the punch finds empty air. False means the punch continues to the
-    guard stage exactly as before - evasion outranks the guard but does not
-    replace it.
-    """
-    e = c["evasions"].get(evasion)
-    if e is None or e["kind"] != "active_window":
-        return False
-    if region not in e["vacates"]:
-        return False
-    return not beats(c, evasion, move_id)
-
-
-# ---- properties, stated so they can be proven -------------------------------
-
-def a_body_shot_beats_the_slip(c: dict) -> bool:
-    """The slip vacates the head; the body is still there to be hit."""
-    body = [m for m, r in c["region"].items()
-            if r in ("torso_upper", "torso_lower")]
-    if not body:
-        return False
-    return all(not evades(c, "slip_lead", m, c["region"][m]) for m in body)
-
-
-def the_uppercut_beats_the_roll(c: dict) -> bool:
-    """Canon's own sentence, executable: the uppercut rises into where the head
-    is going, so a roll does not evade it even though it vacates that region."""
-    ups = [m for m, cat in c["category"].items() if cat == "uppercut"]
-    if not ups:
-        return False
-    return all(c["region"][m] in c["evasions"]["roll_under"]["vacates"]
-               and not evades(c, "roll_under", m, c["region"][m]) for m in ups)
-
-
-def the_slip_evades_a_straight(c: dict) -> bool:
-    """And it must actually evade something, or the phase changed nothing."""
-    straights = [m for m, cat in c["category"].items()
-                 if cat in ("jab", "cross")]
-    return bool(straights) and all(
-        evades(c, "slip_lead", m, c["region"][m]) for m in straights)
+    """Canon's evasion model. The region vocabulary is this phase's to supply."""
+    return _evade_core.evade_pack(O.REGIONS)
 
 
 def no_evasion_is_strictly_better(c: dict) -> bool:
     """Every active evasion must be beaten by something the core can throw."""
-    for k, v in c["evasions"].items():
-        if v["kind"] != "active_window":
-            continue
-        if not any(beats(c, k, m) for m in O.PUNCHES):
-            return False
-    return True
+    return _evade_core.no_evasion_is_strictly_better(c, O.PUNCHES)
+# [ ... | 2026-08-08 23:45 UTC | END edit ]
+
+
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 08:40 UTC | END ]
 
 
