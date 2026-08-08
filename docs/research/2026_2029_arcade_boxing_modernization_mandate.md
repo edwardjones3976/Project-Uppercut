@@ -1,3 +1,5 @@
+<!-- [ ChatGPT | GPT-5.6 Sol | 2026-08-08 22:42 UTC | START ] -->
+
 # Project Uppercut — 2026–2029 arcade-boxing modernization mandate
 
 **Status:** Directional product/design reference
@@ -446,3 +448,5 @@ Or shorter:
 > **Ready 2 Rumble spirit. 2026–2029 brain, body and production values. Project Uppercut identity.**
 
 That modernization requirement applies from **logic to design**, not merely graphics.
+
+<!-- [ ChatGPT | GPT-5.6 Sol | 2026-08-08 22:42 UTC | END ] -->
