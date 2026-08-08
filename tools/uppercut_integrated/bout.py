@@ -42,6 +42,8 @@ from tools.uppercut_integrated import contract as C     # noqa: E402
 from tools.uppercut_integrated import fighter as F      # noqa: E402
 from tools.uppercut_integrated import policy as P       # noqa: E402
 from tools.uppercut_integrated import rng as R          # noqa: E402
+from tools.uppercut_units import quantities as U        # noqa: E402
+from tools.uppercut_units import rates as RATES         # noqa: E402
 
 # How a tactical answer becomes a movement INTENT the range core can price.
 # Advance closes separation, retreat opens it, and a lateral step is the
@@ -92,6 +94,10 @@ class IntegratedBout(object):
         if self.econ["errors"]:
             raise SystemExit("the stamina canon fails its own contract: %s"
                              % "; ".join(self.econ["errors"]))
+        # Decision 0029: the rates arrive typed, and canon's own declared basis
+        # is what types them. A field with no declared basis fails the load
+        # rather than reaching a multiplication.
+        self.rates = RATES.load()
         self.range = RANGE.range_pack()
         if self.range["canon_errors"]:
             raise SystemExit("the range canon fails its own contract: %s"
@@ -258,11 +264,42 @@ class IntegratedBout(object):
             # `travel_ru` is charged in addition to whatever was committed, so
             # a step taken on the same tick as a punch is still paid for. It is
             # the economy that prices it, not this loop.
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+            #   2026-08-08 20:45 UTC | START edit: Decision 0029 ]
+            # THE TYPED SEAM, at the exact boundary where three defects landed.
+            # `displacement()` refuses a negative and refuses anything that is
+            # not an integer count of reach units; the multiplication below is
+            # the only declared route from a distance to a Wind debit; and the
+            # row records the distance, the RATE and the debit separately,
+            # because one opaque `movement_cost` field is precisely the
+            # ambiguity that hid all three.
+            travelled_ru = U.displacement(travelled)
+            wind_debit = self.rates.movement_wind(travelled_ru)
+
             before_wind = me.wind
             me.step(self.econ, family, move_id=move_id, travel_ru=travelled)
-            self.rows.append("W|%d|%s|%d|%d|%d|%d"
-                             % (t, me.id, me.wind, me.reserve, travelled,
-                                before_wind - me.wind))
+
+            # The typed path and the proven economy must agree about the
+            # movement debit. Two roads to one number; the day they disagree is
+            # the day one of them was edited alone. Checked only on the ticks
+            # where movement is the ONLY charge, because that is the only tick
+            # on which the two are computing the same thing.
+            applied_wind = before_wind - me.wind
+            if move_id is None and family == "move" \
+                    and applied_wind != wind_debit.q:
+                raise AssertionError(
+                    "the typed movement debit (%s) and the economy's (%d) "
+                    "disagree at tick %d for %s - one of the two has been "
+                    "changed without the other"
+                    % (wind_debit.telemetry("wind"), applied_wind, t, me.id))
+
+            self.rows.append(
+                "W|%d|%s|wind=%d|reserve=%d|%s|%s|%s"
+                % (t, me.id, me.wind, me.reserve,
+                   travelled_ru.telemetry("movement_displacement"),
+                   self.rates.wind_per_ru.telemetry("movement_wind_rate"),
+                   wind_debit.telemetry("movement_wind_debit")))
+            # [ ... | 2026-08-08 20:45 UTC | END edit ]
 
     def run(self, ticks):
         for _ in range(ticks):
