@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-08 16:56 UTC** at `bc9c4a0 Merge remote-tracking branch 'origin/main' into fix/one-wedge-killer`.
+Generated **2026-08-08 17:41 UTC** at `b1ca3ab merge: First Bell foundation through observable policy`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **1281 passed** |
+| Test suite | **1298 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |

@@ -70,7 +70,16 @@ class FighterState(object):
     __slots__ = ("id", "wind", "reserve", "profile", "band", "on_ropes",
                  "cornered", "recovery_ticks", "recent_moves", "failed_attacks",
                  "committed", "advancing", "damaged_regions", "hurt",
-                 "punches_thrown", "recovery_seeking")
+                 "punches_thrown", "recovery_seeking",
+                 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+                 #   2026-08-08 13:40 UTC | START edit: authoritative position ]
+                 # Position on the ring axis and the displacement still owed,
+                 # both in q10000 reach units. These are AUTHORITATIVE: the
+                 # band a punch is judged against is derived from them by the
+                 # shared range core, not stored alongside them, so there is no
+                 # second opinion about where a fighter is.
+                 "pos", "pending")
+                 # [ ... | 2026-08-08 13:40 UTC | END edit ]
 
     def __init__(self, fighter_id, economy, profile=None, band="mid"):
         # `fighter_id` is the STABLE PARTICIPANT IDENTITY from the contract's
@@ -99,6 +108,8 @@ class FighterState(object):
         self.hurt = False
         self.punches_thrown = 0
         self.recovery_seeking = False
+        self.pos = 0
+        self.pending = 0
         # Decision 0025's input rule applies to constructed state too, not only
         # to state that has been stepped. A fixture that starts a fighter
         # outside the interval is exactly the corrupt-save case the ruling
@@ -184,11 +195,12 @@ class FighterState(object):
     # ------------------------------------------------------------- spending --
 
     def step(self, economy, action, move_id=None, displacement_ru=0,
-             telemetry=None):
+             telemetry=None, travel_ru=0):
         """One tick of the economy. Delegated whole, never restated."""
         self.wind, self.reserve = E.step(
             economy, self.wind, self.reserve, action, move_id=move_id,
-            displacement_ru=displacement_ru, telemetry=telemetry)
+            displacement_ru=displacement_ru, telemetry=telemetry,
+            travel_ru=travel_ru)
         return self.wind, self.reserve
 
     def between_rounds(self, economy):

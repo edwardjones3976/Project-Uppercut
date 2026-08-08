@@ -288,7 +288,7 @@ def move_cost(c, move_id, displacement_ru=0):
 
 
 def step(c, wind, reserve, action, move_id=None, displacement_ru=0,
-         telemetry=None):
+         telemetry=None, travel_ru=0):
     """One tick. Returns (wind, reserve).
 
     `telemetry`, if given, is a dict this fills with what the tick REQUESTED as
@@ -328,6 +328,34 @@ def step(c, wind, reserve, action, move_id=None, displacement_ru=0,
         reserve -= dr
         # Decision 0025 step 3: saturate IMMEDIATELY, before anything reads it.
         reserve = saturate_reserve(c, reserve)
+
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+    #   2026-08-08 14:20 UTC | START edit: travel is charged unconditionally ]
+    # DECISION 0026 RULING C IS UNCONDITIONAL:
+    #
+    #     movement_wind_cost = actual_authoritative_displacement_ru * 0.60
+    #
+    # It does not say "unless he was punching". A tick can both move and commit
+    # - a fighter stepping in behind a jab covers ground while he throws - and
+    # `move_id` holds exactly one move, so the punch displaced the travel and
+    # the ground came free. The first integrated round covered 3.74 reach units
+    # and billed 2.34 of them; the missing 1.40 was every step taken on a tick
+    # that also threw a punch. Nothing failed. The bout simply reported that
+    # walking while punching is free, which is the same silent zero that once
+    # made every punch free and is the reason `move_cost` raises.
+    #
+    # `travel_ru` is therefore charged IN ADDITION, priced by the same
+    # per-reach-unit rates, and defaults to zero so every existing caller and
+    # every proven parity vector is unchanged.
+    if travel_ru:
+        tw = floordiv(travel_ru * c["wind_per_ru"], 10000)
+        tr = floordiv(travel_ru * c["reserve_per_ru"], 10000)
+        requested_wind += tw
+        requested_reserve += tr
+        wind -= tw
+        reserve -= tr
+        reserve = saturate_reserve(c, reserve)
+    # [ ... | 2026-08-08 14:20 UTC | END edit ]
 
     working = action in NO_RECOVERY
     exertion = 0
