@@ -20,11 +20,29 @@ sys.path.insert(0, ROOT)
 
 from tools.uppercut_integrated import rng as R  # noqa: E402
 
-CONTRACT = "uppercut-integrated-v1"
+CONTRACT = "uppercut-integrated-v2"
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 11:20 UTC | START edit: Decision 0026 ]
+# These tests were written against Decision 0022's flat substream
+# namespace. Ruling A made the fighter-local domains hierarchical, so the
+# names moved from `policy_intent` to `policy_intent/<participant>` and the
+# bare cursor stopped existing. The CLAIMS below are unchanged - only the
+# way a stream is named. Where a test iterated `names()` it now
+# iterates the streams a bout actually materialises, which is the same set
+# with the fighter-local ones expanded per participant.
+PARTICIPANTS = ("red_corner", "blue_corner")
+RED, BLUE = PARTICIPANTS
+# [ ... | 2026-08-08 11:20 UTC | END edit ]
+
 
 
 def bout(seed=4242):
-    return R.BoutRng(seed, CONTRACT)
+    return R.BoutRng(seed, CONTRACT, PARTICIPANTS)
+
+
+def names():
+    """Every stream a bout actually materialises, scoped names included."""
+    return tuple(sorted(bout().replay_metadata()['substreams'][i]['name']
+                        for i in range(len(bout().replay_metadata()['substreams']))))
 
 
 # --- the isolation promise ---------------------------------------------------
@@ -43,7 +61,7 @@ def test_a_cosmetic_draw_cannot_move_a_knockdown():
         "exact failure Decision 0022's partitioning exists to make impossible")
 
 
-@pytest.mark.parametrize("noisy", R.SUBSTREAMS)
+@pytest.mark.parametrize("noisy", names())
 @pytest.mark.parametrize("watched", ["knockdown_recovery", "judging_officiating",
                                      "contact_condition"])
 def test_no_substream_can_move_any_other(noisy, watched):
@@ -60,7 +78,7 @@ def test_no_substream_can_move_any_other(noisy, watched):
 
 def test_every_substream_starts_somewhere_different():
     """Independence is worthless if two streams are the same stream."""
-    seeds = {n: R.derive_seed(4242, n, CONTRACT) for n in R.SUBSTREAMS}
+    seeds = {n: R.derive_seed(4242, n, CONTRACT) for n in names()}
     assert len(set(seeds.values())) == len(seeds), (
         "two substreams derived the same seed and would produce identical "
         "sequences: %s" % seeds)
@@ -69,7 +87,7 @@ def test_every_substream_starts_somewhere_different():
 def test_substreams_do_not_run_in_lockstep():
     """Distinct seeds are necessary, not sufficient - check the sequences."""
     b = bout()
-    seqs = {n: [b.stream(n).next_u32() for _ in range(20)] for n in R.SUBSTREAMS}
+    seqs = {n: [b.stream(n).next_u32() for _ in range(20)] for n in names()}
     as_tuples = {n: tuple(v) for n, v in seqs.items()}
     assert len(set(as_tuples.values())) == len(as_tuples)
 
@@ -78,7 +96,7 @@ def test_substreams_do_not_run_in_lockstep():
 
 def test_the_same_seed_reproduces_the_same_bout():
     a, b = bout(777), bout(777)
-    for n in R.SUBSTREAMS:
+    for n in names():
         assert [a.stream(n).next_u32() for _ in range(40)] == \
                [b.stream(n).next_u32() for _ in range(40)]
 
@@ -86,18 +104,18 @@ def test_the_same_seed_reproduces_the_same_bout():
 def test_different_seeds_are_non_vacuously_different():
     """Decision 0022 assertion 2, at the randomness layer."""
     a, b = bout(4242), bout(4243)
-    for n in R.SUBSTREAMS:
+    for n in names():
         assert [a.stream(n).next_u32() for _ in range(40)] != \
                [b.stream(n).next_u32() for _ in range(40)]
 
 
 def test_the_derivation_version_is_part_of_the_identity():
     """Changing how streams are derived must change what they are."""
-    before = R.derive_seed(4242, "policy_intent", CONTRACT)
+    before = R.derive_seed(4242, R.scoped("policy_intent", RED), CONTRACT)
     original = R.DERIVATION_VERSION
     try:
         R.DERIVATION_VERSION = original + "-experiment"
-        after = R.derive_seed(4242, "policy_intent", CONTRACT)
+        after = R.derive_seed(4242, R.scoped("policy_intent", RED), CONTRACT)
     finally:
         R.DERIVATION_VERSION = original
     assert before != after, (
@@ -106,8 +124,8 @@ def test_the_derivation_version_is_part_of_the_identity():
 
 
 def test_the_contract_version_is_part_of_the_identity():
-    a = R.derive_seed(4242, "policy_intent", "uppercut-integrated-v1")
-    b = R.derive_seed(4242, "policy_intent", "uppercut-integrated-v2")
+    a = R.derive_seed(4242, R.scoped("policy_intent", RED), "uppercut-integrated-v1")
+    b = R.derive_seed(4242, R.scoped("policy_intent", RED), "uppercut-integrated-v2")
     assert a != b
 
 
@@ -119,15 +137,15 @@ def test_iteration_order_cannot_determine_random_ownership():
     Derivation takes the NAME, so shuffling the declaration order cannot move
     a subsystem onto another's numbers. An index-based scheme would fail this.
     """
-    straight = {n: R.derive_seed(4242, n, CONTRACT) for n in R.SUBSTREAMS}
+    straight = {n: R.derive_seed(4242, n, CONTRACT) for n in names()}
     reversed_order = {n: R.derive_seed(4242, n, CONTRACT)
-                      for n in reversed(R.SUBSTREAMS)}
+                      for n in reversed(names())}
     assert straight == reversed_order
 
     original = R.SUBSTREAMS
     try:
         R.SUBSTREAMS = tuple(reversed(original))
-        shuffled = {n: R.derive_seed(4242, n, CONTRACT) for n in R.SUBSTREAMS}
+        shuffled = {n: R.derive_seed(4242, n, CONTRACT) for n in names()}
     finally:
         R.SUBSTREAMS = original
     assert shuffled == straight, (
@@ -166,7 +184,7 @@ def test_there_is_no_way_to_draw_without_naming_an_owner():
 def test_a_bad_bout_seed_is_refused():
     for bad in (-1, "4242", None, 3.5):
         with pytest.raises((ValueError, TypeError)):
-            R.derive_seed(bad, "policy_intent", CONTRACT)
+            R.derive_seed(bad, R.scoped("policy_intent", RED), CONTRACT)
 
 
 def test_a_boolean_is_not_a_bout_seed():
@@ -178,7 +196,7 @@ def test_a_boolean_is_not_a_bout_seed():
     """
     for bad in (True, False):
         with pytest.raises(ValueError):
-            R.derive_seed(bad, "policy_intent", CONTRACT)
+            R.derive_seed(bad, R.scoped("policy_intent", RED), CONTRACT)
 
 
 # --- bounded draws are unbiased ----------------------------------------------
@@ -199,7 +217,7 @@ def test_below_is_unbiased_where_plain_modulo_would_not_be():
     """
     bound = 3 * 2 ** 30
     third = bound // 3
-    s = bout().stream("policy_intent")
+    s = bout().stream("policy_intent", RED)
     n = 6000
     low = sum(1 for _ in range(n) if s.below(bound) < third)
     # 1/3 of 6000 is 2000; 3 sigma is about 110. Plain modulo lands near 3000.
@@ -209,7 +227,7 @@ def test_below_is_unbiased_where_plain_modulo_would_not_be():
 
 
 def test_below_stays_in_range():
-    s = bout().stream("movement_range")
+    s = bout().stream("movement_range", RED)
     for bound in (2, 3, 5, 17, 1000):
         for _ in range(200):
             v = s.below(bound)
@@ -236,7 +254,7 @@ def test_a_single_outcome_still_consumes_a_draw():
 
 
 def test_a_bad_bound_is_refused():
-    s = bout().stream("policy_intent")
+    s = bout().stream("policy_intent", RED)
     for bad in (0, -1, True, 2.5, "3", None):
         with pytest.raises((ValueError, TypeError)):
             s.below(bad)
@@ -249,16 +267,16 @@ def test_replay_metadata_records_the_derivation():
     assert meta["derivation_version"] == R.DERIVATION_VERSION
     assert meta["contract_version"] == CONTRACT
     assert meta["bout_seed"] == 4242
-    names = [s["name"] for s in meta["substreams"]]
-    assert names == sorted(R.SUBSTREAMS), "replay metadata is not name-ordered"
-    assert len(names) == len(R.SUBSTREAMS)
+    recorded = [s["name"] for s in meta["substreams"]]
+    assert recorded == sorted(names()), "replay metadata is not name-ordered"
+    assert len(recorded) == len(names())
 
 
 def test_replay_metadata_marks_which_streams_hold_authority():
     meta = bout().replay_metadata()
     auth = {s["name"]: s["authoritative"] for s in meta["substreams"]}
     assert auth["presentation"] is False
-    for n in R.AUTHORITATIVE:
+    for n in tuple(n for n in names() if R.is_authoritative(n)):
         assert auth[n] is True
 
 
@@ -266,7 +284,7 @@ def test_replay_metadata_is_enough_to_rebuild_the_bout():
     """A recording that cannot reproduce the draws is not a recording."""
     original = bout(999)
     meta = original.replay_metadata()
-    rebuilt = R.BoutRng(meta["bout_seed"], meta["contract_version"])
+    rebuilt = R.BoutRng(meta["bout_seed"], meta["contract_version"], PARTICIPANTS)
     for s in meta["substreams"]:
         assert rebuilt.stream(s["name"]).seed == s["seed"]
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 06:30 UTC | END ]

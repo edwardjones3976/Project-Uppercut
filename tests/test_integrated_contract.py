@@ -65,7 +65,14 @@ def test_the_stream_says_which_randomness_holds_authority():
     declared = [l for l in lines if l.startswith("H|rng_authoritative=")]
     assert len(declared) == 1
     names = declared[0].split("=", 1)[1].split(",")
-    assert names == sorted(R.AUTHORITATIVE)
+    # Decision 0026: the fighter-local domains appear once per
+    # participant, so the header lists the SCOPED names. Every
+    # declared authoritative domain must still be represented.
+    assert names == sorted(names)
+    for domain in R.AUTHORITATIVE:
+        assert any(n == domain or n.startswith(domain + '/')
+                   for n in names), domain
+    assert all(R.is_authoritative(n) for n in names)
     assert "presentation" not in names, (
         "presentation randomness is declared authoritative - Decision 0022 "
         "requires it isolated from authority")
@@ -88,7 +95,9 @@ def test_no_header_row_hides_a_pipe_inside_its_value():
 
 def test_every_declared_substream_reaches_the_header():
     lines = C.new_bout(ROOT, 4242)[2]
-    for name in R.SUBSTREAMS:
+    state, rng, _ = C.new_bout(ROOT, 4242)
+    for name in rng.replay_metadata()['substreams']:
+        name = name['name']
         assert any(l.startswith("H|rng_%s=" % name) for l in lines), (
             "substream %r exists but no artifact records it, so a replay "
             "could not reproduce its draws" % name)
@@ -172,7 +181,7 @@ def test_the_integrated_package_does_not_reach_into_phase_tooling():
 
 
 def test_the_contract_identifier_is_versioned():
-    assert C.CONTRACT.endswith("-v1")
+    assert C.CONTRACT.endswith("-v2")
     assert R.DERIVATION_VERSION.endswith("-v1")
 
 

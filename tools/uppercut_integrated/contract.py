@@ -29,8 +29,22 @@ from tools.uppercut_integrated import rng as R        # noqa: E402
 
 # The contract's own identity. Decision 0022: new and versioned, never a
 # re-blessing of a phase stream.
-CONTRACT = "uppercut-integrated-v1"
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 09:20 UTC | START edit: Decision 0026 ]
+# v2, not v1. Decision 0026 changed what this contract DECLARES: the substream
+# inventory is now hierarchical and the initial state names its participants.
+# Every derived seed moves as a result, which is the correct consequence and
+# costs nothing today because no integrated artifact has been pinned. It would
+# cost a re-prove of every integrated stream a week from now, so the version
+# moves while the move is free.
+CONTRACT = "uppercut-integrated-v2"
 STREAM_PHASE = "INTEGRATED"
+
+# The bout's stable authority identities. Corner names rather than "fighter_0"
+# and "fighter_1" on purpose: a slot number is one careless refactor away from
+# being an array index, and Decision 0026 says runtime array position is not
+# authority.
+DEFAULT_PARTICIPANTS = ("red_corner", "blue_corner")
+# [ ... | 2026-08-08 09:20 UTC | END edit ]
 
 # Every canon file the integrated bout reads, in a DECLARED order. Declared,
 # because the header must not depend on dictionary iteration - the same rule
@@ -60,9 +74,10 @@ class InitialState(object):
     stream states, so it is written into the header and can be compared.
     """
 
-    __slots__ = ("seed", "rounds", "round_ticks")
+    __slots__ = ("seed", "rounds", "round_ticks", "participants")
 
-    def __init__(self, seed, rounds=12, round_ticks=180 * 60):
+    def __init__(self, seed, rounds=12, round_ticks=180 * 60,
+                 participants=DEFAULT_PARTICIPANTS):
         if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
             raise ValueError("bout seed must be a non-negative integer, got %r"
                              % (seed,))
@@ -71,11 +86,37 @@ class InitialState(object):
                              "tick, got rounds=%r round_ticks=%r"
                              % (rounds, round_ticks))
         self.seed, self.rounds, self.round_ticks = seed, rounds, round_ticks
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+        #   2026-08-08 09:20 UTC | START edit: Decision 0026 ]
+        # Participants are part of the DECLARED initial state, which is what
+        # makes "runtime array position is not authority" enforceable rather
+        # than aspirational: the identity a stream is derived from comes out of
+        # the contract, and the runtime's list order can never reach it.
+        self.participants = tuple(participants)
+        if len(self.participants) < 2:
+            raise ValueError("a bout needs at least two participants, got %r"
+                             % (self.participants,))
+        if len(set(self.participants)) != len(self.participants):
+            raise ValueError("participant identities must be unique, got %r"
+                             % (self.participants,))
+        for who in self.participants:
+            if not isinstance(who, str) or not who or "|" in who \
+                    or R.SCOPE_SEPARATOR in who:
+                raise ValueError(
+                    "participant identity %r is not a stable name: it must be "
+                    "a non-empty string containing neither '|' (which would "
+                    "break the header row shape) nor %r (which would let two "
+                    "different owners spell one stream)."
+                    % (who, R.SCOPE_SEPARATOR))
+        # [ ... | 2026-08-08 09:20 UTC | END edit ]
 
     def header_lines(self):
         return ["H|seed=%d" % self.seed,
                 "H|rounds=%d" % self.rounds,
-                "H|round_ticks=%d" % self.round_ticks]
+                "H|round_ticks=%d" % self.round_ticks,
+                # Sorted: the header records WHO is in the bout, not the order
+                # somebody listed them in.
+                "H|participants=%s" % ",".join(sorted(self.participants))]
 
 
 def rng_header_lines(bout_rng):
@@ -110,7 +151,7 @@ def header(repo, state, bout_rng=None, manifest=None):
     same facts in different orders would produce two artifacts that are equally
     true and not byte-identical, and byte-identity is the entire currency.
     """
-    rng = bout_rng or R.BoutRng(state.seed, CONTRACT)
+    rng = bout_rng or R.BoutRng(state.seed, CONTRACT, state.participants)
     lines = ["H|phase=%s" % STREAM_PHASE,
              "H|contract=%s" % CONTRACT]
     lines.extend(H.canon_header_lines(repo, list(CANON), manifest=manifest))
@@ -119,14 +160,15 @@ def header(repo, state, bout_rng=None, manifest=None):
     return lines
 
 
-def new_bout(repo, seed, rounds=12, round_ticks=180 * 60, manifest=None):
+def new_bout(repo, seed, rounds=12, round_ticks=180 * 60, manifest=None,
+             participants=DEFAULT_PARTICIPANTS):
     """(initial state, its substreams, its header) - the three together.
 
     Returned as a unit because they are only meaningful together: a header
     without the streams it declares cannot be replayed, and streams without the
     header cannot be shown to belong to this contract.
     """
-    state = InitialState(seed, rounds, round_ticks)
-    rng = R.BoutRng(state.seed, CONTRACT)
+    state = InitialState(seed, rounds, round_ticks, participants)
+    rng = R.BoutRng(state.seed, CONTRACT, state.participants)
     return state, rng, header(repo, state, rng, manifest=manifest)
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 06:50 UTC | END ]
