@@ -2,6 +2,9 @@
 #include "UppercutBoutDirector.h"
 
 #include "Camera/CameraActor.h"
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 06:05 UTC | START edit: Decision 0023 header ]
+#include "UppercutCanonHash.h"   // UppercutCanonHeaderLines
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 06:05 UTC | END edit ]
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-04 17:32 UTC | edit: mannequin visual pass ]
 #include "Animation/AnimSequence.h"
 #include "Animation/AnimSingleNodeInstance.h"
@@ -352,12 +355,41 @@ bool AUppercutBoutDirector::LoadCanonAndParams()
 
     // headers + initial state
     S.Out += TEXT("H|phase=K\n");
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 06:05 UTC | START edit: Decision 0023 header ]
+    // Decision 0023's migration reached analyze_render_probe and not this
+    // renderer, so the two had disagreed since 2026-08-07. MEASURED, not
+    // inferred: prove_phase's RenderedPhaseRunner ran the real rendered slice
+    // on 2026-08-08 and reported "HEADER ONLY - every authoritative row
+    // matches", with the same H|canon_movement= against H|canon_hash_contract=
+    // signature Phase N showed. Only after that observation was this changed.
+    // Finishing an ordered migration; the pins come from the already-migrated
+    // analyzer, so this brings the renderer INTO agreement and no pin moves.
+    //
+    // NOTE on S.Sha[]: still filled by the loader and read by nothing now -
+    // UppercutCanonHeaderLines recomputes both identities from the files. Left
+    // rather than removed because taking it out means changing the loader
+    // inside a proven artifact for no behavioural gain. Recorded so nobody
+    // assumes those hashes are what reaches the stream.
     const TCHAR* ShaName[8] = { TEXT("movement"), TEXT("condition"), TEXT("guard"), TEXT("cpu"),
                                 TEXT("moves"), TEXT("animation"), TEXT("collision"), TEXT("pose") };
-    for (int32 i = 0; i < 8; ++i)
     {
-        S.Out += FString::Printf(TEXT("H|canon_%s=%s\n"), ShaName[i], *S.Sha[i]);
+        TArray<TPair<FString, FString>> Entries;
+        for (int32 i = 0; i < 8; ++i)
+        {
+            Entries.Add(TPair<FString, FString>(FString(ShaName[i]),
+                                                FString(Rel[i])));
+        }
+        TArray<FString> HeaderLines;
+        FString HeaderError;
+        if (!UppercutCanonHeaderLines(Repo, Entries, HeaderLines, HeaderError))
+        {
+            UE_LOG(LogTemp, Error, TEXT("UppercutBoutDirector: header: %s"),
+                   *HeaderError);
+            return false;
+        }
+        for (const FString& L : HeaderLines) { S.Out += L + TEXT("\n"); }
     }
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 06:05 UTC | END edit ]
     S.Out += FString::Printf(TEXT("H|seed=%u\nH|ticks=%d\nH|interval=%d\n"),
                              Seed, Ticks, S.Interval);
     S.Pos[0] = S.Axis / 2 - 4500;

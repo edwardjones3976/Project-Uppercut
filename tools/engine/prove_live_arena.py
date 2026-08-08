@@ -35,21 +35,7 @@ OUTDIR = os.path.join(REPO, "sandbox", "Saved", "liveArena")
 # right. The long runs stay where they belong, in prove_core_range.
 RUNS = ((4242, 1200), (777, 900))
 
-PS_LIST = ("Get-CimInstance Win32_Process | "
-           "ForEach-Object { $_.ProcessId.ToString() + '|' + $_.Name + '|' "
-           "+ [string]$_.CommandLine }")
-
-
-def kill_the_wedge():
-    """Turnkey's ValidatePlatforms child ping-loops on every editor boot here."""
-    out = subprocess.run(["powershell", "-NoProfile", "-Command", PS_LIST],
-                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    for line in out.stdout.decode("utf-8", "replace").splitlines():
-        low = line.lower()
-        if "validateplatforms" in low or "|ping.exe|" in low:
-            subprocess.run(["powershell", "-NoProfile", "-Command",
-                            "Stop-Process -Id %s -Force -ErrorAction SilentlyContinue"
-                            % line.split("|")[0].strip()])
+from tools.engine.wedge import kill_the_wedge  # noqa: E402
 
 
 def run_arena(seed: int, ticks: int) -> str:

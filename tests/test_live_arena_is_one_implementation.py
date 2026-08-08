@@ -103,6 +103,95 @@ def test_the_canon_reader_sprawl_is_on_the_record():
     )
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 18:05 UTC | START edit: unbounded-band sentinel ]
+def test_the_two_unbounded_band_sentinels_still_agree():
+    """The one place the six inline readers and Phase Q's loader DISAGREE.
+
+    The top range band (`out_of_range`) authors no `max_ru`, meaning unbounded.
+    The two implementations represent that differently:
+
+        the six inline readers     (int64)990000        i.e. a ceiling at 99.0 ru
+        UppercutRangeCanonLoader   Unbounded == -1      i.e. no ceiling at all
+
+    Those are not the same statement. They agree on every fight only because
+    separation is capped by the ring, and the ring is far smaller than 99 ru -
+    so `Sep < 990000` is always true and both resolve the top band identically.
+
+    That equivalence is currently an ACCIDENT of the ring being small. This
+    test makes it a checked invariant, so a canon edit that grew the ring (or
+    shrank the reference reach span, which is the same thing in reach units)
+    would fail here rather than silently making five phases disagree with Phase
+    Q about which band a fighter is in.
+
+    The real fix is one loader with one representation - see
+    docs/plans/2026-08-07-what-the-integrated-schema-has-to-absorb.md. Until
+    then the coupling is at least on the record.
+    """
+    import json
+    doc = json.loads(io.open(os.path.join(REPO, "data", "movement_model.json"),
+                             encoding="utf-8").read())
+
+    bands = doc["range_bands"]["bands"]
+    unbounded = [b for b in bands if b.get("max_ru") is None]
+    assert len(unbounded) == 1, (
+        "%d bands are unbounded (was 1). The sentinel divergence below was "
+        "reasoned about for exactly one top band." % len(unbounded)
+    )
+
+    SENTINEL_RU = 99.0          # (int64)990000 in q10000, in the six readers
+    axis = doc["ring"]["track"]["axis_length_ru"]
+    assert axis < SENTINEL_RU, (
+        "the ring axis is %s reach units and the inline readers treat %s as "
+        "the top band's ceiling. Separation can now reach the sentinel, so the "
+        "six inline readers and UppercutRangeCanonLoader would resolve the top "
+        "band DIFFERENTLY - five phases would disagree with Phase Q about "
+        "which band a fighter is in." % (axis, SENTINEL_RU)
+    )
+
+    lowest_unbounded = unbounded[0]["min_ru"]
+    assert lowest_unbounded < axis < SENTINEL_RU, (
+        "the ring no longer spans into the unbounded band (min_ru=%s, "
+        "axis=%s); either the ring shrank below the top band or the bands "
+        "moved, and the sentinel reasoning needs redoing"
+        % (lowest_unbounded, axis)
+    )
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 18:05 UTC | END edit ]
+
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 17:20 UTC | START edit: RNG copy count ]
+def test_the_decision_draw_copy_count_is_on_the_record():
+    """Eight files carry their own LCG. Counted, so a ninth is deliberate.
+
+    `test_the_subsystem_does_not_reimplement_the_loop` below asserts these
+    constants are absent from the SUBSYSTEM, which is a real guard covering one
+    file. Nothing counted the rest, so the sprawl could grow silently - the same
+    hole the reader-sprawl test was written to close for canon parsing.
+
+    This is not a defect today: each phase is proven against its own contract,
+    so each is right about the fight it describes. It is the blocker for
+    Decision 0022's named RNG substreams, which require one seeded derivation
+    per subsystem and cannot be enforced while eight files each advance their
+    own generator. Surveyed in
+    docs/plans/2026-08-07-what-the-integrated-schema-has-to-absorb.md.
+
+    When the substream layer lands this number should FALL. If it rises, a new
+    phase copied the pattern that work exists to end.
+    """
+    for const, what, expected in (
+        ("1664525", "the LCG multiplier", 8),
+        ("1013904223", "the LCG increment", 8),
+        ("1099511628211", "the FNV-1a prime", 8),
+    ):
+        owners = [n for n in sorted(os.listdir(PRIVATE))
+                  if n.endswith(".cpp") and const in read(PRIVATE, n)]
+        assert len(owners) == expected, (
+            "%d files define %s (was %d): %s. If this went up, the decision "
+            "draw was copied again; if it went down, say so in the phase "
+            "record." % (len(owners), what, expected, owners)
+        )
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 17:20 UTC | END edit ]
+
+
 def test_the_subsystem_does_not_reimplement_the_loop():
     """The arena must call Step(), never grow its own copy of the rules."""
     text = read(PRIVATE, "UppercutFightSubsystem.cpp")

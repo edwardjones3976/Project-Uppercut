@@ -14,7 +14,11 @@
 // Contract: tools/engine/analyze_core_range.py, mutation-proven before this
 // class existed. This commandlet is proven when its stream is byte-identical
 // to that module's `expected_stream` for the same seed and tick count; the
-// comparison is tools/engine/run_core_range.ps1.
+// comparison is tools/engine/prove_core_range.py.
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 07:10 UTC | edit: this said
+//   run_core_range.ps1, which is untracked, superseded, and not what anyone runs. A pointer
+//   to a file that is not in the repository is the same defect as an enforced_by naming a
+//   module that does not exist - it stops the next reader looking. ]
 //
 // Usage:
 //   UnrealEditor-Cmd <uproject> -run=UppercutCoreRange

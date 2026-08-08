@@ -20,6 +20,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import analyze_core_evade as R  # noqa: E402
 
+from tools.engine import wedge  # noqa: E402
+
 REPO = R.REPO
 ENGINE = os.environ.get("UPPERCUT_ENGINE", r"C:\Program Files\Epic Games\UE_5.8")
 CMD = os.path.join(ENGINE, "Engine", "Binaries", "Win64", "UnrealEditor-Cmd.exe")
@@ -43,9 +45,13 @@ def run_commandlet(seed: int, ticks: int) -> str:
     argv = [CMD, PROJECT, "-run=UppercutCoreEvade", "-seed=%d" % seed,
             "-ticks=%d" % ticks, "-repo=%s" % REPO, "-out=%s" % out,
             "-unattended", "-nopause", "-nosplash"]
-    proc = subprocess.run(argv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 16:25 UTC | START edit: wedge killer ]
+    # Was a blocking subprocess.run with no wedge killer - see wedge.py and the
+    # matching note in prove_core_range.
+    log = wedge.run_editor(argv, label="the Phase R run")
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 16:25 UTC | END edit ]
     if not os.path.exists(out):
-        tail = proc.stdout.decode("utf-8", "replace").splitlines()[-20:]
+        tail = log.splitlines()[-20:]
         raise SystemExit("the commandlet wrote no stream:\n  " + "\n  ".join(tail))
     return out
 

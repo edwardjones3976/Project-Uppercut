@@ -279,8 +279,119 @@ def check_calibration_is_not_claimed(docs: dict) -> list:
     return errs
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 09:45 UTC | START edit: Decision 0026 ]
+def check_recovery_hysteresis(docs: dict) -> list:
+    """Recovery-seeking enters and exits on different declared thresholds.
+
+    Ruling B: "entering recovery intent must use hysteresis: one
+    threshold/condition enters recovery-seeking behavior and a separate
+    recovered condition exits it, preventing one-tick oscillation."
+
+    One threshold means a fighter crosses it, stops recovering, spends, crosses
+    back and recovers again - on alternate ticks, forever. The first integrated
+    round did a coarser version of exactly that, and its Wind trace was a flat
+    line at the entry threshold for 165 seconds.
+    """
+    errs = []
+    wind = docs["economy"].get("wind", {})
+    low = wind.get("low_threshold_fraction")
+    exit_at = wind.get("recovery_exit_fraction")
+    exhausted = wind.get("exhausted_threshold_fraction")
+    if exit_at is None:
+        return ["wind declares no recovery_exit_fraction, so recovery intent "
+                "has a single threshold and no hysteresis (Decision 0026 B)"]
+    if low is None:
+        return ["wind declares no low_threshold_fraction to enter recovery on"]
+    if not exit_at > low:
+        errs.append("recovery exits at %s and enters at %s: the exit must be "
+                    "strictly above the entry or the two conditions are one "
+                    "condition" % (exit_at, low))
+    if exit_at > 1.0:
+        errs.append("recovery exits at %s of the pool, which is above full - a "
+                    "fighter could never stop seeking recovery" % exit_at)
+    if exhausted is not None and not low > exhausted:
+        errs.append("the low threshold %s is not above the exhausted threshold "
+                    "%s, so the two crisis lines have collapsed"
+                    % (low, exhausted))
+    return errs
+
+
+def check_source_basis(docs: dict) -> list:
+    """Every stamina source declares the unit it is charged in.
+
+    Ruling D, and the reason for it is three repetitions of one mistake: twice
+    a per-second recovery rate consumed as per-tick, once a per-step distance
+    consumed as per-tick. All three passed review because every number involved
+    looks like a small decimal.
+
+    This checks the declaration is complete and honest against the files it
+    describes. It cannot by itself stop a reader misusing a correctly declared
+    number - `tests/test_stamina_units.py` carries the five behavioural proofs
+    Ruling D also requires.
+    """
+    errs = []
+    econ = docs["economy"]
+    basis = econ.get("source_basis")
+    if not basis:
+        return ["stamina_economy declares no source_basis block, so no stamina "
+                "source states whether it is per tick, per second, per "
+                "reach-unit, per action or per round break (Decision 0026 D)"]
+    allowed = set(basis.get("allowed", ()))
+    if not allowed:
+        errs.append("source_basis declares no allowed bases, so any string "
+                    "would satisfy it")
+    sources = basis.get("sources") or {}
+    for key, unit in sorted(sources.items()):
+        if unit not in allowed:
+            errs.append("source %r declares basis %r, which is not one of %s"
+                        % (key, unit, ", ".join(sorted(allowed))))
+
+    # The declaration must actually cover what the economy contains. A basis
+    # block that names four of nine sources is worse than none: it reads as
+    # complete.
+    required = [
+        ("wind.recovery_per_tick_by_action.*",
+         econ.get("wind", {}).get("recovery_per_tick_by_action")),
+        ("wind.between_rounds_recovery_fraction",
+         econ.get("wind", {}).get("between_rounds_recovery_fraction")),
+        ("reserve.in_round_recovery_per_tick",
+         econ.get("reserve", {}).get("in_round_recovery_per_tick")),
+        ("reserve.between_rounds_recovery",
+         econ.get("reserve", {}).get("between_rounds_recovery")),
+        ("reserve.drains.sustained_exertion_per_tick_below_low_wind.value",
+         econ.get("reserve", {}).get("drains", {})
+             .get("sustained_exertion_per_tick_below_low_wind", {}).get("value")),
+        ("displacement_movement.wind_per_ru",
+         docs["effort"].get("displacement_movement", {}).get("wind_per_ru")),
+        ("displacement_movement.reserve_per_ru",
+         docs["effort"].get("displacement_movement", {}).get("reserve_per_ru")),
+    ]
+    for key, present in required:
+        if present is not None and key not in sources:
+            errs.append("%s exists in canon and declares no basis" % key)
+
+    if any(m.get("wind_cost") is not None for m in docs["effort"].get("moves", ())):
+        if "moves[].wind_cost" not in sources:
+            errs.append("moves author wind_cost and it declares no basis")
+
+    # The step length is the number that caused the defect. It must be named
+    # here as NOT a stamina source, so the next reader meets the warning before
+    # meeting the number.
+    not_a_source = basis.get("not_a_stamina_source") or {}
+    for key in ("movement_model.locomotion.modes[].stride_length_ru",
+                "movement_model.locomotion.max_frame_displacement_ru"):
+        if key not in not_a_source:
+            errs.append("%s is not declared as 'not a stamina source', and it "
+                        "is precisely the number that was billed as one on "
+                        "2026-08-08" % key)
+    return errs
+# [ ... | 2026-08-08 09:45 UTC | END edit ]
+
+
 ALL_CHECKS = (
     ("two layers are distinct", check_layers),
+    ("recovery intent has hysteresis", check_recovery_hysteresis),
+    ("every stamina source declares its basis", check_source_basis),
     ("Reserve does not regenerate in round", check_reserve),
     ("work never pays better than rest (and the units guard)",
      check_recovery_ordering),

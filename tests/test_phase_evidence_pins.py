@@ -99,9 +99,35 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 #
 # 21,984 authoritative rows across five phases, not one of them different. The
 # ruling says any event-row divergence aborts migration and requires separate
-# diagnosis; there was none to diagnose. Every phase also re-proved against its
-# C++ artifact after the change, which is why this is a migration and not a
-# re-bless: the fights are provably the same fights.
+# diagnosis; there was none to diagnose.
+#
+# CORRECTED 2026-08-08. This paragraph originally continued: "Every phase also
+# re-proved against its C++ artifact after the change, which is why this is a
+# migration and not a re-bless: the fights are provably the same fights." That
+# was too strong, and the overstatement is left on the record rather than
+# edited into something that reads immaculate. What actually happened:
+#
+#   - the migration proved authoritative rows unchanged across the migrated
+#     ANALYZER streams, which is what migrate_canon_headers compares;
+#   - Q and R were independently re-proven against their C++ artifacts, because
+#     prove_core_range and prove_core_evade exist;
+#   - N and K were NOT independently re-proven at that time, because no runner
+#     existed that could re-derive their C++ streams;
+#   - tools/engine/prove_phase.py (2026-08-08) then exposed Phase N's C++ still
+#     emitting the pre-0023 header - 1274 event rows identical, header
+#     divergent;
+#   - K's status stayed unverified until that same tool gained a renderer-side
+#     prover, which MEASURED the identical header-only divergence rather than
+#     inferring it from N.
+#
+# Both were repaired on 2026-08-08 and both now reproduce their contracts byte
+# for byte - Phase K at the very hash pinned below, which is the point: the
+# repair brought the C++ INTO agreement with these pins and moved none of them.
+#
+# The distinction that made this invisible is now permanent. These pins and
+# golden.py answer "does the Python contract still reproduce the record?".
+# prove_phase answers "does C++ still reproduce the contract?". Neither
+# replaces the other, and only the second could have caught this.
 #
 # AND ONCE MORE the same day, for a reason that is the design working rather
 # than a defect. `units_correction_2026_08_07` was added to stamina_economy.json
