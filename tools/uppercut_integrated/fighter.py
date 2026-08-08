@@ -28,6 +28,36 @@ if REPO not in sys.path:
 
 from tools.uppercut_stamina import economy as E     # noqa: E402
 from tools.uppercut_integrated import policy as P   # noqa: E402
+from tools.uppercut_units import quantities as U    # noqa: E402
+
+
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-08 22:10 UTC | START edit: Decision 0031 ]
+def legacy_economy_travel(travel):
+    """THE ONE PLACE a typed displacement becomes a raw integer.
+
+    Director order, on the record: "Confine any raw-integer unwrap to one named
+    legacy-economy adapter." The proven Wind/Reserve economy is integer-typed
+    on the shared contract and byte-proven against the C++ port, so it does not
+    change for this migration - but the moment more than one call site unwraps
+    a `ReachUnits` to feed it, the type is a witness rather than an authority
+    and any of those sites can quietly start passing a stride again.
+
+    So: this function, or nothing. It takes a `ReachUnits` and only a
+    `ReachUnits`, returns the raw q10000 integer the legacy economy charges,
+    and exists solely so that deleting the legacy path later is the deletion of
+    one name.
+    """
+    if travel is None:
+        return 0
+    if not isinstance(travel, U.ReachUnits):
+        raise U.BasisError(
+            "the legacy economy adapter takes ReachUnits, got %r. A raw "
+            "integer here is a number with no basis, and a number with no "
+            "basis is how a stride was billed as a displacement. Wrap actual "
+            "travelled ground with quantities.displacement() first."
+            % (travel,))
+    return travel.q
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-08 22:10 UTC | END edit ]
 
 
 class Observable(object):
@@ -195,12 +225,23 @@ class FighterState(object):
     # ------------------------------------------------------------- spending --
 
     def step(self, economy, action, move_id=None, displacement_ru=0,
-             telemetry=None, travel_ru=0):
-        """One tick of the economy. Delegated whole, never restated."""
+             telemetry=None, travel=None):
+        """One tick of the economy. Delegated whole, never restated.
+
+        Decision 0031: `travel` is typed. It takes a `ReachUnits` produced by
+        `quantities.displacement()` - actual ground covered, after the cap, the
+        ring and the body clamp - or None for a tick that moved nothing. The
+        raw integer the legacy economy needs is produced by
+        `legacy_economy_travel`, the one named adapter, so the typed value is
+        the authority and the unwrap is a single deletable seam rather than a
+        habit. (`travel_ru=<int>` was the old spelling; it is gone rather than
+        deprecated, so a caller with a bare number fails today instead of
+        drifting for a month.)
+        """
         self.wind, self.reserve = E.step(
             economy, self.wind, self.reserve, action, move_id=move_id,
             displacement_ru=displacement_ru, telemetry=telemetry,
-            travel_ru=travel_ru)
+            travel_ru=legacy_economy_travel(travel))
         return self.wind, self.reserve
 
     def between_rounds(self, economy):

@@ -171,14 +171,54 @@ def test_the_tick_rate_comes_from_canon_and_must_be_whole(rates):
         == Q.Ticks(10800)
 
 
-def test_the_per_second_conversion_has_exactly_one_named_door(rates):
-    """The 2026-08-03 and 2026-08-07 defects. A per-second rate becomes a
-    per-tick rate in one function whose name says what it did."""
-    per_second = Q.WindPerTick(3600)
-    assert Q.per_second_to_per_tick(per_second, rates.tick_rate_hz) \
-        == Q.WindPerTick(60)
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-08 22:20 UTC | START edit: Decision 0031 ]
+def test_the_per_second_conversion_no_longer_exists():
+    """Decision 0031. The helper that stood here took a `WindPerTick` whose
+    docstring said the value was actually per-second - a type saying one basis
+    and a comment saying another, inside the module built to make that
+    impossible. "A conversion may change a quantity's basis. A comment may
+    not." Deleted rather than repaired, because no canon source is authored
+    per-second; when one is, `WindPerSecond` and its named conversion arrive in
+    the same change, and this test is rewritten to demand exactly that."""
+    assert not hasattr(Q, "per_second_to_per_tick")
+    assert not hasattr(Q, "WindPerSecond"), (
+        "WindPerSecond exists but no canon source is authored per-second - "
+        "Decision 0031 says the type arrives WITH the first real source, not "
+        "ahead of it")
+
+
+def test_the_legacy_unwrap_has_exactly_one_named_door(rates):
+    """Decision 0031's second half: typed ReachUnits is the authority-bound
+    displacement input, and the raw-integer unwrap for the proven legacy
+    economy is confined to `legacy_economy_travel` - one name, one seam,
+    deletable in one edit when the economy itself goes typed."""
+    from tools.uppercut_integrated import fighter as F
+    assert F.legacy_economy_travel(Q.displacement(1400)) == 1400
+    assert F.legacy_economy_travel(None) == 0
+    for wrong in (1400, 0.14, Q.Wind(1400), Q.WindPerReachUnit(6000),
+                  Q.Ticks(1400)):
+        with pytest.raises(Q.BasisError):
+            F.legacy_economy_travel(wrong)
+
+
+def test_the_fighter_refuses_a_raw_integer_travel(rates):
+    """The old `travel_ru=<int>` spelling is gone, not deprecated: a caller
+    holding a bare number fails today instead of drifting for a month."""
+    from tools.uppercut_stamina import economy as E
+    from tools.uppercut_integrated import fighter as F
+    econ = E.economy_pack()
+    f = F.FighterState("red_corner", econ)
+    with pytest.raises(TypeError):
+        f.step(econ, "move", travel_ru=1400)
     with pytest.raises(Q.BasisError):
-        Q.per_second_to_per_tick(Q.WindPerReachUnit(3600), rates.tick_rate_hz)
+        f.step(econ, "move", travel=1400)
+    before = f.wind
+    f.step(econ, "move", travel=Q.displacement(1400))
+    # Against the typed path, not against a hardcoded 6000: the rate is
+    # canon's, and a test that memorised it would survive a canon change the
+    # fighter did not.
+    assert before - f.wind == rates.movement_wind(Q.displacement(1400)).q
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-08 22:20 UTC | END edit ]
 
 
 # ============================== the products, and only the products ==========

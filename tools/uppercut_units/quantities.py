@@ -300,23 +300,23 @@ def seconds_to_ticks(seconds, tick_rate_hz):
     return Ticks(seconds.q * tick_rate_hz)
 
 
-def per_second_to_per_tick(wind_per_second, tick_rate_hz):
-    """The 2026-08-03 defect, and the 2026-08-07 defect, as a named function.
-
-    Twice a rate authored per second was consumed per tick, which refilled the
-    pool inside a round and meant no fighter could tire at any work rate. There
-    is now exactly one way to perform that conversion and it says so in its
-    name; anything else raises.
-    """
-    if not isinstance(wind_per_second, WindPerTick):
-        raise BasisError(
-            "per_second_to_per_tick takes the per-SECOND rate carried as "
-            "WindPerTick's storage, got %r. Author per-second rates as "
-            "WindPerTick only after this conversion." % (wind_per_second,))
-    if not isinstance(tick_rate_hz, int) or tick_rate_hz <= 0:
-        raise UnknownBasis("tick rate must be a positive integer, got %r"
-                           % (tick_rate_hz,))
-    return WindPerTick(floordiv(wind_per_second.q, tick_rate_hz))
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-08 22:05 UTC | START edit: Decision 0031 ]
+# `per_second_to_per_tick()` LIVED HERE FOR SIX HOURS AND IS DELETED, not
+# moved. Its source parameter was typed `WindPerTick` while its docstring said
+# the value was actually per-second - a type that says one basis and a comment
+# that says another, which is the exact disease this module exists to cure,
+# reproduced inside the cure. The Director's ruling:
+#
+#     "A conversion may change a quantity's basis. A comment may not."
+#
+# It is deleted rather than repaired because no current stamina source is
+# authored per-second - the declared bases are per-tick, per-action,
+# per-reach-unit and per-round-break - and a `WindPerSecond` type invented to
+# preserve an unused helper would be speculative surface, which Decision 0029
+# forbids in its own text. When a real per-second source enters canon, the
+# type and the conversion `WindPerSecond -> WindPerTick` arrive in the same
+# change, and this comment is where the next author finds that instruction.
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-08 22:05 UTC | END edit ]
 
 
 def displacement(travelled_ru):

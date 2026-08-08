@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-08 19:35 UTC** at `0d89538 Merge remote-tracking branch 'origin/main' into feat/integrated-bout-tick`.
+Generated **2026-08-08 20:45 UTC** at `cd10667 Merge remote-tracking branch 'origin/main' into feat/integrated-bout-tick`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **1316 passed** |
+| Test suite | **1318 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |

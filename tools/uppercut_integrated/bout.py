@@ -276,8 +276,19 @@ class IntegratedBout(object):
             travelled_ru = U.displacement(travelled)
             wind_debit = self.rates.movement_wind(travelled_ru)
 
+            # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) |
+            #   2026-08-08 22:15 UTC | START edit: Decision 0031 ]
+            # THE TYPED VALUE IS NOW THE AUTHORITY, not a witness. The Director
+            # named the previous shape precisely - "a very sophisticated
+            # witness watching an untyped number run the actual fight" - and
+            # this is the correction: the ReachUnits object itself is what the
+            # fighter is charged from, and the only unwrap to the legacy
+            # integer economy happens inside `legacy_economy_travel`, the one
+            # named adapter. A raw integer can no longer reach the debit from
+            # here at all.
             before_wind = me.wind
-            me.step(self.econ, family, move_id=move_id, travel_ru=travelled)
+            me.step(self.econ, family, move_id=move_id, travel=travelled_ru)
+            # [ ... | 2026-08-08 22:15 UTC | END edit ]
 
             # The typed path and the proven economy must agree about the
             # movement debit. Two roads to one number; the day they disagree is
