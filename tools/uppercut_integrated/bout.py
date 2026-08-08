@@ -190,10 +190,10 @@ class IntegratedBout(object):
 
         `step_delta` gives the signed change in SEPARATION the step intends;
         this fighter's own movement is that with the sign his side of the axis
-        implies. `rope_scaled` then applies canon's anti-running rule - a
-        retreat with your back on the ropes buys nothing - before a single reach
-        unit is owed, so the fighter is never billed for a step the ropes
-        refused.
+        implies. `rope_scaled` then applies the ring - a retreat with your back
+        on the ropes buys nothing - before a single reach unit is owed, so the
+        fighter is never billed for a step the ropes refused. It is geometry,
+        not a penalty on movement: lateral is untouched.
         """
         action = INTENT.get(tactic)
         if action is None:

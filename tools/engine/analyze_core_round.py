@@ -678,7 +678,7 @@ def expected_stream(seed: int, rounds: int = 3, with_floats: bool = True,
                     # circling is not free; a retreat with your back on the ropes
                     # travels nothing, so it costs nothing (Decision 0014's
                     # "zero displacement costs zero", which is what stops the
-                    # anti-running rule doubling as a stamina tax).
+                    # ring doubling as a stamina tax).
                     mag = (c["stride"] * mul) // 10000
                     st[i] = max(0, st[i] - (mag * c["step_per_ru"]) // 10000)
                     if action != "step_lateral":

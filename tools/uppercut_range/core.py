@@ -104,9 +104,17 @@ def range_pack() -> dict:
         # The ring as a BOUND on movement, not only as Ringcraft flavour. Canon
         # added this block when the excessive-running abuse showed a retreating
         # fighter opening distance forever: separation had no ring to run out of.
-        # `rope_retreat_multiplier: 0.0` is the whole anti-running rule - with
-        # your back on the ropes a backward step buys nothing, while lateral
-        # movement stays fully available at full rate.
+        #
+        # THERE IS NO ANTI-RUNNING RULE. An earlier version of this comment
+        # called `rope_retreat_multiplier: 0.0` exactly that, and the phrase was
+        # never canon's - it was invented here and spread to six files. What
+        # canon has is a ring that ends, and what Rule 4 names is an abuse:
+        # NEITHER hitting NOR being hit for long periods. Hitting WITHOUT being
+        # hit is the opposite of an abuse; it is the thing the sport most
+        # admires, and nothing in this model may charge a fighter for it.
+        # Lateral stays at full rate on the ropes for that reason: circling off
+        # is the boxing answer and it remains open. See
+        # docs/design/defensive_purity_and_non_engagement.md.
         "axis": q(mv["ring"]["track"]["axis_length_ru"]),
         "ropes": q(mv["ring"]["track"]["back_to_ropes_ru"]),
         "retreat_mult": q(mv["ring"]["track"]["rope_retreat_multiplier"]),

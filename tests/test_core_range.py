@@ -102,9 +102,12 @@ def test_the_uppercut_becomes_reachable_by_walking(rc):
 
 
 def test_running_is_finite(rc):
-    """With his back on the ropes a retreat buys nothing - canon's own
-    anti-running rule, and the thing that stops a coin drifting to
-    out_of_range and staying there."""
+    """With his back on the ropes a retreat buys nothing - the ring ending,
+    which is what stops a coin drifting to out_of_range and staying there.
+
+    Not an anti-running rule; canon has never had one. The bound is spatial
+    and it costs a moving fighter nothing while he has room, which is why a
+    fighter who hits without being hit is never charged for doing it."""
     assert Q.running_is_finite(rc)
 
 
