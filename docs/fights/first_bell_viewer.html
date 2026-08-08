@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<!-- Claude Fable 5 (claude-fable-5) - 2026-08-08 22:39 UTC - first-bell-viewer start -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project Uppercut — First Bell</title>
+<style>
+:root{
+  --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --sec:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --blue:#2a78d6; --red:#e34948;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --sec:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --blue:#3987e5; --red:#e66767;
+  }
+}
+:root[data-theme="dark"]{
+  --page:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --sec:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --blue:#3987e5; --red:#e66767;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--page); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:14px; line-height:1.45;
+}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1060px;margin:0 auto;padding:18px 20px 40px}
+button{
+  font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--grid);
+  border-radius:7px;padding:6px 13px;cursor:pointer
+}
+button:hover{border-color:var(--muted)}
+button.on{background:var(--ink);color:var(--page);border-color:var(--ink)}
+.hidden{display:none !important}
+
+/* ---------- header ---------- */
+header .hrow{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+h1{margin:0;font-size:21px;letter-spacing:.2px;font-weight:750}
+h1 .fb{color:var(--sec);font-weight:550}
+.sub{color:var(--sec);font-size:12.5px;margin-top:3px}
+.hright{display:flex;align-items:center;gap:10px}
+.badge{font-size:10.5px;font-weight:750;letter-spacing:1.6px;padding:4px 9px;border-radius:5px;border:1.5px solid var(--warn);color:var(--warn)}
+.rounds{display:flex;gap:4px;margin-top:13px}
+.rseg{flex:1;position:relative;height:17px;border:1px solid var(--grid);border-radius:4px;overflow:hidden;background:var(--surface)}
+.rseg .rfill{position:absolute;inset:0;width:0%;background:var(--grid)}
+.rseg span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+.rseg.cur{border-color:var(--sec)}
+.rseg.cur span{color:var(--ink);font-weight:700}
+.rseg.done .rfill{background:var(--grid)}
+.rseg.done span{color:var(--sec)}
+
+/* ---------- cards ---------- */
+.card{background:var(--surface);border:1px solid var(--grid);border-radius:11px;padding:14px 16px;margin-top:14px}
+.lab{font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:var(--muted)}
+.chead{font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-bottom:9px}
+
+/* ---------- ring strip ---------- */
+.ring-head{display:flex;justify-content:space-between;margin-bottom:9px}
+.ring{position:relative;height:78px;border:1px solid var(--grid);border-radius:8px;background:var(--page);overflow:hidden}
+.rope{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(-45deg,transparent 0 5px,var(--grid) 5px 8px);border-color:var(--grid)}
+.rope.left{left:0;border-right:1px solid var(--grid)}
+.rope.right{right:0;border-left:1px solid var(--grid)}
+.rtick{position:absolute;top:0;bottom:0;width:1px;background:var(--grid);opacity:.55}
+.midline{position:absolute;left:0;right:0;top:50%;height:1px;background:var(--grid);opacity:.6}
+.dot{position:absolute;top:50%;width:22px;height:22px;border-radius:50%;transform:translate(-50%,-50%);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:10.5px;font-weight:800;z-index:3}
+.dot.c0{background:var(--c0)}
+.dot.c1{background:var(--c1)}
+.dot.down{transform:translate(-50%,-50%) scaleY(.42);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.flash{position:absolute;top:18%;bottom:18%;width:5px;border-radius:3px;transform:translateX(-50%);z-index:2;animation:flashfade .6s ease-out forwards}
+@keyframes flashfade{0%{opacity:.95}100%{opacity:0}}
+
+/* ---------- gauges ---------- */
+.gauges{display:grid;grid-template-columns:1fr auto 1fr;gap:22px;align-items:center}
+.fname{font-weight:750;font-size:14.5px;margin-bottom:8px}
+.fighter.right .fname{text-align:right}
+.g{display:grid;grid-template-columns:62px 1fr 48px;gap:9px;align-items:center;margin-top:5px}
+.glab{font-size:10.5px;font-weight:700;letter-spacing:1px;color:var(--muted)}
+.bar{height:9px;border-radius:5px;background:var(--grid);overflow:hidden}
+.fill{height:100%;border-radius:5px;width:0%}
+.gval{font-size:12px;color:var(--sec);text-align:right}
+.clockbox{text-align:center;min-width:130px}
+.rlabel{font-size:11px;font-weight:750;letter-spacing:2px;color:var(--sec)}
+.clock{font-size:42px;font-weight:750;line-height:1.05;letter-spacing:.5px}
+.stateNote{font-size:10.5px;font-weight:750;letter-spacing:1.8px;color:var(--muted);margin-top:3px}
+.stateNote.live{color:var(--good)}
+.stateNote.final{color:var(--crit)}
+
+/* ---------- controls ---------- */
+.controls{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.spd{display:flex;gap:0}
+.spd button{border-radius:0;padding:6px 10px;border-right-width:0}
+.spd button:first-child{border-radius:7px 0 0 7px}
+.spd button:last-child{border-radius:0 7px 7px 0;border-right-width:1px}
+#scrub{flex:1;min-width:180px;accent-color:var(--ink);height:22px;margin:0}
+#globalClock{font-size:12px;color:var(--sec);min-width:96px;text-align:right}
+
+/* ---------- ticker + cards ---------- */
+.cols{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;margin-top:14px;align-items:stretch}
+.cols .card{margin-top:0}
+.ticker{height:352px;overflow-y:auto;border:1px solid var(--grid);border-radius:8px;background:var(--page)}
+.tk{display:flex;gap:9px;padding:6px 11px;border-left:3px solid var(--grid);border-bottom:1px solid var(--grid);font-size:13px;align-items:baseline}
+.tk:last-child{border-bottom:none}
+.tk .tt{color:var(--muted);font-size:11.5px;flex:0 0 62px}
+.tk .tx{color:var(--ink)}
+.tk.o-arrived{border-left-color:var(--good)}
+.tk.o-dodged{border-left-color:var(--warn)}
+.tk.o-whiff_band{border-left-color:var(--muted)}
+.tk.k-knockdown,.tk.k-stoppage{border-left-color:var(--crit);background:color-mix(in srgb,var(--crit) 7%,transparent)}
+.tk.k-count{border-left-color:var(--warn)}
+.tk.k-round_end{border-left-color:var(--sec)}
+.tk.k-note{border-left-color:var(--warn);color:var(--sec);font-style:italic}
+.fc0{color:var(--c0)} .fc1{color:var(--c1)}
+b.fc0,b.fc1{font-weight:700}
+
+/* ---------- sealed scorecards ---------- */
+.sealwrap{position:relative;min-height:352px}
+.cardsinner{transition:filter .9s ease,opacity .9s ease;filter:blur(15px);opacity:.32;pointer-events:none;user-select:none}
+.sealwrap.revealed .cardsinner{filter:none;opacity:1;pointer-events:auto;user-select:auto}
+.seal{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;z-index:4;
+  transition:opacity .7s ease,transform .7s ease}
+.sealwrap.revealed .seal{opacity:0;transform:scale(1.25) rotate(3deg);pointer-events:none}
+.stamp{border:3px solid var(--muted);color:var(--muted);border-radius:7px;padding:9px 26px;
+  font-size:22px;font-weight:800;letter-spacing:6px;transform:rotate(-7deg);background:var(--surface)}
+.sealnote{font-size:11.5px;color:var(--muted)}
+.verdict{border:1px solid var(--grid);border-radius:8px;padding:11px 13px;margin-bottom:11px;text-align:center}
+.verdict .vmeth{font-size:11px;font-weight:750;letter-spacing:2.5px;color:var(--sec)}
+.verdict .vwin{font-size:19px;font-weight:800;margin-top:2px}
+.verdict .vsub{font-size:12px;color:var(--sec);margin-top:3px}
+.verdict.stop{border-color:var(--crit)}
+.verdict.stop .vmeth{color:var(--crit)}
+.judges{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.judge{border:1px solid var(--grid);border-radius:8px;overflow:hidden}
+.judge h3{margin:0;padding:6px 8px;font-size:11.5px;font-weight:750;border-bottom:1px solid var(--grid);color:var(--sec);text-align:center}
+.judge table{width:100%;border-collapse:collapse;font-size:12px}
+.judge td{padding:2.5px 8px;text-align:center;font-variant-numeric:tabular-nums}
+.judge td.rd{color:var(--muted);font-size:10.5px;text-align:left}
+.judge tr.tot td{border-top:1px solid var(--grid);font-weight:800;padding-top:5px}
+.judge td.win{font-weight:750}
+.unusedwrap{opacity:.4;filter:grayscale(.6)}
+.unusednote{font-size:11.5px;color:var(--muted);text-align:center;margin:7px 0 2px;font-style:italic}
+
+/* ---------- stat footer ---------- */
+.statfoot table{width:100%;border-collapse:collapse}
+.statfoot td{padding:4.5px 6px;font-size:13px;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--grid)}
+.statfoot tr:last-child td{border-bottom:none}
+.statfoot td.mid{text-align:center;color:var(--muted);font-size:10.5px;font-weight:700;letter-spacing:1.2px;width:44%}
+.statfoot td.v0{text-align:right;font-weight:750;color:var(--c0);width:28%}
+.statfoot td.v1{text-align:left;font-weight:750;color:var(--c1);width:28%}
+.pagefoot{margin-top:16px;text-align:center;color:var(--muted);font-size:11px}
+
+@media (max-width:840px){
+  .cols{grid-template-columns:1fr}
+  .gauges{grid-template-columns:1fr 1fr}
+  .clockbox{grid-column:1/-1;order:-1}
+  .judges{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="hrow">
+    <div>
+      <h1>Project Uppercut — <span class="fb">First Bell</span></h1>
+      <div class="sub num" id="metaLine"></div>
+    </div>
+    <div class="hright">
+      <span id="demoBadge" class="badge hidden">DEMO DATA</span>
+      <button id="themeBtn" title="Cycle theme">Theme: Auto</button>
+    </div>
+  </div>
+  <div id="roundsStrip" class="rounds"></div>
+</header>
+
+<section class="card">
+  <div class="ring-head"><span class="lab">RING — TOP-DOWN</span><span class="lab num" id="distRead"></span></div>
+  <div id="ring" class="ring">
+    <div class="midline"></div>
+    <div class="rope left" id="ropeL"></div>
+    <div class="rope right" id="ropeR"></div>
+    <div id="flashes"></div>
+    <div id="dot0" class="dot c0"><span></span></div>
+    <div id="dot1" class="dot c1"><span></span></div>
+  </div>
+</section>
+
+<section class="card gauges">
+  <div class="fighter" id="fpanel0"></div>
+  <div class="clockbox">
+    <div class="rlabel" id="roundLabel">ROUND 1</div>
+    <div class="clock num" id="clock">3:00</div>
+    <div class="stateNote" id="stateNote">READY</div>
+  </div>
+  <div class="fighter right" id="fpanel1"></div>
+</section>
+
+<section class="card controls">
+  <button id="playBtn">Play</button>
+  <div class="spd" id="spdBox">
+    <button data-s="0.5">0.5×</button><button data-s="1" class="on">1×</button><button data-s="4">4×</button><button data-s="16">16×</button>
+  </div>
+  <button id="prevRd" title="Previous round">‹‹ Rd</button>
+  <button id="nextRd" title="Next round">Rd ››</button>
+  <input type="range" id="scrub" min="0" max="1000" step="1" value="0">
+  <span id="globalClock" class="num"></span>
+</section>
+
+<div class="cols">
+  <section class="card">
+    <div class="chead" id="tickerHead">BROADCAST TICKER</div>
+    <div id="ticker" class="ticker"></div>
+  </section>
+  <section class="card">
+    <div class="chead">OFFICIAL SCORECARDS</div>
+    <div id="sealWrap" class="sealwrap">
+      <div id="cardsInner" class="cardsinner"></div>
+      <div class="seal"><div class="stamp">SEALED</div><div class="sealnote" id="sealNote">Revealed at the final bell</div></div>
+    </div>
+  </section>
+</div>
+
+<section class="card statfoot">
+  <div class="chead">FIGHT STATS</div>
+  <table id="statTable"></table>
+</section>
+
+<div class="pagefoot">Project Uppercut · First Bell replay viewer</div>
+</div>
+
+<script>
+"use strict";
+// Claude Fable 5 (claude-fable-5) - 2026-08-08 22:39 UTC - viewer engine start
+const FIGHT = /*FIGHT_DATA*/null/*END_FIGHT_DATA*/;
+const IS_DEMO = (FIGHT === null || FIGHT === undefined);
+
+/* ============ demo data (used only when FIGHT is null) ============ */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function makeDemo(){
+  const RT=10800, AX=4.92, rnd=mulberry32(4242);
+  const F=["red_corner","blue_corner"];
+  const MOVES=[["jab_lead","head",30],["jab_lead","body",10],["cross_rear","head",16],["hook_lead","head",12],["hook_lead","body",9],["uppercut_rear","head",8],["cross_rear","body",10],["hook_rear","head",5]];
+  const wsum=MOVES.reduce((a,m)=>a+m[2],0);
+  function pick(){let x=rnd()*wsum;for(const m of MOVES){x-=m[2];if(x<0)return m}return MOVES[0]}
+  const samples=[],events=[];
+  let px=1.30,pb=3.60,wind=[1,1],res=[1,.995],dmg=[.02,.05];
+  let freeze=0, overAtSec=Infinity, stopT=0;
+  const KD1=118, KD2=180+141;               // global fight-seconds of the two knockdowns
+  const q=x=>Math.round(Math.max(0,Math.min(1,x))*10000);
+  for(let gs=0; gs<360 && gs<overAtSec; gs++){
+    const r=(gs/180|0)+1, sec=gs%180, bt=sec*60;
+    if(freeze>0){
+      freeze--; wind[0]=Math.min(1,wind[0]+.006); wind[1]=Math.min(1,wind[1]+.0015);
+    }else{
+      const tgtD=.95+.85*Math.abs(Math.sin(gs/7))+(rnd()-.5)*.3;
+      const cen=2.45+.75*Math.sin(gs/19)+(rnd()-.5)*.15;
+      px+=(cen-tgtD/2-px)*.35; pb+=(cen+tgtD/2-pb)*.35;
+      px=Math.max(.3,Math.min(AX-.3,px)); pb=Math.max(.3,Math.min(AX-.3,pb));
+      if(pb-px<1.30 && rnd()<.52){
+        const n=rnd()<.32?2:1;
+        for(let k=0;k<n;k++){
+          const who=rnd()<.56?0:1, mv=pick(), t=bt+8+Math.floor(rnd()*48), roll=rnd();
+          let outcome,reason;
+          if(roll<.42){outcome="arrived";reason=rnd()<.66?"clear":(rnd()<.5?"region":"counter")}
+          else if(roll<.80){outcome="dodged";reason=rnd()<.62?"vacated":"counter"}
+          else{outcome="whiff_band";reason="band"}
+          events.push({t,r,kind:"punch",who:F[who],move:mv[0],outcome,reason,target:mv[1]});
+          wind[who]-=.015+rnd()*.02;
+          if(outcome==="arrived"){
+            const base=mv[0].includes("jab")?.010+rnd()*.012:.028+rnd()*.045;
+            const d=mv[1]==="body"?base*.7:base;
+            dmg[1-who]+=d; res[1-who]-=d*.55; wind[1-who]-=d*1.2;
+          }
+        }
+      }
+      if(rnd()<.14){
+        const who=rnd()<.5?0:1;
+        const evn=rnd()<.6?(rnd()<.5?"slip_lead":"slip_rear"):(rnd()<.5?"duck":"roll_rear");
+        const t=bt+Math.floor(rnd()*40);
+        if(rnd()<.16) events.push({t,r,kind:"window",who:F[who],ev:evn,what:"mistimed"});
+        else{events.push({t,r,kind:"window",who:F[who],ev:evn,what:"open"});
+             events.push({t:t+180+Math.floor(rnd()*240),r,kind:"window",who:F[who],ev:evn,what:"close"});}
+      }
+      wind[0]=Math.min(1,wind[0]+.004); wind[1]=Math.min(1,wind[1]+.004);
+      res[0]=Math.max(0,res[0]-.0004); res[1]=Math.max(0,res[1]-.0004);
+    }
+    if(gs===KD1){
+      const t0=bt+18;
+      events.push({t:t0-8,r,kind:"punch",who:"red_corner",move:"cross_rear",outcome:"arrived",reason:"clear",target:"head"});
+      events.push({t:t0,r,kind:"knockdown",who:"blue_corner",by:"cross_rear"});
+      dmg[1]+=.17; res[1]-=.12; wind[1]-=.20;
+      for(let n=1;n<=8;n++)events.push({t:t0+n*66,r,kind:"count",who:"blue_corner",n});
+      events.push({t:t0+8*66+28,r,kind:"rise",who:"blue_corner",at:8});
+      freeze=Math.ceil((8*66+40)/60);
+    }
+    if(gs===KD2){
+      const t0=bt+22;
+      events.push({t:t0-10,r,kind:"punch",who:"red_corner",move:"uppercut_rear",outcome:"arrived",reason:"region",target:"head"});
+      events.push({t:t0,r,kind:"knockdown",who:"blue_corner",by:"uppercut_rear"});
+      dmg[1]+=.24; res[1]-=.2; wind[1]-=.30;
+      for(let n=1;n<=10;n++)events.push({t:t0+n*66,r,kind:"count",who:"blue_corner",n});
+      stopT=t0+10*66+18;
+      events.push({t:stopT,r,kind:"stoppage",detail:"count_expired"});
+      freeze=999; overAtSec=180+Math.ceil(stopT/60);
+    }
+    dmg[0]=Math.min(dmg[0],.95); dmg[1]=Math.min(dmg[1],.95);
+    wind[0]=Math.max(.05,wind[0]); wind[1]=Math.max(.05,wind[1]);
+    res[0]=Math.max(0,res[0]); res[1]=Math.max(0,res[1]);
+    samples.push({t:Math.min(bt+60,RT),r,pos:[Math.round(px*10000),Math.round(pb*10000)],
+      wind:[q(wind[0]),q(wind[1])],reserve:[q(res[0]),q(res[1])],dmg:[q(dmg[0]),q(dmg[1])]});
+  }
+  events.push({t:10800,r:1,kind:"round_end"});
+  events.sort((a,b)=>((a.r-1)*RT+a.t)-((b.r-1)*RT+b.t));
+  return {
+    meta:{seed:4242,rounds_planned:12,round_ticks:RT,tick_hz:60,participants:F,
+      referee:{id:"nkiru_okafor",display_name:"Nkiru Okafor"},
+      result:{method:"KO",winner:"red_corner",round:2,tick:RT+stopT,detail:"count_expired"},
+      axis_ru:AX},
+    samples,events,
+    cards:{aisha_bello:{totals:[10,8],rounds:[[1,10,8]]},
+           marta_reyes:{totals:[10,8],rounds:[[1,10,8]]},
+           tomasz_wojcik:{totals:[10,8],rounds:[[1,10,8]]}}
+  };
+}
+
+/* ============ fight setup ============ */
+const fight = IS_DEMO ? makeDemo() : FIGHT;
+const M = fight.meta, RT = M.round_ticks, HZ = M.tick_hz, AX = M.axis_ru || 5;
+const P = M.participants;
+const cIdx = {}; P.forEach((p,i)=>cIdx[p]=i);
+const DISP = P.map(p=>p.split("_").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" "));
+// color assignment: id containing "blue" gets blue; otherwise red; guaranteed distinct fallback
+const isBlue = P.map((p,i)=>/blue/i.test(p) || (!/red/i.test(p) && i===1));
+document.documentElement.style.setProperty("--c0", isBlue[0]?"var(--blue)":"var(--red)");
+document.documentElement.style.setProperty("--c1", isBlue[1]?"var(--blue)":"var(--red)");
+
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+// tolerate either per-round t (assumed contract) or global t in real data
+const looksGlobal = (fight.events||[]).some(e=>e.r>1&&e.t>RT) || (fight.samples||[]).some(s=>s.r>1&&s.t>RT);
+const G = (t,r)=> looksGlobal ? t : (r-1)*RT+t;
+const SAM = (fight.samples||[]).map(s=>({g:G(s.t,s.r),s})).sort((a,b)=>a.g-b.g);
+const EV  = (fight.events ||[]).map((e,i)=>({e,g:G(e.t,e.r),i})).sort((a,b)=>a.g-b.g||a.i-b.i);
+const endTick = EV.length ? EV[EV.length-1].g : (SAM.length?SAM[SAM.length-1].g:RT);
+const lastRound = EV.length ? Math.max(...EV.map(x=>x.e.r)) : 1;
+const REF = (M.referee&&M.referee.display_name)||"The referee";
+const RESULT = M.result||{};
+const IS_STOP = RESULT.method==="KO"||RESULT.method==="TKO";
+
+function fmtMS(sec){sec=Math.max(0,Math.floor(sec));return (sec/60|0)+":"+String(sec%60).padStart(2,"0")}
+function unq(s){return{pos:[s.pos[0]/1e4,s.pos[1]/1e4],wind:[s.wind[0]/1e4,s.wind[1]/1e4],
+  res:[s.reserve[0]/1e4,s.reserve[1]/1e4],dmg:[s.dmg[0]/1e4,s.dmg[1]/1e4]}}
+function sampleAt(g){
+  if(!SAM.length)return{pos:[AX*.3,AX*.7],wind:[1,1],res:[1,1],dmg:[0,0]};
+  if(g<=SAM[0].g)return unq(SAM[0].s);
+  if(g>=SAM[SAM.length-1].g)return unq(SAM[SAM.length-1].s);
+  let lo=0,hi=SAM.length-1;
+  while(hi-lo>1){const m=(lo+hi)>>1;(SAM[m].g<=g)?lo=m:hi=m}
+  const a=unq(SAM[lo].s),b=unq(SAM[hi].s),f=(g-SAM[lo].g)/Math.max(1,SAM[hi].g-SAM[lo].g);
+  const L=(x,y)=>x+(y-x)*f;
+  return{pos:[L(a.pos[0],b.pos[0]),L(a.pos[1],b.pos[1])],
+         wind:[L(a.wind[0],b.wind[0]),L(a.wind[1],b.wind[1])],
+         res:[L(a.res[0],b.res[0]),L(a.res[1],b.res[1])],
+         dmg:[L(a.dmg[0],b.dmg[0]),L(a.dmg[1],b.dmg[1])]};
+}
+function evUpper(g){let lo=0,hi=EV.length;while(lo<hi){const m=(lo+hi)>>1;(EV[m].g<=g)?lo=m+1:hi=m}return lo}
+
+/* ============ broadcast language ============ */
+function nm(who){const i=cIdx[who];return i==null?esc(who):'<b class="fc'+i+'">'+esc(DISP[i])+"</b>"}
+function oppOf(who){const i=cIdx[who];return (i==null||P.length<2)?null:P[1-i]}
+function mvName(m){const p=String(m||"punch").split("_");
+  if(p.length>1&&(p[p.length-1]==="lead"||p[p.length-1]==="rear")){const h=p.pop();return h+" "+p.join(" ")}
+  return p.join(" ")}
+function winName(e){const p=String(e||"move").split("_");
+  if(p.length>1&&(p[1]==="lead"||p[1]==="rear"))return p[1]+"-side "+p[0];
+  return p.join(" ")}
+function sentence(e){
+  const A=e.who?nm(e.who):"", opp=e.who?oppOf(e.who):null, B=opp?nm(opp):"the opponent";
+  switch(e.kind){
+    case "punch":{
+      const mv=esc(mvName(e.move)), tp=e.target==="body"?"to the body":"upstairs";
+      if(e.outcome==="arrived"){
+        if(e.reason==="region")return A+"&rsquo;s "+mv+" gets home "+tp+" &mdash; the guard was minding the other floor.";
+        if(e.reason==="counter")return A+" times it &mdash; the "+mv+" arrives on the counter, "+tp+".";
+        return A+"&rsquo;s "+mv+" lands clean "+tp+".";
+      }
+      if(e.outcome==="dodged"){
+        if(e.reason==="counter")return B+" slips "+A+"&rsquo;s "+mv+" and is loaded to answer.";
+        if(e.reason==="vacated")return A+"&rsquo;s "+mv+" misses: the slip was still active.";
+        return B+" makes "+A+"&rsquo;s "+mv+" fall short.";
+      }
+      if(e.outcome==="whiff_band"||e.reason==="band")return A+"&rsquo;s "+mv+" cuts empty air &mdash; thrown from outside its range.";
+      return A+"&rsquo;s "+mv+" misses.";
+    }
+    case "window":{
+      const w=esc(winName(e.ev));
+      if(e.what==="open")return A+" commits to a "+w+", head off the centerline.";
+      if(e.what==="close")return A+" resets out of the "+w+".";
+      return A+"&rsquo;s "+w+" comes a beat early &mdash; defense spent on nothing.";
+    }
+    case "knockdown":return A+" is <b>DOWN</b> &mdash; dropped by the "+esc(mvName(e.by))+".";
+    case "count":return (e.n===1?esc(REF)+" picks up the count: ":"The count: ")+"<b>"+esc(e.n)+"</b>.";
+    case "rise":return A+" rises at the count of "+esc(e.at)+".";
+    case "stoppage":{
+      if(e.detail==="count_expired")return "The count reaches ten. "+esc(REF)+" waves it off &mdash; it&rsquo;s over.";
+      if(e.detail==="knockdown_limit")return esc(REF)+" has seen enough knockdowns &mdash; it&rsquo;s over.";
+      if(e.detail==="referee_judgement")return esc(REF)+" steps in and stops it &mdash; it&rsquo;s over.";
+      return "The fight is stopped ("+esc(e.detail)+").";
+    }
+    case "round_end":return "There&rsquo;s the bell &mdash; end of round "+esc(e.r)+".";
+    default:return esc(e.kind)+".";
+  }
+}
+
+/* ============ static DOM builds ============ */
+document.getElementById("metaLine").textContent =
+  "Seed "+(M.seed!=null?M.seed:"—")+" · Referee "+((M.referee&&M.referee.display_name)||"—")+
+  " · "+M.rounds_planned+" × "+fmtMS(RT/HZ)+" · "+DISP.join(" vs ");
+if(IS_DEMO){
+  document.getElementById("demoBadge").classList.remove("hidden");
+  document.getElementById("tickerHead").textContent="BROADCAST TICKER — DEMO DATA";
+}
+// rounds strip
+const stripEl=document.getElementById("roundsStrip"), rsegs=[];
+for(let r=1;r<=M.rounds_planned;r++){
+  const d=document.createElement("div");d.className="rseg";
+  d.innerHTML='<div class="rfill"></div><span>'+r+"</span>";
+  stripEl.appendChild(d);rsegs.push(d);
+}
+// rope zones: 0.45 reach units at each end
+const ropePct=Math.min(20,(0.45/AX)*100);
+document.getElementById("ropeL").style.width=ropePct+"%";
+document.getElementById("ropeR").style.width=ropePct+"%";
+// 1-RU tick marks
+const ringEl=document.getElementById("ring");
+for(let u=1;u<AX;u++){
+  const t=document.createElement("div");t.className="rtick";t.style.left=(u/AX*100)+"%";
+  ringEl.insertBefore(t,document.getElementById("flashes"));
+}
+const dots=[document.getElementById("dot0"),document.getElementById("dot1")];
+dots[0].querySelector("span").textContent=DISP[0].charAt(0);
+dots[1].querySelector("span").textContent=DISP[1].charAt(0);
+// gauge panels
+const GA=["Wind","Reserve","Damage"];
+function buildPanel(i){
+  const host=document.getElementById("fpanel"+i);
+  let h='<div class="fname" style="color:var(--c'+i+')">'+esc(DISP[i])+"</div>";
+  for(const g of GA){
+    const key=g.toLowerCase();
+    h+='<div class="g"><span class="glab">'+g.toUpperCase()+'</span><div class="bar"><div class="fill" id="f_'+key+i+'"></div></div><span class="gval num" id="v_'+key+i+'">—</span></div>';
+  }
+  host.innerHTML=h;
+  document.getElementById("f_wind"+i).style.background="var(--c"+i+")";
+  document.getElementById("f_reserve"+i).style.background="var(--c"+i+")";
+  document.getElementById("f_reserve"+i).style.opacity=".55";
+  document.getElementById("f_damage"+i).style.background="var(--crit)";
+}
+buildPanel(0);buildPanel(1);
+// stat footer
+const STATS=[["thrown","PUNCHES THROWN"],["landed","LANDED"],["dodged","MADE TO MISS"],["whiffed","WHIFFED"],["acc","ACCURACY"],["kd","KNOCKDOWNS SCORED"]];
+document.getElementById("statTable").innerHTML=STATS.map(s=>
+  '<tr><td class="v0 num" id="s_'+s[0]+'0">0</td><td class="mid">'+s[1]+'</td><td class="v1 num" id="s_'+s[0]+'1">0</td></tr>').join("");
+// scorecards
+function stopClockText(){
+  const se=EV.find(x=>x.e.kind==="stoppage");
+  const t=se?se.e.t:(RESULT.tick!=null?RESULT.tick%RT:0);
+  return fmtMS((looksGlobal&&se?se.e.t-(se.e.r-1)*RT:t)/HZ);
+}
+function buildCards(){
+  const METH={UD:"Unanimous Decision",SD:"Split Decision",MD:"Majority Decision",DRAW:"Draw",KO:"Knockout",TKO:"Technical Knockout"};
+  const meth=METH[RESULT.method]||RESULT.method||"Result";
+  const wIdx=RESULT.winner!=null?cIdx[RESULT.winner]:null;
+  const wName=wIdx!=null?'<span style="color:var(--c'+wIdx+')">'+esc(DISP[wIdx])+"</span>":null;
+  let h='<div class="verdict'+(IS_STOP?" stop":"")+'">';
+  h+='<div class="vmeth">'+esc(meth).toUpperCase()+"</div>";
+  if(IS_STOP){
+    h+='<div class="vwin">'+(wName||"—")+" wins</div>";
+    h+='<div class="vsub num">'+stopClockText()+" of Round "+esc(RESULT.round)+" &mdash; "+
+       esc(RESULT.detail==="count_expired"?"the count reached ten":RESULT.detail==="knockdown_limit"?"stopped on knockdowns":"referee's judgement")+"</div>";
+  }else if(RESULT.method==="DRAW"||wIdx==null){
+    h+='<div class="vwin">Even on the cards</div>';
+  }else{
+    h+='<div class="vwin">'+wName+" takes it</div>";
+    h+='<div class="vsub">after '+esc(RESULT.round||lastRound)+" rounds</div>";
+  }
+  h+="</div>";
+  const judges=fight.cards?Object.keys(fight.cards):[];
+  let jh='<div class="judges">';
+  for(const j of judges){
+    const c=fight.cards[j];
+    const jn=j.split("_").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
+    jh+='<div class="judge"><h3>'+esc(jn)+"</h3><table><tbody>";
+    jh+='<tr><td class="rd">RD</td><td style="color:var(--c0);font-weight:700">'+esc(DISP[0].charAt(0))+'</td><td style="color:var(--c1);font-weight:700">'+esc(DISP[1].charAt(0))+"</td></tr>";
+    for(const row of (c.rounds||[]))
+      jh+='<tr><td class="rd num">'+esc(row[0])+'</td><td class="num">'+esc(row[1])+'</td><td class="num">'+esc(row[2])+"</td></tr>";
+    const w0=c.totals&&c.totals[0]>c.totals[1],w1=c.totals&&c.totals[1]>c.totals[0];
+    jh+='<tr class="tot"><td class="rd">TOT</td><td class="num'+(w0?" win":"")+'">'+esc(c.totals?c.totals[0]:"—")+'</td><td class="num'+(w1?" win":"")+'">'+esc(c.totals?c.totals[1]:"—")+"</td></tr>";
+    jh+="</tbody></table></div>";
+  }
+  jh+="</div>";
+  if(!judges.length)jh='<div class="unusednote">No scorecards in the data.</div>';
+  if(IS_STOP&&judges.length)jh='<div class="unusednote">Scorecards unused &mdash; the fight ended inside the distance.</div><div class="unusedwrap">'+jh+"</div>";
+  document.getElementById("cardsInner").innerHTML=h+jh;
+}
+buildCards();
+document.getElementById("sealNote").textContent=IS_STOP?"Revealed when the fight ends":"Revealed at the final bell";
+
+/* ============ playback engine ============ */
+let cur=0, playing=false, speed=1, lastTs=null, evIdx=0, autoStick=true;
+const stats=[{thrown:0,landed:0,dodged:0,whiffed:0,kd:0},{thrown:0,landed:0,dodged:0,whiffed:0,kd:0}];
+const down=[false,false];
+const tickerEl=document.getElementById("ticker");
+const scrubEl=document.getElementById("scrub");
+scrubEl.max=endTick;
+tickerEl.addEventListener("scroll",()=>{autoStick=tickerEl.scrollTop+tickerEl.clientHeight>=tickerEl.scrollHeight-36});
+
+function resetStats(){for(const s of stats){s.thrown=0;s.landed=0;s.dodged=0;s.whiffed=0;s.kd=0}down[0]=down[1]=false}
+function applyEvent(e){
+  const i=e.who!=null?cIdx[e.who]:null;
+  if(e.kind==="punch"&&i!=null){
+    stats[i].thrown++;
+    if(e.outcome==="arrived")stats[i].landed++;
+    else if(e.outcome==="dodged")stats[i].dodged++;
+    else stats[i].whiffed++;
+  }else if(e.kind==="knockdown"&&i!=null){
+    if(P.length>1)stats[1-i].kd++;
+    down[i]=true;
+  }else if(e.kind==="rise"&&i!=null)down[i]=false;
+}
+function tkNode(e){
+  const div=document.createElement("div");
+  div.className="tk k-"+e.kind+(e.outcome?" o-"+e.outcome:"");
+  const tIn=looksGlobal?e.t-(e.r-1)*RT:e.t;
+  div.innerHTML='<span class="tt num">R'+e.r+" "+fmtMS((RT-tIn)/HZ)+'</span><span class="tx">'+sentence(e)+"</span>";
+  return div;
+}
+function fireEvent(e,withFlash){
+  applyEvent(e);
+  tickerEl.appendChild(tkNode(e));
+  if(tickerEl.children.length>900)tickerEl.removeChild(tickerEl.firstChild);
+  if(autoStick)tickerEl.scrollTop=tickerEl.scrollHeight;
+  if(withFlash&&e.kind==="punch")spawnFlash(e);
+  renderStats();
+}
+function introNode(){
+  const d=document.createElement("div");d.className="tk";
+  d.innerHTML='<span class="tt num">R1 '+fmtMS(RT/HZ)+'</span><span class="tx">'+nm(P[0])+" and "+nm(P[1])+
+    " at center ring. "+esc(REF)+" has the fight.</span>";
+  return d;
+}
+function rebuildTo(g){
+  evIdx=evUpper(g); resetStats();
+  const frag=document.createDocumentFragment();
+  frag.appendChild(introNode());
+  const start=Math.max(0,evIdx-900);
+  for(let k=0;k<evIdx;k++){
+    applyEvent(EV[k].e);
+    if(k>=start)frag.appendChild(tkNode(EV[k].e));
+  }
+  tickerEl.textContent="";
+  tickerEl.appendChild(frag);
+  tickerEl.scrollTop=tickerEl.scrollHeight; autoStick=true;
+  document.getElementById("flashes").textContent="";
+  renderStats();
+}
+function seek(g){cur=Math.max(0,Math.min(endTick,g));rebuildTo(cur);render()}
+function spawnFlash(e){
+  const s=sampleAt(cur), i=cIdx[e.who]; if(i==null)return;
+  const x=s.pos[i]+(s.pos[1-i]-s.pos[i])*0.62;
+  const d=document.createElement("div");d.className="flash";
+  d.style.left=(x/AX*100)+"%";
+  d.style.background=e.outcome==="arrived"?"var(--good)":e.outcome==="dodged"?"var(--warn)":"var(--muted)";
+  const host=document.getElementById("flashes");
+  host.appendChild(d);
+  if(host.children.length>14)host.removeChild(host.firstChild);
+  setTimeout(()=>{if(d.parentNode)d.parentNode.removeChild(d)},650);
+}
+function renderStats(){
+  for(let i=0;i<2;i++){
+    const s=stats[i];
+    for(const k of ["thrown","landed","dodged","whiffed","kd"])
+      document.getElementById("s_"+k+i).textContent=s[k];
+    document.getElementById("s_acc"+i).textContent=s.thrown?Math.round(s.landed/s.thrown*100)+"%":"—";
+  }
+}
+function curRound(){return Math.min(Math.floor(cur/RT)+1,lastRound)}
+function render(){
+  const s=sampleAt(cur);
+  for(let i=0;i<2;i++){
+    dots[i].style.left=(Math.max(0,Math.min(1,s.pos[i]/AX))*100)+"%";
+    dots[i].classList.toggle("down",down[i]);
+    document.getElementById("f_wind"+i).style.width=(s.wind[i]*100)+"%";
+    document.getElementById("f_reserve"+i).style.width=(s.res[i]*100)+"%";
+    document.getElementById("f_damage"+i).style.width=(s.dmg[i]*100)+"%";
+    document.getElementById("v_wind"+i).textContent=Math.round(s.wind[i]*100)+"%";
+    document.getElementById("v_reserve"+i).textContent=Math.round(s.res[i]*100)+"%";
+    document.getElementById("v_damage"+i).textContent=Math.round(s.dmg[i]*100)+"%";
+    const wl=document.getElementById("f_wind"+i);
+    wl.style.background=s.wind[i]<.18?"var(--crit)":s.wind[i]<.38?"var(--warn)":"var(--c"+i+")";
+  }
+  document.getElementById("distRead").textContent=Math.abs(s.pos[1]-s.pos[0]).toFixed(2)+" RU APART";
+  const r=curRound(), tIn=cur-(r-1)*RT;
+  document.getElementById("roundLabel").textContent="ROUND "+r;
+  document.getElementById("clock").textContent=fmtMS((RT-tIn)/HZ);
+  const done=cur>=endTick-0.5;
+  const sn=document.getElementById("stateNote");
+  sn.textContent=done?"FINAL":playing?"LIVE":"PAUSED";
+  sn.className="stateNote"+(done?" final":playing?" live":"");
+  scrubEl.value=cur;
+  document.getElementById("globalClock").textContent=fmtMS(cur/HZ)+" / "+fmtMS(endTick/HZ);
+  for(let i=0;i<rsegs.length;i++){
+    const r0=i*RT,f=Math.max(0,Math.min(1,(cur-r0)/RT));
+    rsegs[i].querySelector(".rfill").style.width=(f*100)+"%";
+    rsegs[i].classList.toggle("cur",r===i+1&&cur<endTick-0.5);
+    rsegs[i].classList.toggle("done",f>=1||(done&&r===i+1));
+  }
+  document.getElementById("sealWrap").classList.toggle("revealed",done);
+}
+function frame(ts){
+  if(playing){
+    if(lastTs!=null){
+      cur+=Math.min(.25,(ts-lastTs)/1000)*HZ*speed;
+      while(evIdx<EV.length&&EV[evIdx].g<=cur)fireEvent(EV[evIdx++].e,true);
+      if(cur>=endTick){cur=endTick;setPlaying(false)}
+    }
+    lastTs=ts;
+    render();
+  }else lastTs=ts;
+  requestAnimationFrame(frame);
+}
+function setPlaying(p){
+  if(p&&cur>=endTick)seek(0);
+  playing=p;lastTs=null;
+  document.getElementById("playBtn").textContent=p?"Pause":"Play";
+  render();
+}
+/* controls */
+document.getElementById("playBtn").addEventListener("click",()=>setPlaying(!playing));
+document.getElementById("spdBox").addEventListener("click",ev=>{
+  const b=ev.target.closest("button");if(!b)return;
+  speed=parseFloat(b.dataset.s);
+  for(const x of document.getElementById("spdBox").children)x.classList.toggle("on",x===b);
+});
+let scrubPending=null;
+scrubEl.addEventListener("input",()=>{
+  if(scrubPending==null)requestAnimationFrame(()=>{const v=scrubPending;scrubPending=null;seek(v)});
+  scrubPending=parseFloat(scrubEl.value);
+});
+document.getElementById("prevRd").addEventListener("click",()=>{
+  const r=curRound(),tIn=cur-(r-1)*RT;
+  seek(tIn>2*HZ?(r-1)*RT:Math.max(0,(r-2)*RT));
+});
+document.getElementById("nextRd").addEventListener("click",()=>seek(Math.min(endTick,curRound()*RT)));
+document.addEventListener("keydown",ev=>{
+  if(ev.target.tagName==="INPUT"||ev.target.tagName==="BUTTON")return;
+  if(ev.code==="Space"){ev.preventDefault();setPlaying(!playing)}
+  else if(ev.code==="ArrowLeft")seek(cur-5*HZ);
+  else if(ev.code==="ArrowRight")seek(cur+5*HZ);
+});
+/* theme cycle: auto -> light -> dark */
+const THEMES=["Auto","Light","Dark"];let themeIx=0;
+document.getElementById("themeBtn").addEventListener("click",()=>{
+  themeIx=(themeIx+1)%3;
+  const root=document.documentElement;
+  if(themeIx===0)root.removeAttribute("data-theme");
+  else root.setAttribute("data-theme",THEMES[themeIx].toLowerCase());
+  document.getElementById("themeBtn").textContent="Theme: "+THEMES[themeIx];
+});
+/* test hook */
+window.__fb={seek,setSpeed:s=>speed=s,play:()=>setPlaying(true),pause:()=>setPlaying(false),
+  get cur(){return cur},end:endTick,demo:IS_DEMO};
+seek(0);
+requestAnimationFrame(frame);
+// Claude Fable 5 (claude-fable-5) - 2026-08-08 22:39 UTC - viewer engine end
+</script>
+</body>
+</html>
+<!-- Claude Fable 5 (claude-fable-5) - 2026-08-08 22:39 UTC - first-bell-viewer end -->
