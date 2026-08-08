@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-08 06:22 UTC** at `a9eeaec Put the phase matrix in the nightly, and close the loose ends behind it`.
+Generated **2026-08-08 07:02 UTC** at `18a75fb QA pass: two real defects in yesterday's work, one of them in a test`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **1172 passed** |
+| Test suite | **1215 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |
