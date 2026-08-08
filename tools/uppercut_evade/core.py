@@ -315,3 +315,15 @@ def resolve(c, punches, move_id, evasion_id):
     # is still there while the head slips.
     return True, REGION, region
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 00:20 UTC | END ]
+
+
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-08 23:40 UTC | START edit: Decision 0032 correction ]
+# A helper named `evasion_frames` stood here for under an hour, reading
+# startup/active/recovery from the MOVES table. The Director's correction
+# to the round-three review applies to it exactly: the pack above already
+# carries startup, recovery, cost and band per evasion, and
+# `mistime_ticks` from evasion_economy - canon had authored all of it and
+# the analyzer had always read it. A second source is a second opinion,
+# so the helper is deleted and the bout consumes the pack.
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-08 23:40 UTC | END edit ]
+
