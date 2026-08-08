@@ -85,3 +85,11 @@ sandbox/Content/__ExternalActors__/
 # both say keep these out of git - the committed artifacts are the metadata
 # records, the queries, the citations index and the lane syntheses.
 research/raw/
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 19:10 UTC | START edit: nightly artifacts ]
+# tools/engine/nightly_verify.py writes its log and report to the repo root.
+# They are per-run output, and a nightly that dirties the tree it just called
+# clean would be reporting on its own mess.
+.nightly.log
+.nightly_report.txt
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 19:10 UTC | END edit ]
