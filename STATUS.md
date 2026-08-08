@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-08 03:38 UTC** at `84f5e15 The nightly verification becomes one command that can actually run`.
+Generated **2026-08-07 09:06 UTC** at `3d4ca96 Merge remote-tracking branch 'origin/main' into impl/0021-wind-reserve-runtime`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **931 passed** |
+| Test suite | **1100 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |

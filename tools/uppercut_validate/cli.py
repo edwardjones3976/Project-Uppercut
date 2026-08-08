@@ -8,7 +8,7 @@ from pathlib import Path
 from . import (ability, animation, attribute_effects, attributes, budget, camera, clock, collision,
                combat_states, condition, contracts, coverage, cpu, crowd, event, guard,
                judge_boundary, movement, punches, referee_semantics, replay, schema_check,
-               score_isolation)
+               score_isolation, stamina)
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -481,6 +481,35 @@ def cmd_referee_semantics() -> int:
 # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | END edit ]
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 07:45 UTC | START edit: Decision 0021 stamina ]
+def cmd_stamina() -> int:
+    """Decision 0021: Wind over Reserve.
+
+    The five invariants in data/stamina_economy.json have named this validator
+    as their enforcer since the file was authored. Until now it did not exist,
+    so they were documented as checked and checked by nothing.
+    """
+    docs = stamina.load()
+    failures = 0
+    for name, fn in stamina.ALL_CHECKS:
+        errs = fn(docs)
+        print(f"{'PASS' if not errs else 'FAIL'}  {name}")
+        for e in errs:
+            print(f"        {e}")
+        failures += len(errs)
+    e = docs["economy"]
+    authored = [m for m in docs["effort"]["moves"]
+                if m.get("cost_model") != "displacement"]
+    disp = len(docs["effort"]["moves"]) - len(authored)
+    print(f"INFO  two layers over a {e['wind']['max']:.0f}/{e['reserve']['max']:.0f} pool; "
+          f"{len(authored)} moves authored in three values, {disp} displacement-priced; "
+          f"Reserve reaches vulnerability only through the Wind ceiling and Wind recovery. "
+          f"values_are_fitted={e['calibration_status']['values_are_fitted']} "
+          f"(Decision 0021 step 7 forbids calibration until observable CPU policy exists)")
+    return failures
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 07:45 UTC | END edit ]
+
+
 def main(argv: list) -> int:
     cmd = argv[1] if len(argv) > 1 else "all"
     total = 0
@@ -530,6 +559,8 @@ def main(argv: list) -> int:
         print("== Reference-model coverage =="); total += cmd_coverage(); print()
     if cmd in ("all", "clock"):
         print("== Authoritative clock =="); total += cmd_clock(); print()
+    if cmd in ("all", "stamina"):
+        print("== Decision 0021 two-tier stamina =="); total += cmd_stamina(); print()
     print(f"RESULT: {'OK' if total == 0 else str(total) + ' FAILURE(S)'}")
     return 1 if total else 0
 
