@@ -86,13 +86,20 @@ def rng_header_lines(bout_rng):
     evidence and the thing needed to reproduce it cannot then be separated,
     and a reader can tell which streams held authority without consulting
     another file.
+
+    ONE VALUE PER LINE, and no '|' inside a value. An earlier draft of this
+    emitted "H|rng_policy_intent=<seed>|authoritative", which survives the
+    split("=", 1) the analyzers use for headers but gives that row three
+    '|'-fields where every other header row has two. Nothing consumes the
+    integrated stream yet, so it broke nothing - which is exactly why it was
+    worth fixing now, while the format is still entirely ours to choose.
     """
     meta = bout_rng.replay_metadata()
-    lines = ["H|rng_derivation=%s" % meta["derivation_version"]]
+    authoritative = [s["name"] for s in meta["substreams"] if s["authoritative"]]
+    lines = ["H|rng_derivation=%s" % meta["derivation_version"],
+             "H|rng_authoritative=%s" % ",".join(sorted(authoritative))]
     for s in meta["substreams"]:
-        lines.append("H|rng_%s=%d|%s" % (
-            s["name"], s["seed"],
-            "authoritative" if s["authoritative"] else "presentation"))
+        lines.append("H|rng_%s=%d" % (s["name"], s["seed"]))
     return lines
 
 

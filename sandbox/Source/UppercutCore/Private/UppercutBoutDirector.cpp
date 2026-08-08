@@ -364,6 +364,12 @@ bool AUppercutBoutDirector::LoadCanonAndParams()
     // signature Phase N showed. Only after that observation was this changed.
     // Finishing an ordered migration; the pins come from the already-migrated
     // analyzer, so this brings the renderer INTO agreement and no pin moves.
+    //
+    // NOTE on S.Sha[]: still filled by the loader and read by nothing now -
+    // UppercutCanonHeaderLines recomputes both identities from the files. Left
+    // rather than removed because taking it out means changing the loader
+    // inside a proven artifact for no behavioural gain. Recorded so nobody
+    // assumes those hashes are what reaches the stream.
     const TCHAR* ShaName[8] = { TEXT("movement"), TEXT("condition"), TEXT("guard"), TEXT("cpu"),
                                 TEXT("moves"), TEXT("animation"), TEXT("collision"), TEXT("pose") };
     {

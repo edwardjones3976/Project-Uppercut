@@ -396,6 +396,13 @@ int32 UUppercutCoreConditionCommandlet::Main(const FString& Params)
     // ordered migration rather than moving a fight. The pins are generated
     // from the already-migrated analyzer, so this brings the C++ INTO
     // agreement with them and no pin moves.
+    //
+    // NOTE on Sha[]: LoadJsonN still fills it and nothing reads it any more -
+    // UppercutCanonHeaderLines recomputes both identities from the files. The
+    // dead hashing is left rather than removed because taking it out means
+    // changing LoadJsonN's signature inside a proven artifact for no
+    // behavioural gain. Recorded here so the next reader does not assume those
+    // hashes are what reaches the stream. They are not.
     const TCHAR* ShaName[9] = { TEXT("movement"), TEXT("condition"), TEXT("guard"), TEXT("cpu"),
                                 TEXT("moves"), TEXT("animation"), TEXT("collision"), TEXT("pose"),
                                 TEXT("punch") };

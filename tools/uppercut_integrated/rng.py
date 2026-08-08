@@ -123,10 +123,35 @@ class Substream(object):
         return self.state
 
     def below(self, bound):
-        """A draw in [0, bound). Integer-only, like every other draw here."""
-        if bound <= 0:
-            raise ValueError("bound must be positive, got %r" % (bound,))
-        return self.next_u32() % bound
+        """A draw in [0, bound), UNBIASED. Integer-only, deterministic.
+
+        Plain `next_u32() % bound` is biased whenever bound does not divide
+        2**32: the low residues occur once more often than the high ones. For
+        bound=3 the skew is about one part in 1.4 billion and nobody would ever
+        see it; for a bound near 2**31 it approaches 3:2, and "pick one of two
+        openings" is exactly the shape of decision a boxing policy makes.
+
+        The frozen phases use plain modulo and MUST keep doing so - their
+        proofs are byte-identity against streams already taken. This is a new
+        versioned contract, so it starts correct instead of inheriting a bias
+        nobody would choose on purpose.
+
+        Rejection is deterministic: same state, same rejections, same result.
+        The loop is bounded in expectation by two draws and cannot spin
+        forever, since at most one whole `bound`-sized block is ever discarded.
+        """
+        if not isinstance(bound, int) or isinstance(bound, bool) or bound <= 0:
+            raise ValueError("bound must be a positive integer, got %r" % (bound,))
+        if bound == 1:
+            # Still consumes a draw. A subsystem whose stream advances only
+            # sometimes would desynchronise from its own replay.
+            self.next_u32()
+            return 0
+        limit = LCG_M - (LCG_M % bound)      # largest exact multiple of bound
+        while True:
+            x = self.next_u32()
+            if x < limit:
+                return x % bound
 
     def __repr__(self):
         return "<Substream %s seed=%d draws=%d%s>" % (

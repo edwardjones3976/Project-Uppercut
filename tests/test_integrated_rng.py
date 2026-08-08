@@ -181,6 +181,67 @@ def test_a_boolean_is_not_a_bout_seed():
             R.derive_seed(bad, "policy_intent", CONTRACT)
 
 
+# --- bounded draws are unbiased ----------------------------------------------
+
+def test_below_is_unbiased_where_plain_modulo_would_not_be():
+    """The bias plain `% bound` introduces, measured where it actually shows.
+
+    THE FIRST VERSION OF THIS TEST WAS DECORATIVE, and a mutation probe caught
+    it: it used bound = 2**31+1 and split on the halfway point, where plain
+    modulo is biased in only its two highest residues and the halves come out
+    at exactly 0.5 each. It passed against the implementation it was written to
+    forbid.
+
+    The bias is visible in the FIRST THIRD instead. With bound = 3*2**30, the
+    range 2**32 covers the bound once with a remainder of 2**30, so under plain
+    modulo residues [0, 2**30) occur twice and the rest once: the first third
+    of the space takes half the probability. Unbiased it is a third.
+    """
+    bound = 3 * 2 ** 30
+    third = bound // 3
+    s = bout().stream("policy_intent")
+    n = 6000
+    low = sum(1 for _ in range(n) if s.below(bound) < third)
+    # 1/3 of 6000 is 2000; 3 sigma is about 110. Plain modulo lands near 3000.
+    assert 1850 < low < 2150, (
+        "%d of %d draws fell in the first third, expected about %d - that is "
+        "the modulo bias this method exists to remove" % (low, n, n // 3))
+
+
+def test_below_stays_in_range():
+    s = bout().stream("movement_range")
+    for bound in (2, 3, 5, 17, 1000):
+        for _ in range(200):
+            v = s.below(bound)
+            assert 0 <= v < bound
+
+
+def test_below_is_deterministic_including_its_rejections():
+    a = bout(31337).stream("contact_condition")
+    b = bout(31337).stream("contact_condition")
+    bound = 2 ** 31 + 1
+    assert [a.below(bound) for _ in range(200)] == \
+           [b.below(bound) for _ in range(200)]
+    assert a.draws == b.draws, (
+        "the two runs rejected a different number of times, so replay would "
+        "desynchronise even though the values matched")
+
+
+def test_a_single_outcome_still_consumes_a_draw():
+    """A stream that advances only sometimes desynchronises from its replay."""
+    s = bout().stream("judging_officiating")
+    before = s.draws
+    assert s.below(1) == 0
+    assert s.draws == before + 1
+
+
+def test_a_bad_bound_is_refused():
+    s = bout().stream("policy_intent")
+    for bad in (0, -1, True, 2.5, "3", None):
+        with pytest.raises((ValueError, TypeError)):
+            s.below(bad)
+
+
 # --- what replay has to carry -------------------------------------------------
 
 def test_replay_metadata_records_the_derivation():

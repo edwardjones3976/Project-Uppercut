@@ -62,11 +62,28 @@ def test_a_different_seed_changes_the_bout():
 
 def test_the_stream_says_which_randomness_holds_authority():
     lines = C.new_bout(ROOT, 4242)[2]
-    pres = [l for l in lines if l.startswith("H|rng_presentation=")]
-    assert len(pres) == 1 and pres[0].endswith("|presentation")
-    for name in R.AUTHORITATIVE:
-        got = [l for l in lines if l.startswith("H|rng_%s=" % name)]
-        assert len(got) == 1 and got[0].endswith("|authoritative")
+    declared = [l for l in lines if l.startswith("H|rng_authoritative=")]
+    assert len(declared) == 1
+    names = declared[0].split("=", 1)[1].split(",")
+    assert names == sorted(R.AUTHORITATIVE)
+    assert "presentation" not in names, (
+        "presentation randomness is declared authoritative - Decision 0022 "
+        "requires it isolated from authority")
+
+
+def test_no_header_row_hides_a_pipe_inside_its_value():
+    """Every other header row has exactly two '|' fields; these must too.
+
+    An earlier draft emitted "H|rng_x=<seed>|authoritative", which survives the
+    split("=", 1) the analyzers use but gives that row three fields. Nothing
+    consumed the integrated stream yet, so it broke nothing - and that is
+    precisely why it was worth fixing while the format was still ours alone.
+    """
+    for l in C.new_bout(ROOT, 4242)[2]:
+        assert l.count("|") == 1, (
+            "header row has an embedded '|': %r - a reader splitting on '|' "
+            "would see a different field count for this row than every other"
+            % l)
 
 
 def test_every_declared_substream_reaches_the_header():
