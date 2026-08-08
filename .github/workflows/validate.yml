@@ -20,4 +20,13 @@ jobs:
         run: python3 -m pytest -q
       - name: Rule validators (fighters, score isolation, data laws, budget)
         run: python3 -m tools.uppercut_validate.cli all
+      # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 08:15 UTC | START edit ]
+      # The 2026-08-07 state review: "STATUS.md freshness is not enforced by
+      # CI". Half true - test_status_is_current runs in the suite above, but it
+      # allows 5% drift and must, because it lives inside the suite gen_status
+      # runs. CI has no such self-reference, so here it is exact. A generated
+      # file allowed to be stale is hand-maintained drift with extra machinery.
+      - name: STATUS.md is regenerated, not drifting
+        run: python3 -m tools.gen_status --check
+      # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 08:15 UTC | END edit ]
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | END ]
