@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-08 21:59 UTC** at `126c542 Merge First Bell integration seam`.
+Generated **2026-08-08 23:21 UTC** at `8b3a73f review: the same three lenses on the revisions (round three)`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **1342 passed** |
+| Test suite | **1352 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |

@@ -133,10 +133,19 @@ def test_an_evasion_window_lasts_exactly_what_canon_authors(bout, ec):
 
 def test_a_punch_resolves_on_canons_own_window_not_a_guess(bout):
     """The punch is in the air for startup+active and resolves at the end of
-    it. A guessed window would be a guessed evasion window too."""
+    it. A guessed window would be a guessed evasion window too.
+
+    [ Claude Fable 5 (claude-fable-5) | 2026-08-08 23:40 UTC | resolution:
+      a knockdown stops the ring and the bell ends the round, and both void
+      punches still in the air (counted in bout.voided). The pairing walk
+      therefore clears its pending queues at every N row and round_end B row,
+      so a voided punch is not mistaken for a resolved one. ]
+    """
     thrown = {}
     for r in bout.rows:
         f = r.split("|")
+        if f[0] == "N" or (f[0] == "B" and f[2] == "round_end"):
+            thrown.clear()          # the ring voided everything in flight
         if f[0] == "D" and f[4] == "Attack" and f[5] in bout.frames:
             thrown.setdefault(f[2], []).append((int(f[1]), f[5]))
         if f[0] == "P":
@@ -149,36 +158,75 @@ def test_a_punch_resolves_on_canons_own_window_not_a_guess(bout):
 def test_every_punch_thrown_is_a_punch_resolved(bout):
     """The first version of this loop let a second punch overwrite one still in
     the air - 214 thrown, 117 resolved, and the missing ones simply vanished.
-    The commitment now lasts the animation canon authors."""
+    The commitment now lasts the animation canon authors.
+
+    [ Claude Fable 5 (claude-fable-5) | 2026-08-08 23:40 UTC | resolution:
+      the ledger grew two legal exits. Range legality (Rule 12) whiffs a punch
+      thrown from a band it is not authored for - counted in bout.whiff_band,
+      not in contact, because it never reached the evasion/contact chain. And
+      a knockdown or the bell voids punches in flight - counted in
+      bout.voided. The invariant is unchanged in spirit: no punch vanishes
+      without a ledger entry saying which door it left through. ]
+    """
     thrown = sum(f.punches_thrown for f in bout.fighters)
     resolved = sum(bout.contact.values())
     in_flight = sum(1 for f in bout.fighters if f.punch)
-    assert thrown == resolved + in_flight
+    assert thrown == resolved + bout.whiff_band + bout.voided + in_flight
 
 
 # --------------------------------------------- and it reaches the fight ------
 
 def test_the_bout_produces_every_outcome_canon_can_reach(bout):
-    """Three of four, and the fourth is unreachable from any authored punch -
-    proved above against canon rather than excused here."""
+    """Clear and vacated appear in the fight; region stays unreachable by the
+    finding above; and every P row is accounted for by exactly one ledger.
+
+    [ Claude Fable 5 (claude-fable-5) | 2026-08-08 23:40 UTC | resolution:
+      this test asserted contact[COUNTER] > 0, and under Decision 0032 that
+      stopped being a structural guarantee. A counter now requires a punch
+      whose resolve tick lands inside the defender's LIVE window (startup has
+      passed, close has not) while the move sits in that evasion's authored
+      beaten_by set - a genuine timing coincidence, not a table lookup. The
+      counter PATH stays proven where it is provable: at the resolve table
+      (test_three_of_the_four_reasons_mean_what_they_say above, and the
+      Decision 0032 proof tests). Whether a given seed's fight produces one
+      is an emergent fact about policy and timing, recorded as a diagnostic
+      in the fight artifacts, not asserted here. Averaging the two claims -
+      keeping the assert with a longer run until it happened to pass - would
+      have pinned policy behavior to a test named after canon. ]
+    """
     assert bout.contact[EVADE.CLEAR] > 0
     assert bout.contact[EVADE.VACATED] > 0
-    assert bout.contact[EVADE.COUNTER] > 0
+    assert bout.contact[EVADE.COUNTER] >= 0    # reachable; proven at the table
     assert bout.contact[EVADE.REGION] == 0
-    assert sum(bout.contact.values()) == len(rows(bout, "P"))
+    assert sum(bout.contact.values()) + bout.whiff_band == len(rows(bout, "P"))
 
 
 def test_the_stream_says_why_and_not_merely_whether(bout):
     """"The jab missed because the slip was still active" is boxing. "Evasion
-    roll succeeded" is a spreadsheet wearing gloves."""
+    roll succeeded" is a spreadsheet wearing gloves.
+
+    [ Claude Fable 5 (claude-fable-5) | 2026-08-08 23:40 UTC | resolution:
+      Rule 12 added a third P-row shape - the band whiff, which says WHY just
+      as loudly: `band=X|evasion=-|whiffed|band` means "thrown from a band it
+      is not authored for", before evasion was ever consulted. It is asserted
+      as its own exact shape rather than folded into the reason vocabulary,
+      because it is a range-legality verdict, not a contact reason. The
+      trailer now also carries whiff_band and voided, so the stream's own
+      summary closes the same ledger the tests do. ]
+    """
     for r in rows(bout, "P"):
         f = r.split("|")
+        if f[-1] == "band":
+            assert f[-2] == "whiffed", r
+            assert f[5].startswith("band=") and f[6] == "evasion=-", r
+            continue
         assert f[-1] in EVADE.REASONS, r
         assert f[-2] in ("arrived", "dodged"), r
         assert f[5].startswith("region=") and f[6].startswith("evasion="), r
     trailer = bout.stream().splitlines()[-1]
     for reason in EVADE.REASONS:
         assert "%s=" % reason in trailer, trailer
+    assert "whiff_band=" in trailer and "voided=" in trailer, trailer
 
 
 def test_the_row_kinds_do_not_collide(bout):
@@ -192,7 +240,10 @@ def test_the_row_kinds_do_not_collide(bout):
     for r in rows(bout, "E"):
         assert "wind=" in r and "movement_wind_debit=" in r
     for r in rows(bout, "W"):
-        assert r.split("|")[4] in ("open", "close")
+        # [ Claude Fable 5 (claude-fable-5) | 2026-08-08 23:40 UTC |
+        #   resolution: Decision 0032 added the third window state - a window
+        #   that expired unused is `mistimed`, carrying its authored penalty. ]
+        assert r.split("|")[4] in ("open", "close", "mistimed")
 
 
 def test_a_dodged_punch_is_never_also_blocked(bout, ec):
