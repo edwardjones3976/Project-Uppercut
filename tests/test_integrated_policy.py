@@ -15,15 +15,27 @@ sys.path.insert(0, ROOT)
 from tools.uppercut_integrated import policy as P   # noqa: E402
 from tools.uppercut_integrated import rng as R      # noqa: E402
 
-CONTRACT = "uppercut-integrated-v1"
+CONTRACT = "uppercut-integrated-v2"
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 11:20 UTC | START edit: Decision 0026 ]
+# These tests were written against Decision 0022's flat substream
+# namespace. Ruling A made the fighter-local domains hierarchical, so the
+# names moved from `policy_intent` to `policy_intent/<participant>` and the
+# bare cursor stopped existing. The CLAIMS below are unchanged - only the
+# way a stream is named. Where a test iterated `R.SUBSTREAMS` it now
+# iterates the streams a bout actually materialises, which is the same set
+# with the fighter-local ones expanded per participant.
+PARTICIPANTS = ("red_corner", "blue_corner")
+RED, BLUE = PARTICIPANTS
+# [ ... | 2026-08-08 11:20 UTC | END edit ]
+
 
 
 def streams(seed=4242):
-    return R.BoutRng(seed, CONTRACT)
+    return R.BoutRng(seed, CONTRACT, PARTICIPANTS)
 
 
 def policy_stream(seed=4242):
-    return streams(seed).stream("policy_intent")
+    return streams(seed).stream("policy_intent", RED)
 
 
 def obs(**kw):
@@ -61,11 +73,15 @@ def test_2_a_different_policy_seed_changes_tie_breaking():
                                    "evasion_defense", "movement_range"])
 def test_3_and_4_other_streams_cannot_move_the_policy(other):
     quiet, loud = streams(), streams()
+    # Decision 0026: the fighter-local domains are only reachable with an
+    # owner, so the noisy stream is scoped for those and bare for the rest.
+    noisy = (loud.stream(other, BLUE) if other in R.FIGHTER_LOCAL
+             else loud.stream(other))
     for _ in range(5000):
-        loud.stream(other).next_u32()
-    a = [P.decide(obs(), quiet.stream("policy_intent")).as_row()
+        noisy.next_u32()
+    a = [P.decide(obs(), quiet.stream("policy_intent", RED)).as_row()
          for _ in range(40)]
-    b = [P.decide(obs(), loud.stream("policy_intent")).as_row()
+    b = [P.decide(obs(), loud.stream("policy_intent", RED)).as_row()
          for _ in range(40)]
     assert a == b, "draws on %s moved the policy" % other
 
@@ -143,7 +159,9 @@ def test_10_low_wind_seeks_recovery_when_it_can():
     d = P.decide(obs(wind_is_low=True, range_band="outside",
                      preferred_band="outside"), policy_stream())
     assert d.strategic == P.RECOVER and d.tactical == P.REST
-    assert d.reason == P.R_RECOVER_WIND
+    # Decision 0026 renamed this: resting at safe distance is
+    # REST_WHEN_SAFE, distinct from the emergency RECOVER_WIND.
+    assert d.reason == P.R_REST_WHEN_SAFE
 
 
 def test_10b_low_wind_does_not_rest_while_being_walked_down():

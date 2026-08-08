@@ -81,16 +81,40 @@ R_DEFEND_INCOMING = "DEFEND_INCOMING"
 R_HAND_UNAVAILABLE = "HAND_UNAVAILABLE"
 R_STILL_RECOVERING = "STILL_RECOVERING"
 R_MANAGE_CLOCK = "MANAGE_CLOCK"
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 08:10 UTC | START edit: F2 ]
+# Added because the first integrated round found its absence. There was a
+# reason code for leaving a bad RANGE and none for leaving to BREATHE, so a
+# tired fighter with a man in front of him held position - and held it for 165
+# seconds, at half the recovery rate, choosing "recover" 9,317 times and never
+# once resting. The gap was not in the numbers; it was a sentence boxing knows
+# and the policy could not say.
+#
+# SUPERSEDED THE SAME DAY by Decision 0026 Ruling B, which named the behaviour
+# properly and asked for four codes rather than one. MAKE_ROOM_TO_BREATHE is
+# kept as the alias of SEEK_RECOVERY_SPACE rather than deleted, because it
+# appears in the 2026-08-08 diagnostic write-up and a reader tracing that
+# document should land somewhere rather than nowhere.
+R_SEEK_RECOVERY_SPACE = "SEEK_RECOVERY_SPACE"
+R_REST_WHEN_SAFE = "REST_WHEN_SAFE"
+R_RECOVERY_DENIED = "RECOVERY_DENIED"
+R_RECOVERY_INTERRUPTED = "RECOVERY_INTERRUPTED"
+R_MAKE_ROOM_TO_BREATHE = R_SEEK_RECOVERY_SPACE
+# [ ... | 2026-08-08 08:10 UTC | END edit ]
 
 REASONS = (R_SEEK_PREFERRED_RANGE, R_NO_LEGAL_ATTACK, R_HOLD_GOOD_RANGE,
            R_RECOVER_WIND, R_PROTECT_DAMAGED_BODY, R_PRESSURE_ROPES,
            R_PUNISH_RECOVERY, R_PUNISH_REPEATED_JAB, R_EXIT_BAD_RANGE,
            R_ATTACK_OPEN_LANE, R_AVOID_OVERCOMMIT, R_ESCAPE_ROPES,
            R_DEFEND_INCOMING, R_HAND_UNAVAILABLE, R_STILL_RECOVERING,
-           R_MANAGE_CLOCK)
+           R_MANAGE_CLOCK, R_SEEK_RECOVERY_SPACE, R_REST_WHEN_SAFE,
+           R_RECOVERY_DENIED, R_RECOVERY_INTERRUPTED)
 
-# The stream this policy is allowed to touch, by name.
+# The DOMAIN this policy is allowed to touch. Decision 0026 made the stream
+# fighter-local, so the name a caller hands in is `policy_intent/<participant>`
+# and the check below is on the domain, not on the whole string - otherwise the
+# guard would reject exactly the streams the ruling requires.
 POLICY_STREAM = "policy_intent"
+POLICY_DOMAIN = POLICY_STREAM
 
 
 class PolicyError(ValueError):
@@ -116,6 +140,11 @@ class Observation(object):
         "wind_fraction", "reserve_fraction", "wind_is_low", "wind_is_exhausted",
         "hands_available", "in_recovery", "recovery_ticks_left",
         "damaged_regions", "hurt",
+        # Decision 0026 Ruling B. `recovery_seeking` is the fighter's own
+        # standing intent, which is legally known to himself and is what makes
+        # the hysteresis a property of the fighter rather than of the tick.
+        # `wind_is_recovered` is the declared EXIT condition, read from canon.
+        "recovery_seeking", "wind_is_recovered",
         # position, observable
         "range_band", "preferred_band", "on_ropes", "cornered",
         # the opponent, observable only
@@ -140,6 +169,7 @@ class Observation(object):
             "wind_is_low": False, "wind_is_exhausted": False,
             "hands_available": ("lead", "rear"), "in_recovery": False,
             "recovery_ticks_left": 0, "damaged_regions": (), "hurt": False,
+            "recovery_seeking": False, "wind_is_recovered": True,
             "range_band": "mid", "preferred_band": "mid", "on_ropes": False,
             "cornered": False, "opponent_band": "mid",
             "opponent_committed": False, "opponent_recovering": False,
@@ -258,13 +288,44 @@ def _tie_break(options, stream):
         return None
     if stream is None:
         return options[0]
-    if getattr(stream, "name", None) != POLICY_STREAM:
-        raise PolicyError(
-            "the policy was handed the %r stream. It may consume only %r - a "
-            "policy that can reach contact or judging randomness is a policy "
-            "that can be accused of reading them."
-            % (getattr(stream, "name", stream), POLICY_STREAM))
+    _require_policy_stream(stream)
     return options[stream.below(len(options))]
+
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 11:35 UTC | START edit: Decision 0026 ]
+def _require_policy_stream(stream):
+    """The ownership check, in one place and applied before any draw.
+
+    IT USED TO LIVE ONLY IN `_tie_break`, AND THAT WAS A HOLE. Branch 11 draws
+    `stream.below(10000)` directly to decide whether to spend, and that call
+    never passed through the check - so a caller who handed the policy the
+    contact stream would have had it consumed rather than refused, on any tick
+    that reached branch 11. Found by a Decision 0026 test that stopped raising
+    for the wrong reason: the assertion was right, the coverage was not.
+
+    Domain, not full name: `policy_intent/red_corner` is the shape Ruling A
+    requires, and a whole-string comparison would reject exactly the streams
+    the ruling mandates.
+    """
+    if stream is None:
+        return
+    name = getattr(stream, "name", None)
+    domain = name.split(SCOPE_SEP, 1)[0] if isinstance(name, str) else None
+    if domain != POLICY_DOMAIN:
+        raise PolicyError(
+            "the policy was handed the %r stream. It may consume only %r/<owner> "
+            "- a policy that can reach contact or judging randomness is a "
+            "policy that can be accused of reading them."
+            % (name if name is not None else stream, POLICY_DOMAIN))
+    if name == POLICY_DOMAIN:
+        raise PolicyError(
+            "the policy was handed the unscoped %r cursor. Decision 0026 makes "
+            "policy randomness fighter-local: one fighter thinking an extra "
+            "time must not move the other's tie-break." % POLICY_DOMAIN)
+
+
+SCOPE_SEP = "/"
+# [ ... | 2026-08-08 11:35 UTC | END edit ]
 
 
 def _initiative(obs):
@@ -302,6 +363,9 @@ def decide(obs, stream=None, profile=None):
     """
     if not isinstance(obs, Observation):
         raise PolicyError("decide() takes an Observation, got %r" % type(obs))
+    # Decision 0026: refuse a foreign stream BEFORE any branch can draw from
+    # it, not only where a tie is broken.
+    _require_policy_stream(stream)
     profile = profile or Profile(preferred_band=obs.preferred_band)
     init = _initiative(obs)
 
@@ -313,8 +377,13 @@ def decide(obs, stream=None, profile=None):
     # 2. An attack is landing. Answer it before doing anything you'd prefer.
     if obs.incoming_attack:
         tactic = EVADE if not obs.wind_is_low else GUARD
+        # Decision 0026: a fighter who WAS recovering and has to answer a punch
+        # has had his recovery interrupted, and the log should say so rather
+        # than reporting a generic defence and losing why it happened.
         return Decision(COUNTER, tactic, "slip_lead" if tactic == EVADE
-                        else "guard_high", R_DEFEND_INCOMING, init)
+                        else "guard_high",
+                        R_RECOVERY_INTERRUPTED if _wants_recovery(obs)
+                        else R_DEFEND_INCOMING, init)
 
     # 3. Off the ropes. Being trapped outranks every plan that assumes room.
     if (obs.on_ropes or obs.cornered) and not obs.opponent_recovering:
@@ -339,14 +408,40 @@ def decide(obs, stream=None, profile=None):
     #    a fighter who does not take it is not boxing.
     if obs.opponent_recovering and attacks:
         return Decision(EXPLOIT_CONDITION, ATTACK, _tie_break(attacks, stream),
-                        R_PUNISH_RECOVERY, init)
+                        R_RECOVERY_INTERRUPTED if _wants_recovery(obs)
+                        else R_PUNISH_RECOVERY, init)
 
-    # 7. Low on Wind. Recover when the situation permits it - which is what
-    #    makes this a decision rather than a reflex.
-    if obs.wind_is_low and not obs.opponent_advancing:
-        tactic = REST if obs.range_band in ("outside", "out_of_range") \
-            else HOLD_POSITION
-        return Decision(RECOVER, tactic, None, R_RECOVER_WIND, init)
+    # 7. THE RECOVERY-SPACE LOOP. Decision 0026 Ruling B.
+    #
+    #        need recovery -> assess threat and range
+    #                      -> unsafe? create or defend space
+    #                      -> safe?   rest
+    #                      -> stay recovery-seeking until recovered or
+    #                         interrupted
+    #
+    # The first version of this branch rested only at outside range and held
+    # position otherwise. Holding position is the right answer to "can I rest
+    # here?" and no answer at all to "how do I get somewhere I can?" - so in a
+    # round where recovery was chosen 9,317 times out of 10,800, `rest` was
+    # chosen zero times and every tick paid half rate.
+    if _wants_recovery(obs):
+        # The opponent can DENY recovery, and this is where that happens. A
+        # pressure fighter makes exhaustion harder to escape by walking his man
+        # down - not by holding a stamina-drain ability, which is the version
+        # of this that would have been easy and wrong.
+        if obs.opponent_advancing:
+            return Decision(RECOVER, GUARD, "guard_high", R_RECOVERY_DENIED,
+                            init)
+        # Safe distance and nobody coming: this is what rest is for, and it is
+        # the only state that pays well.
+        if obs.range_band in ("outside", "out_of_range"):
+            return Decision(RECOVER, REST, None, R_REST_WHEN_SAFE, init)
+        # Close, but he is not coming forward, so the room is there to be
+        # taken. Boxing calls this circling out. Tying up and clinching are the
+        # other real answers and both need subsystems that do not exist yet -
+        # named here so their absence is a known gap rather than an oversight.
+        return Decision(RECOVER, RETREAT, "step_out", R_SEEK_RECOVERY_SPACE,
+                        init)
 
     # 8. He keeps showing you the same thing. Punish the pattern.
     if attacks and _repeats(obs.opponent_recent_moves) >= 3:
@@ -386,6 +481,34 @@ def decide(obs, stream=None, profile=None):
                     HOLD_POSITION, None,
                     R_MANAGE_CLOCK if obs.ticks_left_in_round < 600
                     else R_HOLD_GOOD_RANGE, init)
+
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 10:00 UTC | START edit: Decision 0026 ]
+def _wants_recovery(obs):
+    """Is this fighter recovery-seeking right now? The hysteresis, in one place.
+
+    Two conditions, not one:
+
+        ENTER   Wind drops below the declared low threshold.
+        EXIT    Wind climbs back above a SEPARATE declared recovered threshold.
+
+    Between them the intent persists, which is the whole point. A single
+    threshold makes a fighter stop recovering the instant he crosses it, spend,
+    fall back under, and recover again - on alternate ticks, forever. The first
+    integrated round produced the coarse version of that: a Wind trace that sat
+    flat on the entry threshold for 165 seconds.
+
+    Both thresholds come from `data/stamina_economy.json` via the caller, not
+    from constants here. Decision 0026 requires them declared and configurable,
+    and a policy that carried its own copy would be the second opinion about
+    canon this project keeps deleting.
+    """
+    if obs.wind_is_exhausted:
+        return True
+    if obs.wind_is_low:
+        return True
+    return obs.recovery_seeking and not obs.wind_is_recovered
+# [ ... | 2026-08-08 10:00 UTC | END edit ]
 
 
 def _repeats(moves):

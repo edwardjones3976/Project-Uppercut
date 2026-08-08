@@ -73,6 +73,14 @@ def economy_pack():
         "wind_low": floordiv(q(wind["max"]) * q(wind["low_threshold_fraction"]), 10000),
         "wind_exhausted": floordiv(
             q(wind["max"]) * q(wind["exhausted_threshold_fraction"]), 10000),
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+        #   2026-08-08 09:35 UTC | START edit: Decision 0026 hysteresis ]
+        # The EXIT from recovery-seeking, distinct from the entry. Read here
+        # rather than chosen in the policy, because 0026 requires the
+        # thresholds be declared and configurable rather than scattered.
+        "wind_recovered": floordiv(
+            q(wind["max"]) * q(wind["recovery_exit_fraction"]), 10000),
+        # [ ... | 2026-08-08 09:35 UTC | END edit ]
         "wind_between_rounds": q(wind["between_rounds_recovery_fraction"]),
         # ONLY the eight declared action families, by name. An earlier draft
         # took everything that did not start with "$", which meant a new prose
@@ -143,6 +151,22 @@ def economy_pack():
                 "a rate that can refill the pool inside one round means nobody "
                 "ever tires. This is the units error, twice made."
                 % (state, rate * round_ticks / 10000.0, c["wind_max"] / 10000.0))
+
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+    #   2026-08-08 09:35 UTC | START edit: Decision 0026 hysteresis ]
+    if c["wind_recovered"] <= c["wind_low"]:
+        c["errors"].append(
+            "the recovery EXIT (%d) is not above the recovery ENTRY (%d), so "
+            "recovery intent has no hysteresis and a fighter flickers between "
+            "resting and fighting on consecutive ticks - the oscillation "
+            "Decision 0026 Ruling B exists to prevent"
+            % (c["wind_recovered"], c["wind_low"]))
+    if c["wind_recovered"] > c["wind_max"]:
+        c["errors"].append(
+            "the recovery exit (%d) is above a full pool (%d), so a fighter "
+            "could never stop seeking recovery" % (c["wind_recovered"],
+                                                   c["wind_max"]))
+    # [ ... | 2026-08-08 09:35 UTC | END edit ]
 
     if c["ceiling_floor"] + c["ceiling_span"] != 10000:
         c["errors"].append(

@@ -26,6 +26,7 @@ sys.path.insert(0, REPO)
 from tools.uppercut_integrated import policy as P     # noqa: E402
 from tools.uppercut_integrated import rng as R        # noqa: E402
 from tools.uppercut_integrated import contract as C   # noqa: E402
+from tools.uppercut_integrated import fighter as FS   # noqa: E402
 from tools.uppercut_stamina import economy as E       # noqa: E402
 
 ROUND_TICKS = 180 * 60
@@ -97,31 +98,23 @@ def displacement_per_tick_ru(repo):
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 07:35 UTC | END edit ]
 
 
-def observe(me, foe, c, stride, tick, ticks_left):
-    """Build one fighter's view. Only what a fighter could actually see.
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 08:35 UTC | START edit: the observation seam ]
+# The hand-rolled `observe()` that used to live here is gone. It built an
+# Observation out of this file's own dict of fighter fields, which made a
+# HARNESS the author of "what can a fighter see?" - and a harness may explore,
+# not define. `FighterState.observation()` is now the single answer and this
+# probe consumes it like any other caller will.
+#
+# The bookkeeping below is the probe's own and stays the probe's own: a trace,
+# a reason histogram and the Wind ledger are diagnostics, not fight state, and
+# putting them on FighterState would have smuggled them into the runtime.
+class Log(object):
+    __slots__ = ("trace", "reasons", "family_ticks", "family_wind", "last_tactic")
 
-    The opponent contributes his BAND, whether he is committed or recovering,
-    whether he is coming forward, and what he has been throwing. Never his Wind,
-    never his Reserve - those are not on Observation and could not be passed.
-    """
-    return P.Observation(
-        wind_fraction=E.floordiv(me["wind"] * 10000, c["wind_max"]),
-        reserve_fraction=E.floordiv(me["reserve"] * 10000, c["reserve_max"]),
-        wind_is_low=me["wind"] < c["wind_low"],
-        wind_is_exhausted=me["wind"] < c["wind_exhausted"],
-        hands_available=("lead", "rear"),
-        in_recovery=me["recovery"] > 0,
-        recovery_ticks_left=me["recovery"],
-        range_band=me["band"], preferred_band=me["preferred"],
-        opponent_band=foe["band"],
-        opponent_committed=foe["recovery"] > 0,
-        opponent_recovering=foe["recovery"] > 0,
-        opponent_advancing=foe["last_tactic"] == P.ADVANCE,
-        opponent_recent_moves=tuple(foe["thrown"][-4:]),
-        round_number=1, ticks_left_in_round=ticks_left,
-        own_recent_moves=tuple(me["thrown"][-4:]),
-        consecutive_failed_attacks=me["failed"],
-    )
+    def __init__(self):
+        self.trace, self.reasons = [], {}
+        self.family_ticks, self.family_wind = {}, {}
+        self.last_tactic = None
 
 
 def run(seed=4242, ticks=ROUND_TICKS):
@@ -130,70 +123,91 @@ def run(seed=4242, ticks=ROUND_TICKS):
         raise SystemExit("the stamina canon fails its own contract: %s"
                          % "; ".join(c["errors"]))
     stride = displacement_per_tick_ru(REPO)
-    rng = R.BoutRng(seed, C.CONTRACT)
-    stream = rng.stream("policy_intent")
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 10:10 UTC | START edit: Decision 0026 ]
+    # Fighter-local streams by stable participant identity, not one shared
+    # cursor. With the shared version, red thinking one extra time moved blue's
+    # next tie-break - the coupling Decision 0022 forbids between subsystems,
+    # reappearing inside one.
+    red, blue = C.DEFAULT_PARTICIPANTS
+    rng = R.BoutRng(seed, C.CONTRACT, C.DEFAULT_PARTICIPANTS)
 
-    def fighter(preferred, aggression):
-        return {"wind": c["wind_start"], "reserve": c["reserve_start"],
-                "band": "mid", "preferred": preferred, "recovery": 0,
-                "thrown": [], "failed": 0, "last_tactic": None,
-                "punches": 0, "profile": P.Profile(aggression, preferred),
-                "wind_trace": [], "reasons": {},
-                # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
-                #   2026-08-08 07:35 UTC | START edit: the Wind ledger ]
-                # The first run reported a Wind trace that went flat and gave
-                # no way to say WHY, so the only honest reading available was
-                # "something cancels out". A resource diagnostic that cannot
-                # attribute the resource is a picture, not a diagnostic.
-                # Per family: how many ticks chose it, and the signed Wind the
-                # economy actually applied on those ticks. Signed, because the
-                # net is the thing in question - a family that both charges and
-                # repays inside one tick must not be counted twice.
-                "family_ticks": {}, "family_wind": {}}
-                # [ ... | 2026-08-08 07:35 UTC | END edit ]
-
-    fs = [fighter("mid", 6500), fighter("inside", 4000)]
+    fs = [FS.FighterState(red, c, P.Profile(6500, "mid"), band="mid"),
+          FS.FighterState(blue, c, P.Profile(4000, "inside"), band="mid")]
+    streams = {f.id: rng.stream("policy_intent", f.id) for f in fs}
+    # [ ... | 2026-08-08 10:10 UTC | END edit ]
+    logs = [Log(), Log()]
 
     for t in range(ticks):
         left = ticks - t
         for i, me in enumerate(fs):
-            foe = fs[1 - i]
-            d = P.decide(observe(me, foe, c, stride, t, left), stream,
-                         me["profile"])
-            me["reasons"][d.reason] = me["reasons"].get(d.reason, 0) + 1
-            me["last_tactic"] = d.tactical
+            foe, log = fs[1 - i], logs[i]
+            me.update_recovery_intent(c)
+            d = P.decide(me.observation(c, foe, ticks_left_in_round=left),
+                         streams[me.id], me.profile)
+            log.reasons[d.reason] = log.reasons.get(d.reason, 0) + 1
+            previous_tactic, log.last_tactic = log.last_tactic, d.tactical
+            me.advancing = d.tactical == P.ADVANCE
 
             family = FAMILY[d.tactical]
             move = d.execution
             disp = stride if d.tactical in (P.ADVANCE, P.RETREAT) else 0
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+            #   2026-08-08 10:25 UTC | START edit: Decision 0026 Ruling D ]
+            # A MOVE ID'S COST IS PER ACTION, NOT PER TICK, and the first
+            # version of this loop charged it every tick the decision repeated.
+            # A guard held for 31 ticks paid `guard_high` thirty-one times. It
+            # showed up as a `guard` family bleeding 0.012 Wind a tick, which
+            # is the exact shape of the units defect this probe was rewritten
+            # to stop making - the same mistake, one layer up, found by the
+            # ledger four hours after the ledger was added.
+            #
+            # An attack is a new commitment every time it is chosen. A guard,
+            # an evasion or a pivot is entered once and then held, so it is
+            # charged on the tick it is entered and free to sustain. Movement
+            # is displacement-priced and is charged continuously, because the
+            # ground is covered continuously.
+            # AND THE FIRST VERSION OF THIS FIX BROKE MOVEMENT, which is worth
+            # keeping on the record because it is the failure this repository
+            # fears most. Suppressing the repeated move_id also suppressed the
+            # DISPLACEMENT charge, movement became free, and both fighters
+            # finished the round at 99.7% Wind having walked for three minutes.
+            # Nothing raised. The probe simply reported that boxing is not
+            # tiring - the identical symptom the `UnknownMove` docstring
+            # describes from 2026-08-07, produced by the opposite cause.
+            #
+            # So the rule is per-BASIS, not per-tactic, and it is read from the
+            # economy rather than restated here: a displacement-priced move is
+            # charged every tick because the ground is covered every tick; a
+            # flat per-action move is charged once, when it is entered.
+            priced_by_distance = bool(move and c["moves"].get(move, {})
+                                      .get("displacement"))
+            newly_committed = (d.tactical == P.ATTACK
+                               or d.tactical != previous_tactic)
+            charge = move if (move and (priced_by_distance or newly_committed)) \
+                else None
+            # [ ... | 2026-08-08 10:25 UTC | END edit ]
             if d.tactical == P.ATTACK:
-                me["punches"] += 1
-                me["thrown"].append(move)
-                me["recovery"] = 14          # a committed punch is not free
-                me["failed"] = 0
-            if me["recovery"] > 0:
-                me["recovery"] -= 1
+                me.committed_to(move, 14)    # a committed punch is not free
+            me.tick_recovery()
 
-            before = me["wind"]
-            me["wind"], me["reserve"] = E.step(
-                c, me["wind"], me["reserve"], family,
-                move_id=move if move else None, displacement_ru=disp)
-            me["family_ticks"][family] = me["family_ticks"].get(family, 0) + 1
-            me["family_wind"][family] = (me["family_wind"].get(family, 0)
-                                         + me["wind"] - before)
+            before = me.wind
+            me.step(c, family, move_id=charge, displacement_ru=disp)
+            log.family_ticks[family] = log.family_ticks.get(family, 0) + 1
+            log.family_wind[family] = (log.family_wind.get(family, 0)
+                                       + me.wind - before)
 
             # Movement actually moves. Bands are the range subsystem's job in
             # the real bout; here they are a stand-in so the policy has
             # something to react to, and this probe claims nothing about range.
             if d.tactical == P.ADVANCE:
-                me["band"] = foe["band"] = _closer(me["band"])
+                me.band = foe.band = _closer(me.band)
             elif d.tactical == P.RETREAT:
-                me["band"] = foe["band"] = _further(me["band"])
+                me.band = foe.band = _further(me.band)
 
             if t % 60 == 0:
-                me["wind_trace"].append(
-                    round(me["wind"] * 100.0 / c["wind_max"], 2))
-    return c, fs
+                log.trace.append(round(me.wind_pct(c), 2))
+    return c, fs, logs
+# [ ... | 2026-08-08 08:35 UTC | END edit ]
 
 
 def _closer(band):
@@ -213,7 +227,7 @@ def main(argv=None):
     ap.add_argument("--out", default=None)
     args = ap.parse_args(argv)
 
-    c, fs = run(args.seed, args.ticks)
+    c, fs, logs = run(args.seed, args.ticks)
     econ = json.load(io.open(os.path.join(REPO, "data", "stamina_economy.json"),
                              encoding="utf-8"))
     bands = econ["acceptance_bands"]
@@ -223,36 +237,52 @@ def main(argv=None):
             "Structural diagnostic under Director ruling R5. Not calibration "
             "evidence, not an integrated golden stream. No canon value changed, "
             "no pin written, no hash taken."),
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+        #   2026-08-08 10:15 UTC | START edit: Decision 0026 Ruling C ]
+        "stress_only": True,
+        "stress_note": (
+            "THIS RUN DRIVES MOVEMENT AT max_frame_displacement_ru EVERY "
+            "MOVEMENT TICK. Decision 0026 Ruling C: that value is a CEILING, "
+            "not the distance a movement action travels, and the real figure "
+            "is whatever the authoritative shared range runtime displaces. A "
+            "probe may drive at the cap as a stress case; the depletion rate "
+            "it produces MAY NOT be cited as evidence for or against the 0.60 "
+            "wind-per-reach-unit coefficient, or any other stamina value. The "
+            "first legitimate tuning evidence comes from the integrated policy "
+            "driving the real range runtime and recording actual displacement, "
+            "which does not exist yet."),
+        "excluded_from_fit_evidence": True,
+        # [ ... | 2026-08-08 10:15 UTC | END edit ]
         "seed": args.seed, "ticks": args.ticks,
         "wind_max": c["wind_max"],
         "acceptance_bands": bands,
         "values_are_fitted": econ["calibration_status"]["values_are_fitted"],
         "fighters": [],
     }
-    for i, f in enumerate(fs):
-        end_pct = f["wind"] * 100.0 / c["wind_max"]
+    for i, (f, log) in enumerate(zip(fs, logs)):
+        end_pct = f.wind_pct(c)
         report["fighters"].append({
-            "id": i,
-            "preferred_band": f["preferred"],
-            "aggression_bias": f["profile"].aggression_bias,
-            "punches": f["punches"],
+            "id": f.id,
+            "preferred_band": f.profile.preferred_band,
+            "aggression_bias": f.profile.aggression_bias,
+            "punches": f.punches_thrown,
             "end_wind_pct": round(end_pct, 2),
-            "end_reserve_pct": round(f["reserve"] * 100.0 / c["reserve_max"], 2),
-            "wind_trace_pct": f["wind_trace"],
-            "reasons": dict(sorted(f["reasons"].items(),
+            "end_reserve_pct": round(f.reserve_pct(c), 2),
+            "wind_trace_pct": log.trace,
+            "reasons": dict(sorted(log.reasons.items(),
                                    key=lambda kv: -kv[1])),
             # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
             #   2026-08-08 07:35 UTC | START edit: the Wind ledger ]
             "wind_ledger": [
                 {"family": fam,
-                 "ticks": f["family_ticks"][fam],
+                 "ticks": log.family_ticks[fam],
                  "net_wind_pct": round(
-                     f["family_wind"][fam] * 100.0 / c["wind_max"], 2),
+                     log.family_wind[fam] * 100.0 / c["wind_max"], 2),
                  "per_tick_wind_pct": round(
-                     f["family_wind"][fam] * 100.0
-                     / c["wind_max"] / f["family_ticks"][fam], 5)}
-                for fam in sorted(f["family_ticks"],
-                                  key=lambda k: f["family_wind"][k])
+                     log.family_wind[fam] * 100.0
+                     / c["wind_max"] / log.family_ticks[fam], 5)}
+                for fam in sorted(log.family_ticks,
+                                  key=lambda k: log.family_wind[k])
             ],
             # [ ... | 2026-08-08 07:35 UTC | END edit ]
             "in_ordinary_band": bool(
@@ -263,8 +293,10 @@ def main(argv=None):
     text = json.dumps(report, indent=2)
     if args.out:
         io.open(args.out, "w", encoding="utf-8", newline="\n").write(text + "\n")
+    print("STRESS RUN - movement driven at the per-tick displacement CAP. "
+          "Decision 0026 Ruling C: not fit evidence for any stamina value.\n")
     for f in report["fighters"]:
-        print("fighter %d  pref=%-8s aggr=%-5d punches=%-4d end_wind=%5.1f%% "
+        print("fighter %-11s pref=%-8s aggr=%-5d punches=%-4d end_wind=%5.1f%% "
               "end_reserve=%5.1f%%  ordinary_band=%s"
               % (f["id"], f["preferred_band"], f["aggression_bias"],
                  f["punches"], f["end_wind_pct"], f["end_reserve_pct"],
