@@ -208,12 +208,30 @@ class FighterState(object):
         return self.recovery_seeking
 
     def observation(self, economy, foe, round_number=1,
-                    ticks_left_in_round=10800, incoming_attack=False):
+                    ticks_left_in_round=10800, incoming_attack=False,
+                    throwable_here=None, bands=None):
         """The policy's view. The ONE translation from state to observability.
 
         `foe` may be a `FighterState` or an `Observable`; a `FighterState` is
         narrowed here rather than read directly, so there is no path by which
         this function can reach the opponent's Wind even by mistake.
+
+        [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 02:45 UTC
+          | START edit: offence legality arrives from the range authority ]
+        `throwable_here` and `bands` come from `uppercut_range.core` - the
+        single authority on which punches canon authors for which band - and
+        they are REQUIRED rather than defaulted. The policy refuses an
+        Observation without them for a reason worth repeating here, since this
+        is the function that would have supplied the default: "defaulting to
+        'nothing is throwable' builds a fighter who stands still for twelve
+        rounds and never says why." That fighter existed. He fought for
+        thirty-six minutes and drew 120-120.
+
+        They are passed in rather than computed here because this class holds
+        no range pack and must not acquire one: fighter state does not get to
+        answer a question canon answers. The bout owns the pack and threads
+        the answer through, exactly as it threads the economy.
+        [ ... | 2026-08-09 02:45 UTC | END edit ]
         """
         seen = foe.observable() if isinstance(foe, FighterState) else foe
         if not isinstance(seen, Observable):
@@ -249,6 +267,8 @@ class FighterState(object):
             ticks_left_in_round=ticks_left_in_round,
             own_recent_moves=tuple(self.recent_moves[-4:]),
             consecutive_failed_attacks=self.failed_attacks,
+            throwable_here=throwable_here,
+            bands=bands,
         )
 
     # ------------------------------------------------------------- spending --

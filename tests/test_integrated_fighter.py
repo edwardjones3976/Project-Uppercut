@@ -14,6 +14,29 @@ from tools.uppercut_integrated import fighter as F
 from tools.uppercut_integrated import contract as C
 from tools.uppercut_integrated import policy as P
 
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 03:15 UTC | START edit: legality reaches the unit tests ]
+# `Observation` requires offence legality, and these tests build Observations
+# by hand. The defaults come from the SAME authority the bout reads - canon,
+# through `uppercut_range.core` - so a test never asserts against a legality
+# table written in a test file. `mid` is the band `Observation` itself
+# defaults to, so these two lines say "the fighter is where the default says
+# he is, and canon says this is what he may throw from there".
+from tools.uppercut_range import core as _RANGE          # noqa: E402
+from tools.uppercut_integrated import contract as _CONTRACT  # noqa: E402
+
+_RANGE_PACK = _RANGE.range_pack()
+_BANDS = P.Bands(_RANGE.band_order(_RANGE_PACK),
+                 _RANGE.bands_without_offence(_RANGE_PACK, _CONTRACT.PUNCHES))
+
+
+def _legality(band="mid"):
+    return {"throwable_here": _RANGE.throwable_from(_RANGE_PACK, band,
+                                                    _CONTRACT.PUNCHES),
+            "bands": _BANDS}
+# [ ... | 2026-08-09 03:15 UTC | END edit ]
+
+
 RED, BLUE = C.DEFAULT_PARTICIPANTS
 
 
@@ -30,6 +53,8 @@ def low_wind_obs(**kw):
     base = dict(wind_fraction=2000, wind_is_low=True, range_band="inside",
                 preferred_band="inside", opponent_band="inside",
                 opponent_advancing=False)
+    base.update(kw)
+    base.update(_legality(base["range_band"]))
     base.update(kw)
     return P.Observation(**base)
 

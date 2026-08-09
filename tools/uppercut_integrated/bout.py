@@ -29,6 +29,8 @@ the ropes pays for the ground he covered and not a reach unit more. That is the
 difference between this and the stand-in probe, and it is why this is the run
 that can eventually carry tuning evidence and that one never could.
 """
+import io
+import json
 import os
 import sys
 
@@ -117,6 +119,28 @@ class IntegratedBout(object):
                              % "; ".join(self.evade["canon_errors"]))
         self.frames = EVADE.punch_frames(C.PUNCHES)
         self.contact = {r: 0 for r in EVADE.REASONS}
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+        #   02:50 UTC | START edit: one authority on offence legality ]
+        # THE SECTION-1 FIX, WIRED. `policy.BY_BAND` was a hand-authored second
+        # opinion about which punches are legal from which band, and it
+        # disagreed with canon seven ways: from `outside` and from `clinch`
+        # EVERY punch it offered was refused by the range gate. That is what
+        # produced a twelve-round fight with 3,174 punches and zero contacts.
+        # There is now one derivation, canon's, and both the chooser and the
+        # gate read it. `bands` carries the two facts a fighter genuinely knows
+        # about range: which way is closer, and which ranges he cannot work
+        # from.
+        self.bands = P.Bands(RANGE.band_order(self.range),
+                             RANGE.bands_without_offence(self.range, C.PUNCHES))
+        # Canon's reaction rules, read at last: how often a fighter
+        # reconsiders, and how old the thing he reacts to must be. The file has
+        # been hashed into every integrated stream header since the contract
+        # existed and nothing ever opened it.
+        with io.open(os.path.join(repo, "data", "cpu_decision_model.json"),
+                     encoding="utf-8") as fh:
+            self.cadence = P.Cadence(json.load(fh)["reaction"])
+        self.last_decision = {}
+        # [ ... | 2026-08-09 02:50 UTC | END edit ]
         # [ ... | 2026-08-09 00:40 UTC | END edit ]
 
         # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) |
@@ -561,10 +585,19 @@ class IntegratedBout(object):
             me.on_ropes = self._on_ropes(me)
             me.update_recovery_intent(self.econ)
             # A punch already in the air is observable - the telegraph.
-            d = P.decide(me.observation(self.econ, foe,
-                                        ticks_left_in_round=left,
-                                        incoming_attack=foe.punch is not None),
-                         self.streams[me.id], me.profile)
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+            #   02:55 UTC | START edit: legality and cadence reach the decision ]
+            # What he may throw FROM WHERE HE IS STANDING, derived from canon
+            # by the one authority. Not a table, not a copy, not a default.
+            throwable = RANGE.throwable_from(self.range, me.band, C.PUNCHES)
+            obs = me.observation(self.econ, foe,
+                                 round_number=self.round_no,
+                                 ticks_left_in_round=left,
+                                 incoming_attack=foe.punch is not None,
+                                 throwable_here=throwable,
+                                 bands=self.bands)
+            d = P.decide(obs, self.streams[me.id], me.profile)
+            # [ ... | 2026-08-09 02:55 UTC | END edit ]
             self.rows.append("D|%d|%s|%s|%s|%s|%s|%d"
                              % (t, me.id, d.strategic, d.tactical,
                                 d.execution or "-", d.reason, d.initiative))
