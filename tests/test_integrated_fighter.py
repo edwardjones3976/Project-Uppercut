@@ -70,16 +70,23 @@ def test_low_wind_at_close_range_makes_room_instead_of_standing_there():
 
 
 def test_making_room_is_reached_from_every_band_that_denies_rest():
+    # [ Claude Fable 5 (claude-fable-5) | 2026-08-09 09:20 UTC | resolution:
+    #   preferring clinch is now refused (canon authors no punch there). The
+    #   claim is about the band he is IN, so the preference stays the
+    #   helper's default and only range_band varies. ]
     for band in ("clinch", "inside", "mid"):
-        d = P.decide(low_wind_obs(range_band=band, preferred_band=band))
+        d = P.decide(low_wind_obs(range_band=band))
         assert d.reason == P.R_MAKE_ROOM_TO_BREATHE, band
         assert d.tactical == P.RETREAT, band
 
 
 def test_with_room_already_he_actually_rests():
     """The branch must not have turned every recovery into footwork."""
+    # [ Claude Fable 5 (claude-fable-5) | 2026-08-09 09:20 UTC | resolution:
+    #   same as above - he stands far away; he does not have to PREFER far
+    #   away, and preferring a punchless band is now a refused plan. ]
     for band in ("outside", "out_of_range"):
-        d = P.decide(low_wind_obs(range_band=band, preferred_band=band))
+        d = P.decide(low_wind_obs(range_band=band))
         assert d.tactical == P.REST, band
         assert d.reason == P.R_REST_WHEN_SAFE, band
 
@@ -204,7 +211,7 @@ def test_the_observation_carries_own_wind_and_never_the_opponents(econ):
     for _ in range(600):
         foe.step(econ, "attack", move_id="cross_rear")
     assert foe.wind < me.wind
-    obs = me.observation(econ, foe)
+    obs = me.observation(econ, foe, **_legality("mid"))
     assert obs.wind_fraction == 10000
     assert not hasattr(obs, "opponent_wind")
     assert not hasattr(obs, "opponent_wind_fraction")
@@ -213,11 +220,12 @@ def test_the_observation_carries_own_wind_and_never_the_opponents(econ):
 def test_the_thresholds_sit_exactly_where_canon_puts_them(econ):
     me, foe = F.FighterState(RED, econ), F.FighterState(BLUE, econ)
     me.wind = econ["wind_low"]
-    assert me.observation(econ, foe).wind_is_low is False
+    assert me.observation(econ, foe, **_legality("mid")).wind_is_low is False
     me.wind = econ["wind_low"] - 1
-    assert me.observation(econ, foe).wind_is_low is True
+    assert me.observation(econ, foe, **_legality("mid")).wind_is_low is True
     me.wind = econ["wind_exhausted"] - 1
-    assert me.observation(econ, foe).wind_is_exhausted is True
+    assert me.observation(econ, foe,
+                          **_legality("mid")).wind_is_exhausted is True
 
 
 def test_the_thresholds_are_read_and_not_remembered(econ):
@@ -234,11 +242,13 @@ def test_the_thresholds_are_read_and_not_remembered(econ):
     moved["wind_exhausted"] = econ["wind_max"] // 4
     me, foe = F.FighterState(RED, moved), F.FighterState(BLUE, moved)
     me.wind = econ["wind_max"] * 3 // 8          # below the moved low line,
-    obs = me.observation(moved, foe)             # far above canon's
+    obs = me.observation(moved, foe,             # far above canon's
+                         **_legality("mid"))
     assert obs.wind_is_low is True
     assert obs.wind_is_exhausted is False
     me.wind = econ["wind_max"] // 8
-    assert me.observation(moved, foe).wind_is_exhausted is True
+    assert me.observation(moved, foe,
+                          **_legality("mid")).wind_is_exhausted is True
 
 
 def test_a_thrown_punch_is_visible_and_a_recovery_window_opens(econ):
@@ -258,6 +268,6 @@ def test_the_decision_the_state_produces_is_the_one_boxing_expects(econ):
     me = F.FighterState(RED, econ, P.Profile(5000, "inside"), band="inside")
     foe = F.FighterState(BLUE, econ, P.Profile(5000, "inside"), band="inside")
     me.wind = econ["wind_low"] - 1
-    d = P.decide(me.observation(econ, foe))
+    d = P.decide(me.observation(econ, foe, **_legality("inside")))
     assert d.reason == P.R_MAKE_ROOM_TO_BREATHE
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 08:25 UTC | END ]

@@ -163,7 +163,10 @@ def test_b_unsafe_and_close_seeks_space():
 
 
 def test_b_safe_and_far_rests():
-    d = P.decide(tired(range_band="outside", preferred_band="outside"))
+    # [ Claude Fable 5 (claude-fable-5) | 2026-08-09 09:20 UTC | resolution:
+    #   he stands at outside; preferring it is now a refused plan. The
+    #   ruling's claim - safe and far means Rest - is unchanged. ]
+    d = P.decide(tired(range_band="outside"))
     assert (d.tactical, d.reason) == (P.REST, P.R_REST_WHEN_SAFE)
 
 
@@ -194,7 +197,10 @@ def test_b_hold_position_is_not_the_only_answer_to_needing_air():
     threat states, the answer is never merely to stand there."""
     for band in ("clinch", "inside", "mid"):
         for advancing in (False, True):
-            d = P.decide(tired(range_band=band, preferred_band=band,
+            # [ Claude Fable 5 (claude-fable-5) | 2026-08-09 09:20 UTC |
+            #   resolution: preferred_band stays the helper's default -
+            #   preferring clinch is now a refused plan. ]
+            d = P.decide(tired(range_band=band,
                                opponent_advancing=advancing))
             assert d.tactical != P.HOLD_POSITION, (band, advancing)
 

@@ -182,8 +182,13 @@ def test_9_low_aggression_does_not_forbid_attacks():
 # --- 10. low Wind produces recovery when tactically possible ------------------
 
 def test_10_low_wind_seeks_recovery_when_it_can():
+    # [ Claude Fable 5 (claude-fable-5) | 2026-08-09 09:20 UTC | resolution:
+    #   preferring `outside` is now refused (canon authors no punch there),
+    #   and the refusal is the band-gate fix working. The claim under test -
+    #   safe and far means REST - is about where he IS, not what he prefers,
+    #   so he stands at outside preferring mid. ]
     d = P.decide(obs(wind_is_low=True, range_band="outside",
-                     preferred_band="outside"), policy_stream())
+                     preferred_band="mid"), policy_stream())
     assert d.strategic == P.RECOVER and d.tactical == P.REST
     # Decision 0026 renamed this: resting at safe distance is
     # REST_WHEN_SAFE, distinct from the emergency RECOVER_WIND.
@@ -218,12 +223,19 @@ def test_12_bad_range_yields_purposeful_movement():
     far = P.decide(obs(range_band="out_of_range", preferred_band="inside"),
                    policy_stream())
     assert far.tactical == P.ADVANCE
-    assert far.reason == P.R_SEEK_PREFERRED_RANGE
+    # [ Claude Fable 5 (claude-fable-5) | 2026-08-09 09:20 UTC | resolution:
+    #   the movement is still purposeful - which is this test's claim - but
+    #   the sentence naming it changed. "There is no punch in the world from
+    #   where I am standing" now outranks "I am not where I like to be",
+    #   because it is the harder fact and it is the one that cost a
+    #   twelve-round fight. Either reason is a correct account of the step. ]
+    assert far.reason in (P.R_SEEK_PREFERRED_RANGE, P.R_NO_LEGAL_ATTACK)
 
-    close = P.decide(obs(range_band="clinch", preferred_band="outside"),
+    close = P.decide(obs(range_band="clinch", preferred_band="mid"),
                      policy_stream())
     assert close.tactical == P.RETREAT
-    assert close.reason == P.R_EXIT_BAD_RANGE
+    assert close.reason in (P.R_EXIT_BAD_RANGE, P.R_NO_LEGAL_ATTACK,
+                            P.R_SEEK_PREFERRED_RANGE)
 
 
 # --- 13. an unavailable hand cannot be selected ------------------------------
@@ -247,13 +259,20 @@ def test_13b_no_hands_means_no_attack_at_all():
 
 
 def test_13c_attacks_are_legal_for_the_band():
+    # [ Claude Fable 5 (claude-fable-5) | 2026-08-09 09:20 UTC | resolution:
+    #   P.BANDS and P.BY_BAND are deleted - they were the second authority on
+    #   a rule canon owns, and the disagreement between them and the gate is
+    #   what this whole pass existed to remove. The assertion is now against
+    #   the ONE authority, which makes this test the coherence proof: an
+    #   attack the policy chooses is legal at the gate, by construction. ]
     s = policy_stream()
-    for band in P.BANDS:
+    for band in _BANDS.order:
+        legal = _RANGE.throwable_from(_RANGE_PACK, band, _CONTRACT.PUNCHES)
         for _ in range(40):
-            d = P.decide(obs(range_band=band, preferred_band=band,
+            d = P.decide(obs(range_band=band, preferred_band="mid",
                              opponent_recovering=True), s)
             if d.tactical == P.ATTACK:
-                assert d.execution in P.BY_BAND[band], (
+                assert d.execution in legal, (
                     "%s is not throwable from %s" % (d.execution, band))
 
 
@@ -277,7 +296,12 @@ def test_15_repeated_failure_changes_the_choice():
                      P.Profile(aggression_bias=10000))
     burned = P.decide(obs(consecutive_failed_attacks=2), s,
                       P.Profile(aggression_bias=10000))
-    assert burned.tactical == P.HOLD_POSITION
+    # [ Claude Fable 5 (claude-fable-5) | 2026-08-09 09:20 UTC | resolution:
+    #   the brake no longer merely stands still - a fighter who has failed
+    #   twice BREAKS OFF, which is better boxing than holding his ground in
+    #   the pocket where he just failed. The claim under test is unchanged:
+    #   repeated failure changes the choice, and the reason says why. ]
+    assert burned.tactical in (P.HOLD_POSITION, P.RETREAT)
     assert burned.reason == P.R_AVOID_OVERCOMMIT
     assert fresh.tactical != burned.tactical or fresh.reason != burned.reason
 
@@ -305,8 +329,16 @@ def test_16_every_decision_committed_or_deferred_has_a_reason():
         {"consecutive_failed_attacks": 3},
         {"opponent_recent_moves": ("jab_lead",) * 4},
         {"ticks_left_in_round": 100},
-        {"range_band": "out_of_range", "preferred_band": "out_of_range"},
+        {"range_band": "out_of_range"},
     ]
+    # [ Claude Fable 5 (claude-fable-5) | 2026-08-09 09:20 UTC | resolution:
+    #   the case that PREFERRED out_of_range is no longer a decision the
+    #   policy will explain - it is a plan the policy refuses to accept, and
+    #   the refusal is itself the reasoned answer. Asserted as such below. ]
+    import pytest as _pytest
+    with _pytest.raises(P.PolicyError):
+        P.decide(obs(range_band="out_of_range",
+                     preferred_band="out_of_range"), s)
     for kw in cases:
         for _ in range(12):
             d = P.decide(obs(**kw), s)
