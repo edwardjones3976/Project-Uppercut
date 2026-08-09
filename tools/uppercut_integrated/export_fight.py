@@ -165,10 +165,36 @@ def main(argv=None):
     ap.add_argument("--template", default=None,
                     help="viewer HTML template; when given, watch.html is "
                          "written next to fight.json")
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 00:20 UTC
+    #   | START edit: choose the fighters ]
+    # WHO BOXES is a harness choice, not a canon change - the profiles are
+    # dispositions the policy already accepts, and Decision 0017 fixed what
+    # aggression means (initiative, not throw rate). This exists because the
+    # default pairing ends on the knockdown limit in every seed tried, and a
+    # milestone that claims "capable of ending by valid decision" has to be
+    # able to RUN the fighters that reach one.
+    ap.add_argument("--profile", action="append", default=None,
+                    metavar="AGGRESSION:BAND",
+                    help="per-fighter disposition in participant order, e.g. "
+                         "--profile 1500:outside --profile 6500:mid")
     args = ap.parse_args(argv)
 
+    profiles = None
+    if args.profile:
+        from tools.uppercut_integrated import contract as C
+        from tools.uppercut_integrated import policy as P
+        if len(args.profile) != len(C.DEFAULT_PARTICIPANTS):
+            raise SystemExit(
+                "--profile must be given once per participant (%d), got %d"
+                % (len(C.DEFAULT_PARTICIPANTS), len(args.profile)))
+        profiles = {}
+        for who, spec in zip(C.DEFAULT_PARTICIPANTS, args.profile):
+            bias, _, band = spec.partition(":")
+            profiles[who] = P.Profile(int(bias), band or "mid")
+
     bout = IntegratedBout(seed=args.seed, rounds=args.rounds,
-                          referee=args.referee)
+                          referee=args.referee, profiles=profiles)
+    # [ ... | 2026-08-09 00:20 UTC | END edit ]
     bout.run_fight()
     fight = export_fight(bout)
 

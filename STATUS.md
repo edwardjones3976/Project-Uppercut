@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-08 23:21 UTC** at `8b3a73f review: the same three lenses on the revisions (round three)`.
+Generated **2026-08-09 00:32 UTC** at `3fa7b3d The first watchable fight. complete integrated fights = 1`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **1352 passed** |
+| Test suite | **1364 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |
