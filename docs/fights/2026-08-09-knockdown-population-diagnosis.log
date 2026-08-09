@@ -1,0 +1,22 @@
+threshold      5700
+baseline       5500
+caught_comm    12500
+balanced       10000
+unguarded      3500
+impact         {'jab_lead': 4500, 'cross_rear': 8625, 'hook_lead': 7800, 'uppercut_rear': 10000, 'body_straight_rear': 8900}
+count_relief   4500 (condition) 2500 (stamina)
+
+PRESSURE BY PUNCH (undamaged jaw, full wind):
+  fresh          cross_rear=4743  cross_rear*=5928  hook_lead=4290  hook_lead*=5362  jab_lead=2475  jab_lead*=3093  uppercut_rear=5500  uppercut_rear*=6875
+  worn 50%       cross_rear=6684  cross_rear*=8355  hook_lead=6045  hook_lead*=7556  jab_lead=3487  jab_lead*=4358  uppercut_rear=7750  uppercut_rear*=9687
+  fresh, gassed  cross_rear=9011  cross_rear*=11263  hook_lead=8151  hook_lead*=10188  jab_lead=4702  jab_lead*=5877  uppercut_rear=10450  uppercut_rear*=13062
+  (* = caught committed; threshold 5700)
+
+LIVE FIGHT seed 4242 (referee_judgement r4, 65 knockdowns)
+  eligibility checks   130
+  caught committed     112 of 130 (86%)
+  accumulated condition fraction: min 0 max 593 mean 217
+  defender wind fraction:         min 7514 max 9943 mean 9207
+  pressure: min 2572 max 7956 mean 5271 | over threshold 65 (50%)
+  same contacts, committed multiplier OFF: over threshold 37 (28%)
+DIAG DONE
