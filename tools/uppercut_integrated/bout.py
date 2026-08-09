@@ -122,11 +122,11 @@ class IntegratedBout(object):
         self.frames = EVADE.punch_frames(C.PUNCHES)
         self.contact = {r: 0 for r in EVADE.REASONS}
         # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
-        #   14:00 UTC | START edit: Decision 0034 - the guard enters the fight ]
+        #   14:00 UTC | START edit: Decision 0035 - the guard enters the fight ]
         # Until now NOTHING IN THIS GAME STOPPED A PUNCH EXCEPT AN EVASION.
         # The ten postures, their extents, their hold costs and canon's one
         # interception threshold were all authored and all inert, which
-        # Decision 0034 measured as the largest cause of ~150 landed punches
+        # Decision 0035 measured as the largest cause of ~150 landed punches
         # per round. Phase L already proved the rule; it is extracted to
         # `uppercut_guard.core` and CALLED here, and Phase L re-proves
         # byte-identically.
@@ -139,8 +139,8 @@ class IntegratedBout(object):
         self.outcome = GUARD.outcome_pack()
         self.blocked = 0
         # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
-        #   16:22 UTC | edit: Decision 0035 - canon's repetition economy ]
-        # Decision 0035 measured the fight throwing about four times too much
+        #   16:22 UTC | edit: Decision 0036 - canon's repetition economy ]
+        # Decision 0036 measured the fight throwing about four times too much
         # and named these as the authored answers nothing had read. They are
         # consequences a fighter chose - an arm that has been working, feet
         # that have not moved - and both shed the moment he stops choosing
@@ -484,7 +484,7 @@ class IntegratedBout(object):
             # found nothing, so blocked 1.15 < dodged 1.30 < whiffed 1.50 on
             # the thrower's own recovery. Before this, missing cost exactly
             # what landing cost, which is half of why the fight threw ~150
-            # landed punches a round (Decision 0034).
+            # landed punches a round (Decision 0035).
             extra = self.outcome["recovery_multiplier"].get(outcome)
             if extra is not None and extra > 10000:
                 me.recovery_ticks += (me.recovery_ticks * (extra - 10000)) // 10000

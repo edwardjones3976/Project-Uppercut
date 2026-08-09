@@ -25,7 +25,8 @@ The registry is the point. It is not a suppression list - it is the difference
 between "we decided not to build this yet" and "we thought we built this".
 """
 from __future__ import annotations
-import json
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:58 UTC | F1: strict canon JSON ]
+from . import strict_json as json
 import re
 from pathlib import Path
 

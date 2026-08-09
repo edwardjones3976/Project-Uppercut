@@ -30,6 +30,21 @@ def load_manifest(repo):
     return C.Manifest.load(os.path.join(repo, "data", "hash_roles.json"))
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:55 UTC | F2: one read per canon file | START edit ]
+def _read_canon_text(repo, rel):
+    path = os.path.join(repo, rel.replace("/", os.sep))
+    with io.open(path, "r", encoding="utf-8", newline="") as fh:
+        return fh.read()
+
+
+def _schema_identity(rel, text):
+    doc = C.parse(text)
+    version = ""
+    if isinstance(doc, dict):
+        version = doc.get("schema_version") or ""
+    return "%s@%s" % (rel, version)
+
+
 def schema_identity_for(repo, rel):
     """What the document claims to be: which file, at which schema version.
 
@@ -38,20 +53,27 @@ def schema_identity_for(repo, rel):
     different dependencies. Including the declared schema_version means a schema
     bump moves identity deliberately rather than silently.
     """
-    path = os.path.join(repo, rel.replace("/", os.sep))
-    with io.open(path, "r", encoding="utf-8", newline="") as fh:
-        doc = C.parse(fh.read())
-    version = ""
-    if isinstance(doc, dict):
-        version = doc.get("schema_version") or ""
-    return "%s@%s" % (rel, version)
+    return _schema_identity(rel, _read_canon_text(repo, rel))
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:55 UTC | F2: one read per canon file | END edit ]
 
 
-def canon_header_lines(repo, entries, manifest=None):
+def canon_header_lines(repo, entries, manifest=None, texts=None):
     """`entries` is [(label, relative_path), ...] in the phase's declared order.
 
     Returns the H| lines WITHOUT trailing newlines, for a caller that joins them
     the way its own stream does.
+
+    [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:55 UTC | F2 edit ]
+    `texts` is an optional {relative_path: text} of canon already in memory -
+    the bytes the simulation actually ran on. When a text is supplied, the
+    schema identity and BOTH hashes are derived from it, so the header names
+    the bytes the fight consumed rather than whatever a second filesystem read
+    finds a moment later. When absent, each file is read ONCE and that single
+    text feeds every derivation (before this edit each entry was read twice, so
+    a midflight edit could make the raw hash and the schema identity describe
+    two different files). Hash VALUES are unchanged by construction: same
+    bytes, same algorithm - C.hashes is what hashes_for_file always delegated
+    to - so no pin moves.
     """
     man = manifest or load_manifest(repo)
     lines = [
@@ -65,7 +87,12 @@ def canon_header_lines(repo, entries, manifest=None):
         "H|canon_hash_roles_raw=%s" % man.raw_hash,
     ]
     for label, rel in entries:
-        raw, sem, _ = man.hashes_for(repo, rel, schema_identity_for(repo, rel))
+        text = None if texts is None else texts.get(rel)
+        if text is None:
+            text = _read_canon_text(repo, rel)
+        raw, sem, _ = C.hashes(text, man.patterns_for(rel),
+                               _schema_identity(rel, text),
+                               man.policy_identity, man.role_set_identity(rel))
         lines.append("H|canon_%s_semantic=%s" % (label, sem))
         lines.append("H|canon_%s_raw=%s" % (label, raw))
         lines.append("H|canon_%s_roles=%s" % (label, man.role_set_identity(rel)))
@@ -102,7 +129,13 @@ def verify_header(repo, heads, entries, manifest=None):
             % (heads.get("canon_hash_policy") or "none"))
 
     for label, rel in entries:
-        raw, sem, _ = man.hashes_for(repo, rel, schema_identity_for(repo, rel))
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:55 UTC | F2: one read ]
+        # Verification SHOULD read disk - that is its question - but once,
+        # coherently, so both hashes and the identity describe the same read.
+        text = _read_canon_text(repo, rel)
+        raw, sem, _ = C.hashes(text, man.patterns_for(rel),
+                               _schema_identity(rel, text),
+                               man.policy_identity, man.role_set_identity(rel))
         if heads.get("canon_%s_raw" % label) != raw:
             errors.append("canon_%s_raw does not match the local file" % label)
         if heads.get("canon_%s_semantic" % label) != sem:

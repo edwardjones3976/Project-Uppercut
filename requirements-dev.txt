@@ -2,7 +2,14 @@
 # Validation-suite tooling. Single source of truth for CI and local runs:
 # .github/workflows/validate.yml installs from this file.
 # Windows host verified 2026-08-02: Python 3.14.5, jsonschema 4.26.0.
-jsonschema>=4.26
-referencing>=0.37
-pytest>=8
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:28 UTC | edit: bound the upper end ]
+# An audit flagged these as open-ended lower bounds. In a repository whose whole
+# trust model is "the same inputs produce the same bytes", an unpinned major
+# version is a silent third party with commit rights: a jsonschema 5 that
+# tightened one validation rule would change what canon is accepted, and CI
+# would report it as OUR regression. Bounded to the compatible major, floors
+# kept at the versions verified on the Windows host.
+jsonschema>=4.26,<5
+referencing>=0.37,<1
+pytest>=8,<9
 # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-02 22:16 UTC | END ]

@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-09 17:54 UTC** at `6418e3f Decision 0035: the count was eating the round - volume is NOT governed, and I withdraw the claim that it was`.
+Generated **2026-08-09 20:36 UTC** at `a21962f Merge remote-tracking branch 'origin/main' into wip/section-ownership-band-gate`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **1387 passed** |
+| Test suite | **1413 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |

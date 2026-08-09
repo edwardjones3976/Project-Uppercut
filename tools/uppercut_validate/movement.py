@@ -8,7 +8,8 @@ Rule 15 (exact stance mirroring), plus cross-file locks to combat_states posture
 modes and allowed input domains, and the fight_event vocabulary.
 """
 from __future__ import annotations
-import json
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:58 UTC | F1: strict canon JSON ]
+from . import strict_json as json
 from pathlib import Path
 
 from . import combat_states, schema_check

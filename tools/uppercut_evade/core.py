@@ -104,6 +104,12 @@ def evade_pack(regions) -> dict:
                    for m in mt[key]},
         "sha": {"guard_evasion": hashlib.sha256(raw).hexdigest(),
                 "moves": hashlib.sha256(raw_m).hexdigest()},
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 22:04 UTC | F2 ]
+        # The bytes this pack was built from, so a stream header can hash what
+        # the fight consumed instead of re-reading the disk.
+        "canon_texts": {
+            "data/guard_evasion_model.json": raw.decode("utf-8"),
+            "data/moves/generic_sandbox_moves.json": raw_m.decode("utf-8")},
     }
 
     errs = []

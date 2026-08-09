@@ -12,7 +12,8 @@ Also enforces Rule 12 (two Specials, one Ultimate, one Trait, the full bar
 exclusive) and Rule 15 (command entry bypasses nothing).
 """
 from __future__ import annotations
-import json
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:58 UTC | F1: strict canon JSON ]
+from . import strict_json as json
 from pathlib import Path
 
 from . import schema_check

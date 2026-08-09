@@ -1,7 +1,7 @@
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 14:25 UTC | START ]
 """The guard, extracted from Phase L and finally inside the fight.
 
-Decision 0034 measured the guard's absence as the largest cause of an
+Decision 0035 measured the guard's absence as the largest cause of an
 unwatchable fight: nothing stopped a punch except an evasion, and the ten
 postures were authored and inert. These tests hold the two claims that
 matter - that the extraction moved the rule without changing it, and that the
@@ -97,7 +97,7 @@ def test_it_fails_closed_on_everything_it_does_not_know(gp):
 
 def test_canon_prices_a_miss_above_a_block():
     """`punch_model.outcome_recovery`, authored since step 6 and unread until
-    Decision 0034. The ordering is `contact_classes.commitment_tier` made
+    Decision 0035. The ordering is `contact_classes.commitment_tier` made
     real: the arm that stops on structure travelled less far than the arm
     that found nothing, and the defender who MOVED earns more than the
     defender who merely covered.

@@ -10,7 +10,8 @@ and criteria E.19/E.20 (tick-anchored, camera outside the determinism loop but a
 function of the log).
 """
 from __future__ import annotations
-import json
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:58 UTC | F1: strict canon JSON ]
+from . import strict_json as json
 from pathlib import Path
 
 from . import combat_states, movement, schema_check

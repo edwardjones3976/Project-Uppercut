@@ -105,18 +105,22 @@ Every phase must pass a defined quality gate before the next phase begins.
 - [Injury, footwork, controls, stances, and referee consolidation](docs/development-log/2026-07-27-injury-footwork-controls-referees.md)
 - [Modular production, game feel, and style-balance consolidation](docs/development-log/2026-08-02-modular-production-game-feel-and-style-balance-consolidation.md)
 - [Career Growth Journey IV filtered intake](docs/development-log/2026-08-02-career-growth-journey-iv-filtered-intake.md)
-- [Decision 0001 — Simulation first and unified training](docs/decisions/0001-simulation-first-unified-training.md)
-- [Decision 0002 — Modular Unreal-first production](docs/decisions/0002-modular-unreal-first-production.md)
-- [Decision 0003 — Game feel, development, and matchmaking](docs/decisions/0003-game-feel-training-and-competitive-matchmaking.md)
-- [Decision 0004 — Style viability and polarity stress testing](docs/decisions/0004-style-viability-and-polar-opposite-stress-testing.md)
-- [Decision 0005 — Execution-plan authority and filtered intake](docs/decisions/0005-execution-plan-authority-and-filtered-intake.md)
-- [Decision 0006 — Contribution tagging, schedule and objectives adopted](docs/decisions/0006-contribution-tagging-and-schedule-adoption.md)
-- [Decision 0007 — Phase 0 gate rulings](docs/decisions/0007-phase0-gate-rulings.md)
-- [Decision 0008 — Team governance](docs/decisions/0008-team-governance.md)
-- [Decision 0009 — Director standing authorization](docs/decisions/0009-director-standing-authorization.md)
-- [Decision 0010 — Guard postures as coverage extents](docs/decisions/0010-guard-postures-as-coverage-extents.md)
-- [Decision 0011 — Target-region taxonomy stays prose](docs/decisions/0011-target-region-taxonomy.md)
-- [Decision 0012 — C++ fight core and slice-sprint document freeze](docs/decisions/0012-cpp-fight-core-and-slice-sprint-freeze.md)
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:00 UTC | edit: the index stops rotting ]
+     This used to be twelve hand-written links. It stayed at twelve while the
+     repository reached thirty-eight, which an external audit found and named a
+     control-plane risk. A generated index cannot drift: `gen_decision_index
+     --check` fails CI when it is stale, and refuses duplicate or
+     non-contiguous numbers outright. -->
+- **[Decision index — all decisions, generated](docs/decisions/INDEX.md)** — the
+  complete numbered record. The load-bearing ones for anyone starting work:
+  [0009 Director standing authorization](docs/decisions/0009-director-standing-authorization.md),
+  [0010 guard postures as coverage extents](docs/decisions/0010-guard-postures-as-coverage-extents.md),
+  [0022 integrated contract and RNG substreams](docs/decisions/0022-integrated-contract-and-rng-substreams.md),
+  [0029 typed quantities](docs/decisions/0029-typed-physical-and-resource-quantities.md),
+  [0032 evasion commitment and cadence validity](docs/decisions/0032-evasion-commitment-and-cadence-validity.md)
+  (its Ruling 4 — the lab fence — is the rule that says a lab number may not become a balance value),
+  and [0037 throw rate](docs/decisions/0037-the-throw-rate-was-never-four-times-too-much.md)
+  for where the fight actually stands.
 - [Phase 0 gate status](docs/phase0/phase0_status.md) and [pinned technical baseline](docs/phase0/technical_baseline.md)
 - [Phase 1A status](docs/phase1a/phase1a_status.md), [determinism evidence](docs/phase1a/determinism_probe_results.md), and [engine setup runbook](docs/phase1a/engine_setup_runbook.md)
 - [Design reference — boxing guard and style matchups](docs/design/boxing_guard_matchups.md) *(authoritative for punch-versus-guard matchups)*

@@ -1,5 +1,5 @@
-<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 13:10 UTC | Decision 0034 start ] -->
-# Decision 0034 — The threshold is not the lever. Volume is.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 13:10 UTC | Decision 0035 start ] -->
+# Decision 0035 — The threshold is not the lever. Volume is.
 
 **Status:** ACCEPTED (delegated).
 **Authority:** The owner's standing in-session delegation, 2026-08-09: *"You
@@ -101,4 +101,4 @@ it is the reason this question could be asked at all: under Decision 0033, 24
 of 30 fights now reach the cards, with split decisions and draws among them,
 and `decision_path_must_survive` survives for the first time.
 
-<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 13:10 UTC | Decision 0034 end ] -->
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 13:10 UTC | Decision 0035 end ] -->

@@ -44,3 +44,71 @@ This decision does **not** tune evasion windows, recovery lengths, punch cadence
 ## Director intent
 
 The purpose is not to make defence expensive. It is to make defence **committed**. A good read should buy safety. A bad read should cost time, position, or opportunity because the fighter actually moved their body and must recover from that choice.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 20:35 UTC | appendix start ] -->
+
+---
+
+# Appendix — reconciliation of a duplicate 0032 (2026-08-09)
+
+**Everything above this line is the Director's, unaltered.** This appendix was
+appended when a duplicate decision file was found and resolved.
+
+## What happened
+
+On 2026-08-09 the decision-drift test flagged that "Decision 0032" was cited
+throughout the codebase with no decision file present *on the working branch*.
+A transcription was written from the Director's disposition note and filed as
+`0032-evasion-commitment-and-the-lab-fence.md`.
+
+The premise was wrong. **This file already existed on `main`** — the branch
+simply predated it. The transcription was a second document bearing the same
+decision number, which is precisely the drift the numbering exists to prevent.
+
+Resolved rather than averaged, per the project's working rule: **this file, the
+Director's own, is the sole Decision 0032.** The transcription is deleted. The
+two additive passages it carried, neither of which contradicted anything above,
+are preserved below because code and later decisions refer to them.
+
+## Citation correction — "§3" means Ruling 4
+
+Code comments, `tests/test_decision_0032.py`, and Decisions 0033–0037 cite
+**"Decision 0032 §3"** for the lab fence. That section number came from the
+transcription's own layout and does not exist in this file. The rule it names
+is **Ruling 4 above** — *"Cadence evidence is provisional until this is
+integrated."* Both citations point at the same binding rule; **Ruling 4 is the
+authoritative reference** and new work should cite it. Existing citations are
+left in place rather than rewritten across dozens of files, and this paragraph
+is the map between them.
+
+The clause as it has been quoted across the codebase:
+
+> No lab observation may be used to change canon, calibration, acceptance
+> criteria, or authoritative implementation until it receives an explicit
+> Director disposition.
+
+## Disposition of the round-three panel's six asks
+
+Recorded in the Director's disposition note and nowhere else in `docs/decisions/`:
+
+1. **Two-contact input cap — accepted, deferred.** First Bell is CPU-first; the
+   human input layer inherits the cap later (Decision 0027 carries the spirit).
+2. **One-week answer deadline on lab findings — deadline rejected**; the binding
+   rule (Ruling 4) accepted instead.
+3. **Evasion recovery before trusting cadence — accepted immediately**, on the
+   critical path.
+4. **Never show Crowd Bar and crowd roar simultaneously — rejected.**
+   Presentation may not be *triggered by* Crowd Bar thresholds; causality is the
+   fence, coincidence is allowed.
+5. **Judges should differ on defence — deferred.** No hidden `defence_score`
+   bonus manufactured to force disagreement.
+6. **Accessibility depends partly on cadence — accepted**, but no numeric
+   cadence target may be established from synthetic data.
+
+## Correction the transcription carried
+
+The panel believed the Phase R analyzer did not read evasion timing. It does —
+startup, recovery, active timing and `mistime_penalty_ticks` were already read.
+The real gap was that the **integrated bout** did not make those timings
+authoritative combat commitments. Ruling 1 above is what closed it.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 20:35 UTC | appendix end ] -->

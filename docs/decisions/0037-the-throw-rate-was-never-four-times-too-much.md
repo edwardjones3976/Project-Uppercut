@@ -1,9 +1,9 @@
-<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09 18:50 UTC | Decision 0036 start ] -->
-# Decision 0036 — The throw rate was never four times too much
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09 18:50 UTC | Decision 0037 start ] -->
+# Decision 0037 — The throw rate was never four times too much
 
 **Status:** ACCEPTED (delegated).
 **Authority:** the owner's standing in-session delegation, 2026-08-09.
-**Gated on:** Decision 0035, which named throw rate the critical path and
+**Gated on:** Decision 0036, which named throw rate the critical path and
 named `punch_model.repetition_economy` as canon's unread answer to it.
 
 ## The ruling
@@ -14,7 +14,7 @@ Three things, in the order they matter.
    mechanisms that govern throwing from the thrower's side — `arm_fatigue` and
    `position_cost` — are read from canon and wired into the bout. Neither
    coefficient was chosen here; all four are canon's.
-2. **Decision 0035's headline finding is withdrawn.** "The fight throws about
+2. **Decision 0036's headline finding is withdrawn.** "The fight throws about
    four times too much" is not true of the fight this project ships. It was
    true of a configuration the project had already refused.
 3. **The critical path is renamed.** It is not volume. It is **connect rate**,
@@ -24,7 +24,7 @@ Three things, in the order they matter.
 
 ## The correction, and how it was caught
 
-Decision 0035 wrote: *"Roughly 127 landed punches per round implies something
+Decision 0036 wrote: *"Roughly 127 landed punches per round implies something
 near 270 thrown; a real round is 40–70 thrown and 15–25 landed."*
 
 The 127 came from its own sweep table — **the `threshold: 14000` row.** The
@@ -124,7 +124,7 @@ throwing, and which this session deliberately did not touch.
 
 ## Consequences
 
-1. **Decision 0035's "four times too much" is withdrawn from the record.**
+1. **Decision 0036's "four times too much" is withdrawn from the record.**
    Its other findings stand: the count was eating the round, the guard bought
    about a fifth of volume and not five-fold, and the threshold was correctly
    refused twice.
@@ -138,4 +138,4 @@ throwing, and which this session deliberately did not touch.
    evidence** (Decision 0032 §3). Nothing in `data/` moved.
 4. The critical path is connect rate. Next after the threshold sweep is the
    body knockdown (Decision 0033 Ruling 4), then C++ parity.
-<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09 18:50 UTC | Decision 0036 end ] -->
+<!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09 18:50 UTC | Decision 0037 end ] -->

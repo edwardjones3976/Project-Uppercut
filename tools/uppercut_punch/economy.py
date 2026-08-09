@@ -1,7 +1,7 @@
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 16:05 UTC | START ]
 """`punch_model.repetition_economy` - Rule 4, and the hardest law in that file.
 
-WHY THIS EXISTS. Decision 0035 measured the fight throwing about four times
+WHY THIS EXISTS. Decision 0036 measured the fight throwing about four times
 too much and named the authored answers that nothing had ever read. Two of
 them govern throw rate from the thrower's side, and both are here. The other
 two in that block (`opponent_read`, `counter_window_growth`) target the

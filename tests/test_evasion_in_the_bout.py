@@ -221,7 +221,7 @@ def test_the_stream_says_why_and_not_merely_whether(bout):
             assert f[5].startswith("band=") and f[6] == "evasion=-", r
             continue
         # [ Claude Opus 5 (claude-opus-5) | 2026-08-09 14:50 UTC | resolution:
-        #   the guard stage (Decision 0034) added two fields, and they say
+        #   the guard stage (Decision 0035) added two fields, and they say
         #   MORE about why, not less. A resolved punch row is now
         #     ...|<verdict>|<reason>|guard=<posture>|<outcome>
         #   where the verdict is what the EVASION decided, the reason is its

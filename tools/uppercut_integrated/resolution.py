@@ -223,7 +223,9 @@ def condition_pack(punches=None):
         "count_stamina_relief": _q(kd["count_stamina_relief_fraction"]),
         # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09
         #   10:20 UTC | edit: Decision 0033 Ruling 2 ] `max_per_round` and
-        # `max_per_bout` are DELETED from condition_model and from this pack.
+        # `max_per_bout` are removed from this pack. Decision 0034 Ruling 4 keeps
+        # them physically in condition_model.json as validator-bound echoes
+        # for frozen Phases N/K - gone from HERE, not from the file.
         # They were contest rules living in the arithmetic file, read by the
         # bout while the authored rulesets - which explicitly switch them off
         # under professional rules - were read by nothing. Knockdown-count

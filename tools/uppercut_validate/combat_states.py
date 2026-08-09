@@ -9,7 +9,8 @@ discipline), Rule 22 (counterplay from the first punch), and sandbox criterion
 E.19 (tick-anchored trigger vocabulary).
 """
 from __future__ import annotations
-import json
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:58 UTC | F1: strict canon JSON ]
+from . import strict_json as json
 from pathlib import Path
 
 from . import schema_check

@@ -22,8 +22,23 @@ commits and artifacts, or say "not started".
 
 ## Branches and commits
 
-- `main` is the canonical branch.
-- Work branches: `ws<N>/<short-topic>` matching the execution plan's workstreams (`ws1/attribute-schemas`).
+- `main` is the canonical branch. **Never force-pushed, never rewritten.**
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:20 UTC | edit: document the convention actually in use ]
+     This prescribed `ws<N>/<short-topic>` matching the execution plan's
+     workstreams. Not one branch in the repository has ever used it - the real
+     convention grew into four prefixes and an external audit flagged the gap
+     between the rule and the practice. A convention nobody follows is not a
+     convention; it is a second source of truth that always loses. Written down
+     as it is actually practised. -->
+- Work branches carry a prefix that says what kind of change they are:
+  `feat/` (new runtime behaviour), `fix/` (a defect with a test that failed
+  first), `docs/` (record and reference only), `director/` (a Director ruling
+  being recorded), `review/` (a panel or audit record), `impl/` (implementing an
+  already-accepted decision), and `wip/` (integration work not yet ready to
+  propose). Then a short topic: `feat/phase-r-into-the-bout`.
+- **Merge, do not rebase, once a branch has been pushed.** Provenance is
+  evidence in this repository; rewriting it destroys the thing the evidence
+  discipline exists to protect.
 - Commit subjects: `<area>: <imperative summary>` — `schemas: add fight event visibility field`.
 - A commit that introduces an asset cites its completed compatibility audit.
 - A commit that changes a tuning number states whether the number is still a hypothesis.

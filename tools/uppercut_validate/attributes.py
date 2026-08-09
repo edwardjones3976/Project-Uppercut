@@ -6,7 +6,8 @@ Interpretation choices are surfaced in docs/phase0/open_questions.md and are
 configurable here rather than silently baked in.
 """
 from __future__ import annotations
-import json
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:58 UTC | F1: strict canon JSON ]
+from . import strict_json as json
 from dataclasses import dataclass, field
 from pathlib import Path
 

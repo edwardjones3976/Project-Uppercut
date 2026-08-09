@@ -221,6 +221,14 @@ def stream_pack() -> dict:
                                       + int(m["recovery_frames"])}
     c["sha"]["animation"] = hashlib.sha256(raw_a).hexdigest()
     c["sha"]["pose"] = hashlib.sha256(raw_p).hexdigest()
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 22:02 UTC | F2: the header
+    #   hashes THESE bytes - the ones this pack was built from - not a re-read. ]
+    c["canon_texts"] = {
+        "data/movement_model.json": raw_mv.decode("utf-8"),
+        "data/moves/generic_sandbox_moves.json": raw_m.decode("utf-8"),
+        "data/animation_model.json": raw_a.decode("utf-8"),
+        "data/pose_geometry.json": raw_p.decode("utf-8"),
+    }
     errs = list(c["canon_errors"])
     # A fist that cannot out-reach a body's own half depth could never touch
     # anybody from any distance, and every landing in the stream would be a
@@ -268,7 +276,7 @@ def expected_stream(seed: int, ticks: int) -> str:
         ("moves", "data/moves/generic_sandbox_moves.json"),
         ("animation", "data/animation_model.json"),
         ("pose", "data/pose_geometry.json"),
-    ])
+    ], texts=c["canon_texts"])
     lines.append("H|seed=%d" % seed)
     lines.append("H|ticks=%d" % ticks)
     for i, (key, lo, hi) in enumerate(c["bands"]):

@@ -1,9 +1,9 @@
-<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 15:35 UTC | Decision 0035 start ] -->
-# Decision 0035 — The count was eating the round, and volume is still not governed
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 15:35 UTC | Decision 0036 start ] -->
+# Decision 0036 — The count was eating the round, and volume is still not governed
 
 **Status:** ACCEPTED (delegated).
 **Authority:** the owner's standing in-session delegation, 2026-08-09.
-**Gated on:** Decision 0034, which froze `pressure_threshold` until volume was
+**Gated on:** Decision 0035, which froze `pressure_threshold` until volume was
 governed and said the sweep would be re-run once it was.
 
 ## The ruling
@@ -35,7 +35,7 @@ Raise the threshold so the counts stop, and the real volume appears:
 Total landed punches across the ten-seed population rise from 2,206 to 11,907
 — **5.4× more punching happens once the counting stops.**
 
-**What the guard actually bought.** Pre-guard, Decision 0034 measured ~156
+**What the guard actually bought.** Pre-guard, Decision 0035 measured ~156
 knockdown-capable landed punches per round. Post-guard, with counts out of the
 way, 127. That is a real ~19% reduction and the mechanism is right, but it is
 not the five-fold change the earlier number implied. The guard was necessary
@@ -103,4 +103,4 @@ record. The lesson is cheap to state and apparently expensive to learn: **in a
 fight that stops itself constantly, every per-round statistic is really a
 statement about how much of the round was a fight.**
 
-<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 15:35 UTC | Decision 0035 end ] -->
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 15:35 UTC | Decision 0036 end ] -->

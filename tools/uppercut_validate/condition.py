@@ -13,7 +13,8 @@ break is authoritative), and Rule 3 (a stoppage is decided on observable
 evidence, never on scorecards).
 """
 from __future__ import annotations
-import json
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:58 UTC | F1: strict canon JSON ]
+from . import strict_json as json
 from pathlib import Path
 
 from . import schema_check
@@ -233,7 +234,8 @@ def check_rulesets_0018(doc: dict) -> list:
     along. That keeps them a checked echo instead of a second opinion, which is
     the same shape as Decision 0014's step-cost fix.
     """
-    import json as _json
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:58 UTC | F1 ]
+    from . import strict_json as _json
     root = Path(__file__).resolve().parents[2] / "data" / "rulesets"
     errs = []
     if not root.is_dir():

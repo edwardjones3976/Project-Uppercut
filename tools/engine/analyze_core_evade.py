@@ -164,6 +164,8 @@ def stream_pack() -> dict:
     raw_a = io.open(os.path.join(REPO, ANIMATION_R), "rb").read()
     anim = {a["move_id"]: a for a in json.loads(raw_a)["move_animations"]}
     c["sha"]["animation"] = hashlib.sha256(raw_a).hexdigest()
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 22:06 UTC | F2 ]
+    c["canon_texts"]["data/animation_model.json"] = raw_a.decode("utf-8")
     c["anim"] = {}
     errs = list(c["canon_errors"])
     for mid in R_PUNCHES:
@@ -197,7 +199,7 @@ def expected_stream(seed: int, ticks: int) -> str:
         ("guard_evasion", "data/guard_evasion_model.json"),
         ("moves", "data/moves/generic_sandbox_moves.json"),
         ("animation", "data/animation_model.json"),
-    ])
+    ], texts=c["canon_texts"])
     lines.append("H|seed=%d" % seed)
     lines.append("H|ticks=%d" % ticks)
     for eid in sorted(c["evasions"]):

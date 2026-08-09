@@ -1,7 +1,7 @@
 # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09 18:35 UTC | START ]
 """`punch_model.repetition_economy` - Rule 4, read at last and held here.
 
-Decision 0035 named throw rate the critical path and named these as canon's
+Decision 0036 named throw rate the critical path and named these as canon's
 unread answers. Two of the four mechanisms govern throwing from the thrower's
 side and both are now wired.
 

@@ -147,7 +147,7 @@ def outcome_pack():
     than the defender who merely covered.
 
     This is the price on throwing, and its absence is half of why the fight
-    throws so much (Decision 0034).
+    throws so much (Decision 0035).
     """
     pm = _read(os.path.join("data", "punch_model.json"))
     rows = {r["class"]: r for r in pm["outcome_recovery"]["rows"]}

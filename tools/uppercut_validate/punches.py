@@ -8,7 +8,8 @@ repetition economy is observable boxing rather than a hidden counter), and
 Rule 22 (the model and the move table agree).
 """
 from __future__ import annotations
-import json
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:58 UTC | F1: strict canon JSON ]
+from . import strict_json as json
 from pathlib import Path
 
 from . import schema_check
