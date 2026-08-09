@@ -14,7 +14,8 @@ bell - and the knockdown count in particular is a safety instrument that does
 not speed up because a display option was toggled.
 """
 from __future__ import annotations
-import json
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:58 UTC | F1: strict canon JSON ]
+from . import strict_json as json
 from pathlib import Path
 
 from . import schema_check

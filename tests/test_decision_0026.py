@@ -151,6 +151,8 @@ def tired(**kw):
     base = dict(wind_is_low=True, range_band="inside", preferred_band="inside",
                 opponent_band="inside")
     base.update(kw)
+    base.update(_legality(base["range_band"]))
+    base.update(kw)
     return P.Observation(**base)
 
 
@@ -161,7 +163,10 @@ def test_b_unsafe_and_close_seeks_space():
 
 
 def test_b_safe_and_far_rests():
-    d = P.decide(tired(range_band="outside", preferred_band="outside"))
+    # [ Claude Fable 5 (claude-fable-5) | 2026-08-09 09:20 UTC | resolution:
+    #   he stands at outside; preferring it is now a refused plan. The
+    #   ruling's claim - safe and far means Rest - is unchanged. ]
+    d = P.decide(tired(range_band="outside"))
     assert (d.tactical, d.reason) == (P.REST, P.R_REST_WHEN_SAFE)
 
 
@@ -192,7 +197,10 @@ def test_b_hold_position_is_not_the_only_answer_to_needing_air():
     threat states, the answer is never merely to stand there."""
     for band in ("clinch", "inside", "mid"):
         for advancing in (False, True):
-            d = P.decide(tired(range_band=band, preferred_band=band,
+            # [ Claude Fable 5 (claude-fable-5) | 2026-08-09 09:20 UTC |
+            #   resolution: preferred_band stays the helper's default -
+            #   preferring clinch is now a refused plan. ]
+            d = P.decide(tired(range_band=band,
                                opponent_advancing=advancing))
             assert d.tactical != P.HOLD_POSITION, (band, advancing)
 
@@ -239,11 +247,11 @@ def test_b_a_recovering_fighter_still_seeks_space_above_the_low_line(econ):
     'low', not yet 'recovered', still going for room."""
     obs = P.Observation(wind_is_low=False, recovery_seeking=True,
                         wind_is_recovered=False, range_band="inside",
-                        preferred_band="inside")
+                        preferred_band="inside", **_legality("inside"))
     assert P.decide(obs).reason == P.R_SEEK_RECOVERY_SPACE
     obs = P.Observation(wind_is_low=False, recovery_seeking=True,
                         wind_is_recovered=True, range_band="inside",
-                        preferred_band="inside")
+                        preferred_band="inside", **_legality("inside"))
     assert P.decide(obs).reason != P.R_SEEK_RECOVERY_SPACE
 
 
@@ -262,6 +270,29 @@ import json
 import os
 
 from tools.engine import probe_policy_stamina as PROBE
+
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 03:15 UTC | START edit: legality reaches the unit tests ]
+# `Observation` requires offence legality, and these tests build Observations
+# by hand. The defaults come from the SAME authority the bout reads - canon,
+# through `uppercut_range.core` - so a test never asserts against a legality
+# table written in a test file. `mid` is the band `Observation` itself
+# defaults to, so these two lines say "the fighter is where the default says
+# he is, and canon says this is what he may throw from there".
+from tools.uppercut_range import core as _RANGE          # noqa: E402
+from tools.uppercut_integrated import contract as _CONTRACT  # noqa: E402
+
+_RANGE_PACK = _RANGE.range_pack()
+_BANDS = P.Bands(_RANGE.band_order(_RANGE_PACK),
+                 _RANGE.bands_without_offence(_RANGE_PACK, _CONTRACT.PUNCHES))
+
+
+def _legality(band="mid"):
+    return {"throwable_here": _RANGE.throwable_from(_RANGE_PACK, band,
+                                                    _CONTRACT.PUNCHES),
+            "bands": _BANDS}
+# [ ... | 2026-08-09 03:15 UTC | END edit ]
+
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

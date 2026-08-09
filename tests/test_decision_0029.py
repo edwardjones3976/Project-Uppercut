@@ -257,7 +257,10 @@ def test_every_declared_product_lands_on_a_declared_quantity():
 def test_the_stream_records_value_and_basis_not_one_opaque_number():
     """Decision 0029's telemetry rule, on the real stream."""
     bout = IntegratedBout(seed=4242).run(120)
-    rows = [r for r in bout.rows if r.startswith("W|")]
+    # `E` for energy. The stamina row moved off `W` when Phase R's evasion
+    # WINDOW rows arrived and the two collided - one letter, two meanings, in a
+    # stream whose entire value is being parseable.
+    rows = [r for r in bout.rows if r.startswith("E|")]
     assert rows
     row = rows[0]
     for field in ("movement_displacement=", "movement_wind_rate=",
@@ -269,8 +272,19 @@ def test_the_stream_records_value_and_basis_not_one_opaque_number():
 
 def test_the_typed_debit_and_the_economy_agree_across_a_round():
     """The bout raises if they ever disagree, so running it is the assertion.
-    Stated as a test anyway, because a guard nobody exercises is decoration."""
-    bout = IntegratedBout(seed=4243).run(900)
+    Stated as a test anyway, because a guard nobody exercises is decoration.
+
+    [ Claude Fable 5 (claude-fable-5) | 2026-08-08 23:40 UTC | resolution:
+      this ran seed 4243, which moved under the pre-0032 bout. Decision 0032
+      made evasion a commitment that occupies the body, the decision stream
+      shifted, and 4243's fighters now stand and trade for these 900 ticks -
+      an emergent fact, recorded as a diagnostic, not a movement bug. The
+      guard this test exists to exercise needs GROUND COVERED, so the seed
+      moved to one that covers ground under the current bout (4245), and the
+      moved_ru > 0 assertion stays: the day no seed moves, this test should
+      fail loudly rather than be quietly satisfied by a stationary fight. ]
+    """
+    bout = IntegratedBout(seed=4245).run(900)
     assert bout.moved_ru == bout.charged_ru
     assert bout.moved_ru > 0
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 21:00 UTC | END ]

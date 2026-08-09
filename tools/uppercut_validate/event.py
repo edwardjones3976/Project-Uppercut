@@ -14,7 +14,8 @@ camera is excluded from the determinism hash, they have to be provably outside
 it rather than politely outside it.
 """
 from __future__ import annotations
-import json
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:58 UTC | F1: strict canon JSON ]
+from . import strict_json as json
 from pathlib import Path
 
 from . import schema_check

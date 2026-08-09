@@ -184,8 +184,107 @@ def in_band(c: dict, move_id: str, band: str) -> bool:
     A move with no authored band is not silently permitted - that would make the
     gate optional exactly where the move table is incomplete, which is the defect
     class this repository refuses. It is refused instead.
+
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 02:05 UTC | START edit: the one membership test ]
+    THIS IS THE ONE MEMBERSHIP TEST, and `throwable_from` below asks the same
+    question of a whole vocabulary at once. It CALLS this rather than
+    re-deriving it, so the set a chooser picks from and the gate the resolver
+    applies cannot disagree - not because two derivations were checked against
+    each other, but because there is only one derivation.
+
+    SHAPE-TOLERANT ON PURPOSE. Whether canon's `range_band` becomes a SET per
+    move is an open Director decision, so the authored value is read as one
+    band or as a collection of bands, and the day that decision lands the
+    loader changes and this rule does not. The previous body was
+    `c["move_band"].get(move_id) == band`, identical for every authored move
+    and different on exactly one input: an UNAUTHORED move id compared against
+    a `band` of None, where `None == None` made an unknown move legal. Nothing
+    in the bout can produce that band, but "unknown ids never mean free" is a
+    rule here, not a hope.
+    # [ ... | 2026-08-09 02:05 UTC | END edit: the one membership test ]
     """
-    return c["move_band"].get(move_id) == band
+    authored = c["move_band"].get(move_id)
+    if authored is None:
+        return False
+    if isinstance(authored, str):
+        return authored == band
+    return band in authored
+
+
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 02:05 UTC | START edit: one legality authority ]
+def band_order(c: dict) -> tuple:
+    """Canon's bands, closest first, in the order canon declares them.
+
+    Ordering is authority, not convenience. "Closer" and "further" is how any
+    chooser reasons about range, and a hand-written copy of this tuple is a
+    second opinion about a rule canon already owns - the same defect class as a
+    hand-written table of which punch is legal where, one field along.
+    """
+    return tuple(k for k, _, _ in c["bands"])
+
+
+def throwable_from(c: dict, band: str, punches) -> tuple:
+    """Every punch in `punches` that canon authors for `band`, sorted.
+
+    THE SINGLE AUTHORITY ON OFFENCE LEGALITY, which is a question that had two.
+    `punch_model.range_gate.band_source` names `data/movement_model.json` as the
+    source of the band a punch is judged against, and the move table authors
+    each move's band. This returns the set that follows from that; `in_band`
+    gates the individual punch with the same test. A chooser that calls this can
+    no longer offer a punch the resolver will refuse, because both are reading
+    one sentence rather than agreeing about two.
+
+    THE VOCABULARY IS REQUIRED, AND THAT IS THE WHOLE POINT. Canon authors a
+    `range_band` for GUARDS and EVASIONS as well as punches - `guard_high` is
+    authored `mid` - so "everything canon authors here" is not an offence
+    answer at all; it would hand a chooser a guard as something to throw. And
+    a caller that forgets to intersect gets a punch its own world cannot fly,
+    which is not hypothetical: it is the live ghost-punch defect. Iterating the
+    VOCABULARY rather than filtering canon is what makes a ghost structurally
+    impossible - a move the caller did not declare is never looked at.
+
+    SORTED BY MOVE ID, because a chooser breaking a tie indexes this result
+    with a seeded stream, so the ORDER is part of the simulation's determinism
+    and may not depend on dict iteration or canon's array order (Decision 0026).
+
+    AN EMPTY RESULT IS A REAL ANSWER, not a failure. Under today's canon
+    `clinch` and `outside` author no punch at all. Whether `outside` SHOULD be
+    punch-less is an open Director decision and this function does not
+    pre-empt it. An unknown band is a different thing entirely and is refused,
+    so a typo can never be mistaken for a band with no offence in it.
+    """
+    order = band_order(c)
+    if band not in order:
+        raise KeyError(
+            "%r is not a band canon declares (%s). Refused rather than "
+            "answered with an empty set, because 'that band has no offence' "
+            "and 'that is not a band' are different sentences and only one of "
+            "them is a fight." % (band, ", ".join(order)))
+    if isinstance(punches, str):
+        raise TypeError(
+            "throwable_from takes a VOCABULARY of punches, got the string %r. "
+            "One move id iterates as characters, so this would have answered "
+            "'nothing is legal here' rather than refusing." % (punches,))
+    return tuple(sorted(m for m in set(punches) if in_band(c, m, band)))
+
+
+def bands_without_offence(c: dict, punches) -> tuple:
+    """The bands this vocabulary can throw nothing from, closest first.
+
+    The structural fact that cost a twelve-round fight. Two fighters who
+    preferred a band with no authored punch threw 3,174 of them into a gate
+    that refused every one, and scored 120-120 with no contact in thirty-six
+    minutes. Nothing in the model could state the condition that produced it.
+
+    It is a REPORT AND NOT A VERDICT. `out_of_range` belongs by definition;
+    whether `clinch` and `outside` belong is canon's business and the
+    Director's. What it gives a test is an exact tuple to pin, so the day canon
+    changes shape the change is a visible failure rather than a fight that
+    quietly stops landing.
+    """
+    return tuple(b for b in band_order(c)
+                 if not throwable_from(c, b, punches))
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 02:05 UTC | END edit: one legality authority ]
 
 
 def step_delta(c: dict, action: str) -> int:

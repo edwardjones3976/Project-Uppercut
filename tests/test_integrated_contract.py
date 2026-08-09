@@ -33,7 +33,11 @@ def test_the_header_order_is_fixed_not_incidental():
     lines = C.new_bout(ROOT, 4242)[2]
     assert lines[0] == "H|phase=INTEGRATED"
     assert lines[1] == "H|contract=%s" % C.CONTRACT
-    assert lines[2].startswith("H|canon_hash_contract=")
+    # [ Claude Fable 5 (claude-fable-5) | 2026-08-09 10:58 UTC | resolution:
+    #   Decision 0033 Ruling 2 - the ruleset fought under is part of the
+    #   fight's identity, named right after the contract that carries it. ]
+    assert lines[2] == "H|ruleset=%s" % C.DEFAULT_RULESET
+    assert lines[3].startswith("H|canon_hash_contract=")
     seed_at = lines.index("H|seed=4242")
     rng_at = [i for i, l in enumerate(lines)
               if l.startswith("H|rng_derivation=")][0]
@@ -174,14 +178,40 @@ def test_the_integrated_package_does_not_reach_into_phase_tooling():
     for name in sorted(os.listdir(pkg)):
         if not name.endswith(".py"):
             continue
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+        #   2026-08-09 02:00 UTC | START edit: narrow the claim ]
+        # SCANS IMPORTS, NOT PROSE. The first version searched the whole file
+        # text, so it also forbade *naming* a phase analyzer in a comment - and
+        # the comment it eventually caught was the one explaining WHY the
+        # integrated contract declares its own REGIONS instead of importing
+        # `analyze_core_condition`'s. Forbidding the explanation of a rule is
+        # not enforcing the rule.
+        #
+        # This project has now made the too-broad-scan mistake three times: the
+        # word "engagement" inside a canon `$comment`, the letter "e" inside
+        # the word "debit", and this. The correct move is always to narrow the
+        # claim, never to widen an exemption - so the claim is what it always
+        # said it was, which is that this package may not IMPORT phase analyzer
+        # code.
         text = io.open(os.path.join(pkg, name), encoding="utf-8").read()
-        assert "analyze_core" not in text and "analyze_render" not in text, (
-            "%s imports phase analyzer code - integration must not be able to "
-            "move a unit pin" % name)
+        imports = [l for l in text.splitlines()
+                   if l.lstrip().startswith(("import ", "from "))]
+        for line in imports:
+            assert "analyze_core" not in line and "analyze_render" not in line, (
+                "%s imports phase analyzer code - integration must not be able "
+                "to move a unit pin: %s" % (name, line.strip()))
+        # And the runtime consequence, which a text scan could never see: no
+        # phase analyzer may end up in this package's module namespace by any
+        # route, including one added inside a function tomorrow.
+        assert "__import__" not in text and "importlib" not in text, name
+        # [ ... | 2026-08-09 02:00 UTC | END edit ]
 
 
 def test_the_contract_identifier_is_versioned():
-    assert C.CONTRACT.endswith("-v2")
+    # v3: the ruleset entered the declared canon (Decision 0033 Ruling 2).
+    # v2 was Decision 0026's hierarchical substreams. The derivation itself
+    # has not changed shape and stays v1.
+    assert C.CONTRACT.endswith("-v3")
     assert R.DERIVATION_VERSION.endswith("-v1")
 
 

@@ -49,6 +49,8 @@ import os
 import struct
 import sys
 
+from tools.uppercut_guard import core as GUARDCORE  # noqa: E402
+
 REPO = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 
 LCG_A, LCG_C, LCG_M = 1664525, 1013904223, 2 ** 32
@@ -103,11 +105,20 @@ def canon_pack() -> dict:
     thr = float(pose["guard"]["plane_interception_min_extent"])
     cd_mult = float(ge["committed_defense"]["guard_extent_multiplier_while_committed"])
 
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 13:50 UTC
+    #   | START edit: the guard rule moves out and is CALLED ]
+    # This closure was the only implementation of guard interception, which
+    # meant the integrated bout could have it by importing a phase analyzer
+    # (forbidden) or by copying the formula (the defect this project has
+    # deleted three times). It now lives in `tools/uppercut_guard/core.py`
+    # and both callers reach the same one. Phase L must re-prove
+    # byte-identically or the extraction is wrong - that proof, not this
+    # comment, is what says the move was safe.
+    _gpack = GUARDCORE.guard_pack()
+
     def covered(pid: str, committed: bool) -> frozenset:
-        exts = postures[pid]["extents"]
-        mult = cd_mult if committed else 1.0
-        return frozenset(hc for hc, vid in vol_by_class.items()
-                         if float(exts.get(vid, 0.0)) * mult >= thr)
+        return GUARDCORE.covered(_gpack, pid, committed)
+    # [ ... | 2026-08-09 13:50 UTC | END edit ]
 
     slip = next(e for e in ge["evasions"] if e["id"] == "slip_lead")
     slip_mv = moves["slip_lead"]

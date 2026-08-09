@@ -43,6 +43,12 @@ EXEMPT = {
     ("tests/test_guard.py", "docs/design/some_other_file.md"):
         "a deliberately non-existent path, fed to check_matchup_reference to "
         "prove it rejects a third copy of the matchup tables",
+    # [ Claude Fable 5 (claude-fable-5) | 2026-08-09 10:58 UTC ]
+    ("tools/uppercut_integrated/contract.py", "data/rulesets/%s.json"):
+        "a TEMPLATE, not a path: the ruleset actually fought under is chosen "
+        "per bout (Decision 0033 Ruling 2) and the %s is filled with its id. "
+        "The resolved path is validated by ruleset_pack, which refuses an "
+        "unauthored ruleset by name.",
 }
 # This file names wrong-case paths on purpose, to prove the guard can fail.
 SELF = "tests/test_cross_platform_paths.py"

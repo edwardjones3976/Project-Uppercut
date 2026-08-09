@@ -29,6 +29,8 @@ the ropes pays for the ground he covered and not a reach unit more. That is the
 difference between this and the stand-in probe, and it is why this is the run
 that can eventually carry tuning evidence and that one never could.
 """
+import io
+import json
 import os
 import sys
 
@@ -37,11 +39,16 @@ if REPO not in sys.path:
     sys.path.insert(0, REPO)
 
 from tools.uppercut_range import core as RANGE          # noqa: E402
+from tools.uppercut_evade import core as EVADE          # noqa: E402
+from tools.uppercut_guard import core as GUARD          # noqa: E402
+from tools.uppercut_punch import economy as PUNCHECON   # noqa: E402
 from tools.uppercut_stamina import economy as E         # noqa: E402
 from tools.uppercut_integrated import contract as C     # noqa: E402
 from tools.uppercut_integrated import fighter as F      # noqa: E402
 from tools.uppercut_integrated import policy as P       # noqa: E402
 from tools.uppercut_integrated import rng as R          # noqa: E402
+from tools.uppercut_integrated import resolution as RES  # noqa: E402
+from tools.uppercut_integrated import judging as J       # noqa: E402
 from tools.uppercut_units import quantities as U        # noqa: E402
 from tools.uppercut_units import rates as RATES         # noqa: E402
 
@@ -87,8 +94,9 @@ def fnv1a64(running, row):
 class IntegratedBout(object):
     """The bout. One tick owner, one order of operations, borrowed rules."""
 
-    def __init__(self, repo=REPO, seed=4242, rounds=1, round_ticks=180 * 60,
-                 profiles=None, start_separation=None):
+    def __init__(self, repo=REPO, seed=4242, rounds=12, round_ticks=180 * 60,
+                 profiles=None, start_separation=None,
+                 referee="nkiru_okafor", ruleset=C.DEFAULT_RULESET):
         self.repo = repo
         self.econ = E.economy_pack()
         if self.econ["errors"]:
@@ -102,9 +110,111 @@ class IntegratedBout(object):
         if self.range["canon_errors"]:
             raise SystemExit("the range canon fails its own contract: %s"
                              % "; ".join(self.range["canon_errors"]))
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+        #   2026-08-09 00:40 UTC | START edit: Phase R enters the bout ]
+        # The evasion authority, called and not rebuilt. `punch_frames` is what
+        # tells the loop WHEN a punch resolves, which is the only thing an
+        # evasion window has to be compared against.
+        self.evade = EVADE.evade_pack(C.REGIONS)
+        if self.evade["canon_errors"]:
+            raise SystemExit("the evasion canon fails its own contract: %s"
+                             % "; ".join(self.evade["canon_errors"]))
+        self.frames = EVADE.punch_frames(C.PUNCHES)
+        self.contact = {r: 0 for r in EVADE.REASONS}
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+        #   14:00 UTC | START edit: Decision 0035 - the guard enters the fight ]
+        # Until now NOTHING IN THIS GAME STOPPED A PUNCH EXCEPT AN EVASION.
+        # The ten postures, their extents, their hold costs and canon's one
+        # interception threshold were all authored and all inert, which
+        # Decision 0035 measured as the largest cause of ~150 landed punches
+        # per round. Phase L already proved the rule; it is extracted to
+        # `uppercut_guard.core` and CALLED here, and Phase L re-proves
+        # byte-identically.
+        self.guard = GUARD.guard_pack()
+        if self.guard["canon_errors"]:
+            raise SystemExit("the guard canon fails its own contract: %s"
+                             % "; ".join(self.guard["canon_errors"]))
+        # And the price on throwing, which canon authored and nothing read:
+        # blocked 1.15 < dodged 1.30 < whiffed 1.50 on the thrower's recovery.
+        self.outcome = GUARD.outcome_pack()
+        self.blocked = 0
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+        #   16:22 UTC | edit: Decision 0036 - canon's repetition economy ]
+        # Decision 0036 measured the fight throwing about four times too much
+        # and named these as the authored answers nothing had read. They are
+        # consequences a fighter chose - an arm that has been working, feet
+        # that have not moved - and both shed the moment he stops choosing
+        # them, which is canon's own requirement that nothing fire on a
+        # repeat count.
+        self.rep = PUNCHECON.repetition_pack()
+        if self.rep["canon_errors"]:
+            raise SystemExit("the repetition economy fails its own contract: "
+                             "%s" % "; ".join(self.rep["canon_errors"]))
+        self.arm_tax = {}
+        self.ceded_ru = 0
+        # [ ... | 2026-08-09 14:00 UTC | END edit ]
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+        #   02:50 UTC | START edit: one authority on offence legality ]
+        # THE SECTION-1 FIX, WIRED. `policy.BY_BAND` was a hand-authored second
+        # opinion about which punches are legal from which band, and it
+        # disagreed with canon seven ways: from `outside` and from `clinch`
+        # EVERY punch it offered was refused by the range gate. That is what
+        # produced a twelve-round fight with 3,174 punches and zero contacts.
+        # There is now one derivation, canon's, and both the chooser and the
+        # gate read it. `bands` carries the two facts a fighter genuinely knows
+        # about range: which way is closer, and which ranges he cannot work
+        # from.
+        self.bands = P.Bands(RANGE.band_order(self.range),
+                             RANGE.bands_without_offence(self.range, C.PUNCHES))
+        # Canon's reaction rules, read at last: how often a fighter
+        # reconsiders, and how old the thing he reacts to must be. The file has
+        # been hashed into every integrated stream header since the contract
+        # existed and nothing ever opened it.
+        with io.open(os.path.join(repo, "data", "cpu_decision_model.json"),
+                     encoding="utf-8") as fh:
+            self.cadence = P.Cadence(json.load(fh)["reaction"])
+        self.last_decision = {}
+        # [ ... | 2026-08-09 02:50 UTC | END edit ]
+        # [ ... | 2026-08-09 00:40 UTC | END edit ]
+
+        # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) |
+        #   2026-08-08 23:45 UTC | START edit: the chain that lets a fight end ]
+        self.cond_pack = RES.condition_pack()
+        if self.cond_pack["errors"]:
+            raise SystemExit("the condition canon fails its own contract: %s"
+                             % "; ".join(self.cond_pack["errors"]))
+        self.referee = RES.referee_pack(referee)
+        # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09
+        #   10:30 UTC | START edit: Decision 0033 Ruling 2 - the contest has
+        #   rules and they are the ruleset's ]
+        # Thirty of thirty measured fights ended on a knockdown limit read
+        # from condition_model while the authored rulesets - which switch that
+        # limit OFF under professional rules - were read by nothing. The
+        # contest rules now come from the ruleset exclusively; null means "no
+        # stoppage by that mechanism"; and the panel scores under the
+        # ruleset's own scoring block rather than a restated default.
+        self.rules = RES.ruleset_pack(ruleset,
+                                      count_to=self.cond_pack["count_to"])
+        # [ ... | 2026-08-09 10:30 UTC | END edit ]
+        self.whiff_band = 0
+        # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-08
+        #   23:35 UTC | edit: the punch ledger closes ] A punch can now leave
+        #   the world three ways: resolved (contact reasons), whiffed on range
+        #   legality (whiff_band), or VOIDED - cleared in flight because a
+        #   knockdown stopped the ring or the bell ended the round. The first
+        #   loop's lesson (214 thrown, 117 resolved, the rest vanished) is a
+        #   ledger rule now: thrown == resolved + whiffed + voided + in-flight,
+        #   and tests hold the bout to it.
+        self.voided = 0
+        self.count = None            # active knockdown count, or None
+        self.result = None           # set once, ends the fight
+        self._round_end_due = False
+        self.round_no = 1
+        self.rounds_planned = rounds
+        # [ ... | 2026-08-08 23:45 UTC | END edit ]
 
         self.state, self.rng, self.header_lines = C.new_bout(
-            repo, seed, rounds, round_ticks)
+            repo, seed, rounds, round_ticks, ruleset=ruleset)
 
         profiles = profiles or {
             C.DEFAULT_PARTICIPANTS[0]: P.Profile(6500, "mid"),
@@ -131,6 +241,22 @@ class IntegratedBout(object):
 
         self.tick = 0
         self.rows = []
+        # Per-fighter fight bookkeeping. On the bout rather than the fighter,
+        # because it is officiating and judging evidence, not fighter state.
+        self.condition = {f.id: RES.RegionalCondition(self.cond_pack)
+                          for f in self.fighters}
+        # The panel scores under the ruleset actually fought (Decision 0033
+        # Ruling 2); `thrown` joins the evidence per Ruling 5, so effective
+        # aggression can one day be accuracy rather than ground covered.
+        self.panel = J.JudgingPanel([f.id for f in self.fighters],
+                                    scoring=self.rules["scoring"])
+        self.evidence = {f.id: {"landed": 0, "denied": 0, "pressed": 0,
+                                "thrown": 0}
+                         for f in self.fighters}
+        self.kd_round = {f.id: 0 for f in self.fighters}
+        self.kd_bout = {f.id: 0 for f in self.fighters}
+        self.unanswered = {f.id: 0 for f in self.fighters}
+        self.samples = []
         self.charged_ru = 0          # every reach unit this bout has billed
         self.moved_ru = 0            # every reach unit actually travelled
 
@@ -215,11 +341,366 @@ class IntegratedBout(object):
         me.pending += own
         return own
 
+    # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-08 23:50 UTC | START edit: Decision 0032 - evasion is a commitment ]
+    # THE LIFECYCLE THE RULING FIXES:
+    #
+    #     commit -> startup -> active window -> resolve -> recovery
+    #                                                       or mistime
+    #
+    # A fighter's `evasion` is (id, open_at, close_at, used). During startup
+    # the lane is NOT yet vacated - a punch arriving then finds him. The
+    # window opens exactly `startup` ticks after commitment, stays open
+    # exactly `active` ticks, and if it closes UNUSED the authored mistime
+    # penalty extends the recovery: a bad read still occupies the body and
+    # the clock. No dodge percentage anywhere in this chain.
+
+    def _commit_evasion(self, me, t, evasion_id):
+        spec = self.evade["evasions"].get(evasion_id)
+        if spec is None or spec["kind"] != "active_window":
+            # A positional action is not a lane-vacating dodge.
+            return False
+        if me.evasion is not None or me.recovery_ticks > 0:
+            return False
+        open_at = t + spec["startup"]
+        me.evasion = (evasion_id, open_at, open_at + spec["active"], False)
+        # The whole commitment occupies the fighter: startup, window, recovery.
+        me.recovery_ticks = spec["startup"] + spec["active"] + spec["recovery"]
+        return True
+
+    def _evasion_active(self, f, t):
+        return (f.evasion is not None
+                and f.evasion[1] <= t < f.evasion[2])
+
+    def _tick_evasions(self, t):
+        for f in self.fighters:
+            if f.evasion is None:
+                continue
+            ev, open_at, close_at, used = f.evasion
+            if t == open_at:
+                self.rows.append("W|%d|%s|%s|open|until=%d"
+                                 % (t, f.id, ev, close_at))
+            if t >= close_at:
+                if used:
+                    self.rows.append("W|%d|%s|%s|close" % (t, f.id, ev))
+                else:
+                    # The mistimed evade: the window came and went and nothing
+                    # was thrown into it. The read was wrong, and the price is
+                    # canon's authored penalty on top of the authored recovery.
+                    penalty = self.evade["mistime_ticks"]
+                    f.recovery_ticks += penalty
+                    self.rows.append("W|%d|%s|%s|mistimed|penalty=%d"
+                                     % (t, f.id, ev, penalty))
+                f.evasion = None
+
+    def _resolve_punches(self, t):
+        """Every punch whose active window ends this tick.
+
+        ORDER, PER THE RULING: range legality first (Rule 12 - a punch thrown
+        from a band it is not authored for whiffs whatever the defender did),
+        then evasion against whatever window was genuinely open at this
+        instant, then - when they exist - guard and contact. `outranks_guard`
+        means a dodged punch never reaches the later stages.
+        """
+        for i, me in enumerate(self.fighters):
+            if not me.punch:
+                continue
+            move, t0, band = me.punch
+            span = self.frames[move]["startup"] + self.frames[move]["active"]
+            if t - t0 < span:
+                continue
+            me.punch = None
+            foe = self.fighters[1 - i]
+
+            if not RANGE.in_band(self.range, move, band):
+                self.whiff_band += 1
+                me.failed_attacks += 1
+                self.rows.append("P|%d|%s|%s|%s|band=%s|evasion=-|whiffed|band"
+                                 % (t, me.id, foe.id, move, band))
+                continue
+
+            active = foe.evasion[0] if self._evasion_active(foe, t) else None
+            arrived, reason, region = EVADE.resolve(
+                self.evade, C.PUNCHES, move, active)
+            self.contact[reason] += 1
+            if active is not None:
+                # The window was USED: something was thrown into it, whatever
+                # the outcome. Used windows close quietly; unused ones mistime.
+                foe.evasion = (foe.evasion[0], foe.evasion[1],
+                               foe.evasion[2], True)
+
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+            #   14:05 UTC | START edit: guard resolves, AFTER evasion ]
+            # Phase R's `outranks_guard` is the ordering and it is honoured by
+            # position: a punch that was dodged never reaches this branch, so
+            # a slipped punch can never also be blocked. Only a punch that
+            # ARRIVED past the evasion meets the defender's structure.
+            #
+            # COMMITMENT IS WHAT OPENS THE GUARD. A defender mid-punch, mid
+            # evasion or still in recovery has his extents scaled by canon's
+            # authored 0.6, and 0.95 x 0.6 = 0.57 falls under the 0.6
+            # interception threshold - so the lane a high guard normally
+            # closes opens for exactly as long as he is busy. That is the
+            # counterpunch, and no line of code decides it.
+            blocked = False
+            if arrived:
+                # WHAT "COMMITTED" MEANS HERE, read narrowly and on purpose.
+                # Canon's committed_defense says "A fighter MID-PUNCH cannot
+                # slip and cannot fully cover" - the punch is in the air, or
+                # the evasion is running. It does NOT say a man is defenceless
+                # through the whole tail of a recovery he is standing in: the
+                # first version of this line included `recovery_ticks > 0`,
+                # which is true on almost every tick, and the guard blocked
+                # ONE punch in a twelve-round fight. A structure that is never
+                # up is not a guard, and a reading that makes canon's ten
+                # postures inert is the wrong reading of canon.
+                #
+                # (The knockdown model's `caught_committed` keeps the WIDER
+                # reading, because its own canon note says "caught inside his
+                # own recovery" in those words. Two different sentences, two
+                # different tests - and both are canon's, not this file's.)
+                d_committed = (foe.punch is not None
+                               or foe.evasion is not None)
+                blocked = GUARD.intercepts(self.guard, C.PUNCHES,
+                                           foe.posture, d_committed, move)
+            # TWO STAGES, TWO WORDS, and the row says both. The verdict is
+            # what the EVASION stage decided - did the punch get past the
+            # movement - and the outcome is what the punch finally did. A
+            # blocked punch ARRIVED (it beat the evasion) and was then stopped
+            # by structure; writing it as "dodged" would have said the
+            # defender moved when he actually covered, which is the exact
+            # distinction canon prices differently (dodged 1.30 > blocked
+            # 1.15, because the man who moves earns more than the man who
+            # covers).
+            outcome = ("blocked" if blocked
+                       else "solid" if arrived else "dodged")
+            self.rows.append(
+                "P|%d|%s|%s|%s|region=%s|evasion=%s|%s|%s|guard=%s|%s"
+                % (t, me.id, foe.id, move, region, active or "-",
+                   "arrived" if arrived else "dodged", reason,
+                   foe.posture, outcome))
+
+            # THE PRICE ON THROWING, canon's and never read until now. The arm
+            # that stops on structure travelled less far than the arm that
+            # found nothing, so blocked 1.15 < dodged 1.30 < whiffed 1.50 on
+            # the thrower's own recovery. Before this, missing cost exactly
+            # what landing cost, which is half of why the fight threw ~150
+            # landed punches a round (Decision 0035).
+            extra = self.outcome["recovery_multiplier"].get(outcome)
+            if extra is not None and extra > 10000:
+                me.recovery_ticks += (me.recovery_ticks * (extra - 10000)) // 10000
+            # [ ... | 2026-08-09 14:05 UTC | END edit ]
+
+            if arrived and not blocked:
+                self._contact(t, me, foe, move, region)
+            elif blocked:
+                self.blocked += 1
+                me.failed_attacks += 1
+                # Canon's guard_integrity: blocking "reduces clean damage
+                # without erasing consequence". The consequence it does not
+                # erase - arm condition, guard erosion - needs the arm-damage
+                # mechanic that does not exist yet, so the defender is
+                # credited with the denial and the rest is named, not faked.
+                self.evidence[foe.id]["denied"] += 1
+            else:
+                me.failed_attacks += 1
+                self.evidence[foe.id]["denied"] += 1
+    # [ ... | 2026-08-08 23:50 UTC | END edit ]
+
+    # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-08 23:55 UTC | START edit: contact, condition, knockdown, count, stoppage ]
+    def _contact(self, t, me, foe, move, region):
+        """An arrived punch becomes a solid contact and the fight can change.
+
+        Contact quality is "solid" - Phase N's named simplification, restated
+        in `resolution.py` - and delivered force is authored effort. Condition
+        accumulates; the knockdown pressure is deterministic; the count and
+        the limits are canon's.
+        """
+        self.evidence[me.id]["landed"] += 1
+        self.unanswered[me.id] = 0
+        force = self.cond_pack["efforts"][move]
+        cond = self.condition[foe.id]
+        cond.absorb(region, force)
+        self.rows.append("C|%d|%s|%s|%s|%s|solid|dmg=%d"
+                         % (t, me.id, foe.id, move, region,
+                            cond.fraction(region)))
+
+        # Referee bookkeeping: a fighter who has been down is being watched.
+        if self.kd_bout[foe.id] > 0:
+            self.unanswered[foe.id] += 1
+            stop = self.referee["unanswered_stop"]
+            if stop is not None and self.unanswered[foe.id] >= stop:
+                self._stop(t, foe, "referee_judgement")
+                return
+
+        # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09
+        #   10:32 UTC | edit: Section 3's Flag 1, Decision 0033 Ruling 1 ]
+        # Eligibility reads EVERY region canon authors this punch to target,
+        # not the single region the damage was placed in. The hook is authored
+        # ["head", "jaw_chin"]: it targets the jaw, and until this line it was
+        # being refused the jaw's consequence by an array subscript.
+        if not RES.knockdown_capable(self.cond_pack, move):
+            return
+        wind_frac = (foe.wind * 10000) // self.econ["wind_max"]
+        pressure = RES.knockdown_pressure(
+            self.cond_pack, move, cond, wind_frac,
+            defender_committed=foe.punch is not None or foe.recovery_ticks > 0,
+            defender_evading=self._evasion_active(foe, t))
+        if pressure >= self.cond_pack["pressure_threshold"]:
+            self._knockdown(t, me, foe, move)
+
+    def _knockdown(self, t, me, foe, move):
+        self.kd_round[foe.id] += 1
+        self.kd_bout[foe.id] += 1
+        self.rows.append("N|%d|%s|down|by=%s|%s|round_kd=%d|bout_kd=%d"
+                         % (t, foe.id, me.id, move,
+                            self.kd_round[foe.id], self.kd_bout[foe.id]))
+        # The ring stops: in-flight punches and windows are void, both corners
+        # are neutral, and the count clock - identical for every referee - runs.
+        for f in self.fighters:
+            if f.punch is not None:
+                self.voided += 1
+            f.punch = None
+            f.evasion = None
+        # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09
+        #   10:32 UTC | edit: Decision 0033 Ruling 2 ] The limits are the
+        # RULESET'S, null means no stoppage by that mechanism, and where a
+        # limit applies the fight ends ON the Nth knockdown (>=, tested after
+        # the increment) - the old `>` stopped on the fourth of a
+        # three-knockdown round, and a four-knockdown round is a thing a
+        # referee does not permit. Under professional rules both limits are
+        # null, so a professional bout ends by count, referee, or the cards.
+        per_round, per_bout = self.rules["per_round"], self.rules["per_bout"]
+        if ((per_round is not None and self.kd_round[foe.id] >= per_round)
+                or (per_bout is not None and self.kd_bout[foe.id] >= per_bout)):
+            self._stop(t, foe, "knockdown_limit")
+            return
+        self.count = {"who": foe.id, "start": t, "n": 0}
+
+    def _tick_count(self, t):
+        c = self.count
+        elapsed = t - c["start"]
+        n = elapsed // self.cond_pack["count_ticks_per_number"]
+        if n > c["n"]:
+            c["n"] = n
+            self.rows.append("K|%d|%s|count=%d" % (t, c["who"], n))
+            foe = next(f for f in self.fighters if f.id == c["who"])
+            if n >= self.cond_pack["count_to"]:
+                self._stop(t, foe, "count_expired")
+                return
+            # Section 3's Flag 3: the eight is READ (rise_window_ticks over
+            # the count clock), not written. Same number, no invented literal.
+            if (n == self.cond_pack["mandatory_count_number"]
+                    and self.cond_pack["mandatory_eight"]):
+                # THE RISE RULE, structural and declared: a fighter beaten to
+                # the floor of a knockdown-relevant region, or with no breath
+                # at all, has nothing to rise WITH. Everyone else gets up at
+                # the mandatory eight, having bought exactly what canon says
+                # the count buys - partial clarity, never freshness.
+                cond = self.condition[c["who"]]
+                if (cond.worst_knockdown_fraction() >= 10000
+                        or foe.wind <= 0):
+                    return          # he stays down; the count runs to ten
+                cond.count_relief()
+                ceiling = E.wind_ceiling(self.econ, foe.reserve)
+                relief = ((ceiling - foe.wind)
+                          * self.cond_pack["count_stamina_relief"]) // 10000
+                foe.wind = min(ceiling, foe.wind + relief)
+                foe.recovery_ticks = 0
+                self.rows.append("U|%d|%s|rises|at=%d" % (t, c["who"], n))
+                self.count = None
+
+    def _stop(self, t, loser, detail):
+        winner = next(f for f in self.fighters if f.id != loser.id)
+        method = "KO" if detail == "count_expired" else "TKO"
+        self.count = None
+        self.panel.close()
+        self.result = {"method": method, "winner": winner.id,
+                       "round": self.round_no, "tick": t, "detail": detail}
+        self.rows.append("F|%d|%s|%s|winner=%s|round=%d"
+                         % (t, method, detail, winner.id, self.round_no))
+
+    def _end_round(self, t):
+        self.panel.score_round(self.round_no, self.evidence, self.kd_round)
+        self.rows.append("B|%d|round_end|%d" % (t, self.round_no))
+        if self.round_no >= self.rounds_planned:
+            self.panel.close()
+            v = self.panel.verdict()
+            self.result = {"method": v["method"], "winner": v["winner"],
+                           "round": self.round_no, "tick": t,
+                           "detail": "decision"}
+            self.rows.append("F|%d|%s|decision|winner=%s|round=%d"
+                             % (t, v["method"], v["winner"] or "-",
+                                self.round_no))
+            return
+        # The corner. Wind substantially, Reserve barely, damage at canon's
+        # per-region rates - and the unanswered ledger resets, because the
+        # corner is an answer.
+        for f in self.fighters:
+            f.between_rounds(self.econ)
+            self.condition[f.id].between_rounds()
+            if f.punch is not None:
+                self.voided += 1
+            f.punch = None
+            f.evasion = None
+            f.recovery_ticks = 0
+            self.unanswered[f.id] = 0
+        self.evidence = {f.id: {"landed": 0, "denied": 0, "pressed": 0,
+                                "thrown": 0}
+                         for f in self.fighters}
+        self.kd_round = {f.id: 0 for f in self.fighters}
+        self.round_no += 1
+        self.rows.append("B|%d|round_start|%d" % (t, self.round_no))
+    # [ ... | 2026-08-08 23:55 UTC | END edit ]
+
     def step(self):
-        """One tick of the integrated bout, for every fighter, in order."""
+        """One tick of the integrated bout, in the order the ruling fixes."""
+        if self.result:
+            return
         self.tick += 1
         t = self.tick
         left = self.state.round_ticks - (t % self.state.round_ticks)
+
+        if t % 60 == 0:
+            self.samples.append({
+                "t": t, "r": self.round_no,
+                "pos": [f.pos for f in self.fighters],
+                "wind": [(f.wind * 10000) // self.econ["wind_max"]
+                         for f in self.fighters],
+                "reserve": [(f.reserve * 10000) // self.econ["reserve_max"]
+                            for f in self.fighters],
+                "dmg": [self.condition[f.id].worst_knockdown_fraction()
+                        for f in self.fighters]})
+
+        # The bell and the count. The first full fight found the defect here:
+        # a count straddled tick 10800, the round-boundary check lived at the
+        # bottom of step() where a running count returns early, so the bell
+        # never rang and "round 1" ran for 19,356 ticks with the cards empty.
+        # The rule, which is boxing's own: NOBODY IS SAVED BY THE BELL - a
+        # count that is running when the round expires completes first - but
+        # the moment it resolves with the fighter up, the deferred bell rings.
+        if t % self.state.round_ticks == 0:
+            self._round_end_due = True
+
+        if self.count is not None:
+            self._tick_count(t)
+            if self.result:
+                return
+            if self.count is not None:
+                return              # the ring is stopped; only the count runs
+
+        if self._round_end_due:
+            self._round_end_due = False
+            self._end_round(t)
+            if self.result:
+                return
+            return                  # the round break consumed this tick
+
+        # 0. Windows tick before anything resolves against them, and punches
+        #    resolve before anyone decides again.
+        self._tick_evasions(t)
+        self._resolve_punches(t)
+        if self.result:
+            return
 
         for i, me in enumerate(self.fighters):
             foe = self.fighters[1 - i]
@@ -231,6 +712,8 @@ class IntegratedBout(object):
                                  % (t, me.id, applied, self.fighters[0].pos,
                                     self.fighters[1].pos, self.separation(),
                                     me.pending, flags or "-"))
+                if me.advancing:
+                    self.evidence[me.id]["pressed"] += abs(applied)
             for who, was, now in self._resolve_bands():
                 self.rows.append("R|%d|%s|%s|%s|%d"
                                  % (t, who, was, now, self.separation()))
@@ -238,8 +721,20 @@ class IntegratedBout(object):
             # 2. Decide, from what a fighter can see, on his own stream.
             me.on_ropes = self._on_ropes(me)
             me.update_recovery_intent(self.econ)
-            d = P.decide(me.observation(self.econ, foe, ticks_left_in_round=left),
-                         self.streams[me.id], me.profile)
+            # A punch already in the air is observable - the telegraph.
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+            #   02:55 UTC | START edit: legality and cadence reach the decision ]
+            # What he may throw FROM WHERE HE IS STANDING, derived from canon
+            # by the one authority. Not a table, not a copy, not a default.
+            throwable = RANGE.throwable_from(self.range, me.band, C.PUNCHES)
+            obs = me.observation(self.econ, foe,
+                                 round_number=self.round_no,
+                                 ticks_left_in_round=left,
+                                 incoming_attack=foe.punch is not None,
+                                 throwable_here=throwable,
+                                 bands=self.bands)
+            d = P.decide(obs, self.streams[me.id], me.profile)
+            # [ ... | 2026-08-09 02:55 UTC | END edit ]
             self.rows.append("D|%d|%s|%s|%s|%s|%s|%d"
                              % (t, me.id, d.strategic, d.tactical,
                                 d.execution or "-", d.reason, d.initiative))
@@ -247,73 +742,162 @@ class IntegratedBout(object):
             # 3. Turn the decision into an intent the range core will price.
             me.advancing = d.tactical == P.ADVANCE
             self._intend(me, d.tactical)
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+            #   16:20 UTC | edit: the feet reset the position cost ]
+            # Canon: `resets_on: step_in, step_out, step_lateral`. Moving the
+            # feet is what stops ceding ground - which is the whole mechanism,
+            # because it makes standing still and punching the thing that
+            # costs, not punching.
+            if d.tactical in (P.ADVANCE, P.RETREAT, P.MICRO_ADJUST):
+                me.stepped_since_throw = True
 
-            # 4. Charge. THE DISTANCE BILLED IS THE DISTANCE TRAVELLED, which is
-            #    `applied` from step 1 - after the cap, the ring and the body
-            #    clamp have each had their say. Intent is not charged; ground is.
+            # 4. Commit. A punch goes in the air; an evasion starts its
+            #    startup. Both are charged their authored economy cost, and
+            #    both occupy the fighter for their authored spans.
             travelled = abs(applied)
             self.moved_ru += travelled
             self.charged_ru += travelled
             family = FAMILY[d.tactical]
             move_id = None
             if d.tactical == P.ATTACK:
-                me.committed_to(d.execution, 14)
+                # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) |
+                #   2026-08-09 10:35 UTC | edit: the magic 14 dies ] The
+                # policy can no longer select a punch outside the declared
+                # vocabulary (it chooses from the range authority's answer
+                # over C.PUNCHES), so the `else 14` invented-window branch is
+                # unreachable - and an unreachable fail-open branch in a
+                # fail-closed codebase is kept as a RAISE, not a default.
+                if d.execution not in self.frames:
+                    raise AssertionError(
+                        "the policy chose %r, which the bout cannot fly - the "
+                        "vocabularies have diverged again" % (d.execution,))
+                me.committed_to(d.execution,
+                                self.frames[d.execution]["frames"])
                 move_id = d.execution
+                self.evidence[me.id]["thrown"] += 1
+                me.punch = (d.execution, t, me.band)
+                # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+                #   2026-08-09 16:15 UTC | START edit: canon's repetition
+                #   economy, Rule 4 ]
+                # ARM FATIGUE. The throwing arm's work accrues and multiplies
+                # what its next punch costs, up to canon's 1.7 ceiling - and
+                # it sheds every tick that arm is idle, so a fighter who mixes
+                # hands never carries it. Canon is explicit that this must not
+                # be a repeat counter: "the tax is on doing one thing, not on
+                # throwing punches."
+                hand = PUNCHECON.hand_of(self.rep, d.execution)
+                me.busy_hand = hand
+                mult = PUNCHECON.arm_multiplier(self.rep, me.arm_work[hand])
+                me.arm_work[hand] = PUNCHECON.worked(self.rep,
+                                                     me.arm_work[hand])
+                self.arm_tax[me.id] = mult
+                # POSITION COST. Punching without resetting the feet cedes
+                # ring position - "the thrower ends up where the opponent put
+                # them". It is not a penalty on punching; it is the reason a
+                # fighter has to walk his man down instead of standing still
+                # and letting his hands go for twelve rounds.
+                ceded = PUNCHECON.ground_ceded(self.rep, me.stepped_since_throw)
+                if ceded:
+                    away = -1 if me.pos < foe.pos else 1
+                    me.pos = max(0, min(self.range["axis"],
+                                        me.pos + away * ceded))
+                    self.ceded_ru += ceded
+                me.stepped_since_throw = False
+                # [ ... | 2026-08-09 16:15 UTC | END edit ]
+            elif d.tactical == P.EVADE and d.execution:
+                if self._commit_evasion(me, t, d.execution):
+                    # Evade spam is not free: the authored per-action cost is
+                    # charged through the same economy as every punch.
+                    move_id = d.execution
+            # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) |
+            #   2026-08-09 18:05 UTC | START edit: the arm that rested sheds ]
+            # Canon's `recovery_per_idle_tick` is the half that makes
+            # arm_fatigue a consequence instead of the repeat counter canon
+            # forbids: an arm that rests is forgiven, so the tax is on doing
+            # one thing rather than on throwing punches.
+            #
+            # AN ARM MID-PUNCH IS NOT AN IDLE ARM, and getting that wrong made
+            # the whole mechanism inert. Measured: with the shed running
+            # through a punch's own recovery, throw rate and landed rate were
+            # bit-identical to the mechanism being switched off - because
+            # canon's own ratio (0.05 gained per throw against 0.004 shed per
+            # idle tick) needs 12.5 idle ticks to undo one throw, and a jab
+            # occupies its arm for about fourteen. An arm could never carry
+            # work from one punch to the next. Canon does not author dead
+            # coefficients; a reading that makes a mechanism unable to fire is
+            # a misreading of "idle", not a discovery about the mechanism.
+            #
+            # So an arm sheds on the ticks it is neither throwing nor
+            # recovering from a throw. The OTHER arm sheds throughout, which
+            # is the mixing-hands forgiveness stated intact.
+            for _h in me.arm_work:
+                if _h != me.busy_hand:
+                    me.arm_work[_h] = PUNCHECON.rested(self.rep,
+                                                       me.arm_work[_h])
+            # [ ... | 2026-08-09 18:05 UTC | END edit ]
             me.tick_recovery()
+            if me.recovery_ticks == 0 and me.punch is None:
+                me.busy_hand = None
 
-            # `travel_ru` is charged in addition to whatever was committed, so
-            # a step taken on the same tick as a punch is still paid for. It is
-            # the economy that prices it, not this loop.
-            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
-            #   2026-08-08 20:45 UTC | START edit: Decision 0029 ]
-            # THE TYPED SEAM, at the exact boundary where three defects landed.
-            # `displacement()` refuses a negative and refuses anything that is
-            # not an integer count of reach units; the multiplication below is
-            # the only declared route from a distance to a Wind debit; and the
-            # row records the distance, the RATE and the debit separately,
-            # because one opaque `movement_cost` field is precisely the
-            # ambiguity that hid all three.
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+            #   14:12 UTC | START edit: holding a guard costs what canon says ]
+            # `posture_economy.hold_cost_applies_when: "not_committed"` - you
+            # are not holding a guard mid-punch, you are punching. So the hold
+            # is charged on the ticks a fighter is actually carrying the
+            # structure, which is what makes carrying a tight one a decision
+            # rather than a free upgrade. Canon's own note: a tight high-work
+            # guard costs roughly a quarter of the pool across a round and the
+            # loosest costs a fifteenth.
+            if me.recovery_ticks == 0 and me.punch is None:
+                hold = self.guard["postures"][me.posture]["hold_per_tick"]
+                if hold:
+                    me.wind = max(0, me.wind - hold)
+            # [ ... | 2026-08-09 14:12 UTC | END edit ]
+
             travelled_ru = U.displacement(travelled)
             wind_debit = self.rates.movement_wind(travelled_ru)
 
-            # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) |
-            #   2026-08-08 22:15 UTC | START edit: Decision 0031 ]
-            # THE TYPED VALUE IS NOW THE AUTHORITY, not a witness. The Director
-            # named the previous shape precisely - "a very sophisticated
-            # witness watching an untyped number run the actual fight" - and
-            # this is the correction: the ReachUnits object itself is what the
-            # fighter is charged from, and the only unwrap to the legacy
-            # integer economy happens inside `legacy_economy_travel`, the one
-            # named adapter. A raw integer can no longer reach the debit from
-            # here at all.
             before_wind = me.wind
             me.step(self.econ, family, move_id=move_id, travel=travelled_ru)
-            # [ ... | 2026-08-08 22:15 UTC | END edit ]
 
-            # The typed path and the proven economy must agree about the
-            # movement debit. Two roads to one number; the day they disagree is
-            # the day one of them was edited alone. Checked only on the ticks
-            # where movement is the ONLY charge, because that is the only tick
-            # on which the two are computing the same thing.
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+            #   16:18 UTC | START edit: the arm's tax lands on the arm's cost ]
+            # Canon says arm_fatigue "multiplies the throwing arm's stamina
+            # cost". The economy charges the authored cost; the surcharge is
+            # applied here as the difference, so the economy module keeps
+            # owning what a punch costs and this loop only says how much more
+            # THIS arm's version of it cost today.
+            tax = self.arm_tax.pop(me.id, None)
+            if tax is not None and tax > 10000:
+                base = before_wind - me.wind
+                me.wind = max(0, me.wind - (base * (tax - 10000)) // 10000)
+            # [ ... | 2026-08-09 16:18 UTC | END edit ]
+
             applied_wind = before_wind - me.wind
             if move_id is None and family == "move" \
                     and applied_wind != wind_debit.q:
                 raise AssertionError(
                     "the typed movement debit (%s) and the economy's (%d) "
-                    "disagree at tick %d for %s - one of the two has been "
-                    "changed without the other"
+                    "disagree at tick %d for %s"
                     % (wind_debit.telemetry("wind"), applied_wind, t, me.id))
 
             self.rows.append(
-                "W|%d|%s|wind=%d|reserve=%d|%s|%s|%s"
+                "E|%d|%s|wind=%d|reserve=%d|%s|%s|%s"
                 % (t, me.id, me.wind, me.reserve,
                    travelled_ru.telemetry("movement_displacement"),
                    self.rates.wind_per_ru.telemetry("movement_wind_rate"),
                    wind_debit.telemetry("movement_wind_debit")))
-            # [ ... | 2026-08-08 20:45 UTC | END edit ]
 
     def run(self, ticks):
         for _ in range(ticks):
+            if self.result:
+                break
+            self.step()
+        return self
+
+    def run_fight(self):
+        """First bell to the end, however it ends."""
+        while not self.result:
             self.step()
         return self
 
@@ -332,8 +916,12 @@ class IntegratedBout(object):
         h = FNV_OFFSET
         for row in lines:
             h = fnv1a64(h, row)
-        lines.append("S|ticks=%d|rows=%d|moved_ru=%d|charged_ru=%d|fnv=%016x"
+        lines.append("S|ticks=%d|rows=%d|moved_ru=%d|charged_ru=%d|%s"
+                     "|whiff_band=%d|voided=%d|fnv=%016x"
                      % (self.tick, len(self.rows), self.moved_ru,
-                        self.charged_ru, h))
+                        self.charged_ru,
+                        "|".join("%s=%d" % (r, self.contact[r])
+                                 for r in EVADE.REASONS),
+                        self.whiff_band, self.voided, h))
         return "\n".join(lines) + "\n"
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 14:00 UTC | END ]

@@ -67,11 +67,46 @@ def test_the_bout_defines_no_range_rule_of_its_own():
 
 # ------------------------------------------- a decision moves a boxer --------
 
-def test_a_policy_decision_physically_moved_a_boxer(bout):
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 02:15 UTC | START edit: Phase R changed the cadence ]
+@pytest.fixture(scope="module")
+def full_round():
+    """A whole three-minute round.
+
+    These two tests used the ten-second `bout` fixture and passed until evasion
+    entered the loop. They fail on ten seconds now, and that is the finding
+    rather than the bug: with commitment lasting the animation canon authors, a
+    fighter is throwing, recovering or resting for almost every tick, and the
+    first step does not happen inside ten seconds. See
+    `test_footwork_is_rare_and_that_is_the_finding` below for the number.
+    """
+    return IntegratedBout(seed=4242).run(180 * 60)
+
+
+def test_a_policy_decision_physically_moved_a_boxer(full_round):
     start = RANGE.q(0.90)
-    assert bout.separation() != start
-    assert bout.moved_ru > 0
-    assert any(r.startswith("X|") for r in bout.rows)
+    assert full_round.separation() != start
+    assert full_round.moved_ru > 0
+    assert any(r.startswith("X|") for r in full_round.rows)
+
+
+def test_footwork_is_rare_and_that_is_the_finding(full_round):
+    """A NUMBER ON THE RECORD, asserted so it announces itself when it moves.
+
+    Across a full round these two fighters take footwork on a few dozen ticks
+    out of 10,800. Real boxers are on their feet for all three minutes. Nothing
+    here is tuned - Decision 0026 Ruling C and R5 both hold - but the shape is
+    now measurable for the first time, and a reader should meet it as a finding
+    rather than infer it from a small `moved_ru`.
+
+    The mechanism, from the decision log: commitment windows plus recovery plus
+    the recovery-space loop consume nearly every tick, so movement only happens
+    in the slivers left over.
+    """
+    steps = len([r for r in full_round.rows if r.startswith("X|")])
+    assert 0 < steps < 500, (
+        "footwork ticks per round moved to %d - if this is now a plausible "
+        "amount of boxing, retire this test and say so in the log" % steps)
+# [ ... | 2026-08-09 02:15 UTC | END edit ]
 
 
 def test_the_movement_came_from_a_decision_and_not_from_nowhere(bout):
@@ -92,12 +127,12 @@ def test_the_movement_came_from_a_decision_and_not_from_nowhere(bout):
 
 # --------------------------------- the charge is the ground, not the intent --
 
-def test_every_reach_unit_travelled_is_a_reach_unit_billed(bout):
+def test_every_reach_unit_travelled_is_a_reach_unit_billed(full_round):
     """The invariant Decision 0026 Ruling C reduces to, and the one that
     caught this module's own defect on its first run: 3.74 units covered
     against 2.34 billed, because a step taken on a punching tick was free."""
-    assert bout.moved_ru == bout.charged_ru
-    assert bout.moved_ru > 0
+    assert full_round.moved_ru == full_round.charged_ru
+    assert full_round.moved_ru > 0
 
 
 def test_the_bill_matches_the_rate_canon_declares(bout):

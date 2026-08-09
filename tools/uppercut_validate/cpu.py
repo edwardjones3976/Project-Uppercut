@@ -13,7 +13,8 @@ rather than the physics), Rule 13 (commitment binds the CPU too) and Rule 3
 (estimates carry confidence and stay below certainty).
 """
 from __future__ import annotations
-import json
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:58 UTC | F1: strict canon JSON ]
+from . import strict_json as json
 from pathlib import Path
 
 from . import schema_check

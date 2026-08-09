@@ -13,7 +13,8 @@ currently has nothing to police in a real tree. Its non-vacuity is proved by
 tests/isolation_samples/violation_sample, which the checker must flag.
 """
 from __future__ import annotations
-import json
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:58 UTC | F1: strict canon JSON ]
+from . import strict_json as json
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -43,11 +44,25 @@ def scan_source(root: Path, contract: dict | None = None) -> list:
     idents = contract["sealed_symbols"]["identifiers"]
     pattern = re.compile(r"\b(" + "|".join(re.escape(i) for i in idents) + r")\b")
     out: list = []
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 22:00 UTC | F3: containment | START edit ]
+    # The consumer paths are DATA, and data must not be able to point this
+    # scanner outside the tree it was asked to police. A path that resolves
+    # outside `root` ('..', an absolute path, a junction) is refused loudly,
+    # not skipped: skipping would mean a forbidden consumer silently went
+    # unscanned, which is fail-open.
+    root_resolved = root.resolve()
     for consumer in contract["forbidden_consumers"]:
         for rel in consumer["paths"]:
             base = root / rel
+            resolved = base.resolve()
+            if not resolved.is_relative_to(root_resolved):
+                raise ValueError(
+                    "score-isolation contract: consumer %r path %r resolves to "
+                    "%s, outside the scanned root %s - refusing to scan"
+                    % (consumer.get("id"), rel, resolved, root_resolved))
             if not base.exists():
                 continue
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 22:00 UTC | F3: containment | END edit ]
             # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 02:13 UTC | START edit ]
             # A consumer path may name a single file: the reference simulator
             # keeps its CPU logic in one module (tools/uppercut_sim/policy.py),

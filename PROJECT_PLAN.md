@@ -1,3 +1,26 @@
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:22 UTC | archival banner start ] -->
+> ## ⚠️ HISTORICAL — this is not the active execution plan
+>
+> **Archived 2026-08-09.** An external audit correctly found this document
+> "useful history but unreliable as the active execution plan," and the risk is
+> real: its authority stack cites "accepted decisions 0001–0005" and its state
+> section is dated 2026-08-02, before the integrated bout existed at all.
+>
+> Read it as a record of what was planned on 2026-08-03, not as instructions.
+> **What is actually true today lives in:** [STATUS.md](STATUS.md) (generated,
+> CI-checked), the [decision index](docs/decisions/INDEX.md) (generated,
+> CI-checked, 0001–0038), and the most recent decisions for the live critical
+> path. Where this plan and a decision disagree, the decision wins — it always
+> did, and this banner just makes that visible from the top of the file instead
+> of from a sentence in its authority stack.
+>
+> It also flags a drift the project asked to have surfaced in any doc pass:
+> **"10 guards vs. 2 guard volumes need reconciling."** Still open. Decision
+> 0010 rules that a guard is coverage extents rather than a volume; the guard
+> is now wired into the bout on that basis, but the two-volume language has
+> never been formally retired.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:22 UTC | archival banner end ] -->
+
 # Project Uppercut — 90-Day Execution Plan
 
 **Quarter:** Monday 2026-08-03 → Sunday 2026-11-01 (13 weeks)

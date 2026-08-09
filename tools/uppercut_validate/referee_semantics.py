@@ -17,7 +17,8 @@ checks keep that pairing honest:
      identical enforcement would be the old inertness wearing a new file.
 """
 from __future__ import annotations
-import json
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:58 UTC | F1: strict canon JSON ]
+from . import strict_json as json
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]

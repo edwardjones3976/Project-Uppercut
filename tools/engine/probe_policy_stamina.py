@@ -137,12 +137,28 @@ def run(seed=4242, ticks=ROUND_TICKS):
     # [ ... | 2026-08-08 10:10 UTC | END edit ]
     logs = [Log(), Log()]
 
+    # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09
+    #   09:25 UTC | START edit: legality reaches the probe ]
+    # The observation now REQUIRES offence legality, from the same single
+    # authority the bout reads - a harness does not get its own opinion about
+    # which punches are legal any more than it got its own observe(). The
+    # probe's toy band walk moves fighters between bands, so the legal set is
+    # read per decision at the band the fighter actually occupies.
+    import tools.uppercut_range.core as RANGE
+    rp = RANGE.range_pack()
+    bands = P.Bands(RANGE.band_order(rp),
+                    RANGE.bands_without_offence(rp, C.PUNCHES))
+    # [ ... | 2026-08-09 09:25 UTC | END edit ]
+
     for t in range(ticks):
         left = ticks - t
         for i, me in enumerate(fs):
             foe, log = fs[1 - i], logs[i]
             me.update_recovery_intent(c)
-            d = P.decide(me.observation(c, foe, ticks_left_in_round=left),
+            d = P.decide(me.observation(c, foe, ticks_left_in_round=left,
+                                        throwable_here=RANGE.throwable_from(
+                                            rp, me.band, C.PUNCHES),
+                                        bands=bands),
                          streams[me.id], me.profile)
             log.reasons[d.reason] = log.reasons.get(d.reason, 0) + 1
             previous_tactic, log.last_tactic = log.last_tactic, d.tactical
@@ -210,14 +226,26 @@ def run(seed=4242, ticks=ROUND_TICKS):
 # [ ... | 2026-08-08 08:35 UTC | END edit ]
 
 
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09 09:35 UTC
+#   | START edit: band order comes from the authority ]
+# P.BANDS was the policy's hand-copied band order and it is deleted; canon's
+# own order is read through the range pack, same as everywhere else.
+def _band_order():
+    import tools.uppercut_range.core as RANGE
+    return RANGE.band_order(RANGE.range_pack())
+
+
 def _closer(band):
-    i = max(0, P.BANDS.index(band) - 1)
-    return P.BANDS[i]
+    order = _band_order()
+    i = max(0, order.index(band) - 1)
+    return order[i]
 
 
 def _further(band):
-    i = min(len(P.BANDS) - 1, P.BANDS.index(band) + 1)
-    return P.BANDS[i]
+    order = _band_order()
+    i = min(len(order) - 1, order.index(band) + 1)
+    return order[i]
+# [ ... | 2026-08-09 09:35 UTC | END edit ]
 
 
 def main(argv=None):

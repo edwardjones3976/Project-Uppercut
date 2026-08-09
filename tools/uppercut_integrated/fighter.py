@@ -97,7 +97,8 @@ class FighterState(object):
     `[0, max]`, rejected rather than normalised when it arrives outside it.
     """
 
-    __slots__ = ("id", "wind", "reserve", "profile", "band", "on_ropes",
+    __slots__ = ("posture", "arm_work", "stepped_since_throw", "busy_hand",
+                 "id", "wind", "reserve", "profile", "band", "on_ropes",
                  "cornered", "recovery_ticks", "recent_moves", "failed_attacks",
                  "committed", "advancing", "damaged_regions", "hurt",
                  "punches_thrown", "recovery_seeking",
@@ -108,8 +109,18 @@ class FighterState(object):
                  # band a punch is judged against is derived from them by the
                  # shared range core, not stored alongside them, so there is no
                  # second opinion about where a fighter is.
-                 "pos", "pending")
-                 # [ ... | 2026-08-08 13:40 UTC | END edit ]
+                 "pos", "pending",
+                 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+                 #   2026-08-09 00:35 UTC | START edit: Phase R enters ]
+                 # A punch in flight: (move_id, tick it was thrown, the band it
+                 # was thrown from). An evasion in force: (evasion_id, the tick
+                 # it stops being active). Both are None most of the time, and
+                 # both are TIMING - which is the whole reason there is no
+                 # evasion die. A slip that has expired is not passed to the
+                 # resolver at all, so a mistimed evasion is a vulnerability
+                 # rather than a wasted input.
+                 "punch", "evasion")
+                 # [ ... | 2026-08-09 00:35 UTC | END edit ]
 
     def __init__(self, fighter_id, economy, profile=None, band="mid"):
         # `fighter_id` is the STABLE PARTICIPANT IDENTITY from the contract's
@@ -140,6 +151,31 @@ class FighterState(object):
         self.recovery_seeking = False
         self.pos = 0
         self.pending = 0
+        self.punch = None
+        self.evasion = None
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+        #   14:10 UTC | edit: a fighter holds a structure ]
+        # The posture he is carrying. `high_guard` is canon's staple - "the
+        # trade that makes body work pay" - and it is a starting stance, not
+        # a default in the fail-closed sense: every posture is authored, and
+        # the guard core refuses one that is not.
+        self.posture = "high_guard"
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+        #   16:10 UTC | edit: canon's repetition economy needs somewhere to
+        #   accumulate ] Work done BY EACH ARM, q10000 above 1.0, and whether
+        # the feet have moved since the last punch. Both shed the moment the
+        # fighter stops doing the one thing - which is why they are
+        # consequences a fighter chose rather than penalties on punching.
+        self.arm_work = {"lead": 0, "rear": 0}
+        self.stepped_since_throw = True
+        # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09
+        #   18:05 UTC | edit: an arm mid-punch is not an idle arm ]
+        # Which hand is currently occupied by a punch - in the air or still
+        # recovering from one. `recovery_per_idle_tick` sheds an arm's work
+        # while it rests, and an arm throwing is the opposite of resting; see
+        # the shedding block in `bout.py` for why this distinction is what
+        # makes the mechanism able to accumulate at all.
+        self.busy_hand = None
         # Decision 0025's input rule applies to constructed state too, not only
         # to state that has been stepped. A fixture that starts a fighter
         # outside the interval is exactly the corrupt-save case the ruling
@@ -153,7 +189,24 @@ class FighterState(object):
         return Observable(
             band=self.band,
             committed=self.committed,
-            recovering=self.recovery_ticks > 0,
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+            #   2026-08-09 01:50 UTC | START edit: the punish window is AFTER ]
+            # RECOVERING MEANS THE PUNCH IS OVER AND HE HAS NOT RESET, which is
+            # when a boxer is open. It does not mean "busy".
+            #
+            # Until this line, `recovering` was `recovery_ticks > 0` - true for
+            # the WHOLE animation, including the startup and active frames when
+            # the man is actually throwing at you. Once commitment lasted the
+            # authored animation instead of a placeholder 14 ticks, that made
+            # each fighter permanently "recovering" in the other's eyes, so the
+            # policy's punish branch fired on every tick for both of them: a
+            # mutual-punish deadlock, 146 punches a minute each, and not one
+            # step taken in sixty seconds.
+            #
+            # A punch in flight is a threat. A punch just finished is an
+            # opening. They are opposite things and they were the same flag.
+            recovering=self.recovery_ticks > 0 and self.punch is None,
+            # [ ... | 2026-08-09 01:50 UTC | END edit ]
             advancing=self.advancing,
             recent_moves=tuple(self.recent_moves[-4:]),
             on_ropes=self.on_ropes,
@@ -179,12 +232,30 @@ class FighterState(object):
         return self.recovery_seeking
 
     def observation(self, economy, foe, round_number=1,
-                    ticks_left_in_round=10800, incoming_attack=False):
+                    ticks_left_in_round=10800, incoming_attack=False,
+                    throwable_here=None, bands=None):
         """The policy's view. The ONE translation from state to observability.
 
         `foe` may be a `FighterState` or an `Observable`; a `FighterState` is
         narrowed here rather than read directly, so there is no path by which
         this function can reach the opponent's Wind even by mistake.
+
+        [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 02:45 UTC
+          | START edit: offence legality arrives from the range authority ]
+        `throwable_here` and `bands` come from `uppercut_range.core` - the
+        single authority on which punches canon authors for which band - and
+        they are REQUIRED rather than defaulted. The policy refuses an
+        Observation without them for a reason worth repeating here, since this
+        is the function that would have supplied the default: "defaulting to
+        'nothing is throwable' builds a fighter who stands still for twelve
+        rounds and never says why." That fighter existed. He fought for
+        thirty-six minutes and drew 120-120.
+
+        They are passed in rather than computed here because this class holds
+        no range pack and must not acquire one: fighter state does not get to
+        answer a question canon answers. The bout owns the pack and threads
+        the answer through, exactly as it threads the economy.
+        [ ... | 2026-08-09 02:45 UTC | END edit ]
         """
         seen = foe.observable() if isinstance(foe, FighterState) else foe
         if not isinstance(seen, Observable):
@@ -220,6 +291,8 @@ class FighterState(object):
             ticks_left_in_round=ticks_left_in_round,
             own_recent_moves=tuple(self.recent_moves[-4:]),
             consecutive_failed_attacks=self.failed_attacks,
+            throwable_here=throwable_here,
+            bands=bands,
         )
 
     # ------------------------------------------------------------- spending --

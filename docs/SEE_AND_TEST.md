@@ -94,11 +94,23 @@ unfixed, so you are not seeing them for the first time in a screenshot:
 ## Test it
 
 ```
-python -m pytest -q                            # 811 tests, ~2.5 minutes
+python -m pytest -q                            # ~3 minutes
 python -m tools.uppercut_validate.cli all      # canon validators, ~10 seconds
+python -m tools.gen_status --check             # STATUS.md is not stale
+python -m tools.gen_decision_index --check     # the decision index is not stale
 ```
 
-Both must be clean before anything is pushed. CI runs the same two.
+All four must be clean before anything is pushed. CI runs the same four.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:12 UTC | edit: a hard-coded test count is a lie with a shelf life ]
+     This line used to read "811 tests". It said 811 for long enough that an
+     external audit named this file as stale documentation. The live count
+     lives in STATUS.md, which is generated and CI-checked; a number typed by
+     hand into prose has no such protection, so this file no longer carries
+     one. -->
+The current test count is in [STATUS.md](../STATUS.md), which is generated and
+CI-checked. It is deliberately **not** repeated here — the last hand-typed count
+in this file went stale and stayed stale.
 
 ### Prove the engine still matches the contract
 
@@ -135,9 +147,39 @@ contract's own marker stream — none of them instruments the simulation.
 python -m tools.uppercut_sim.batch
 ```
 
-The balance instrument the canon numbers were originally swept against. It
-reaches a decision in most bouts; the contract currently does not, which is the
-whole of the open Phase O question.
+The balance instrument the canon numbers were originally swept against.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:14 UTC | edit: this claim is no longer true ]
+     This paragraph used to end "the contract currently does not [reach a
+     decision], which is the whole of the open Phase O question." That was true
+     when written and false by 2026-08-09. Corrected rather than deleted, so
+     the record shows the gap closed instead of quietly vanishing. -->
+**Correction (2026-08-09):** it used to say the contract could not reach a
+decision. It can. Over ten seeds at the shipped configuration, seven of ten
+bouts now go to the cards and three end by referee stoppage — see Decisions
+0036 and 0037 for the measurement and what remains wrong with it.
+
+## Watch a complete fight
+
+The integrated bout — policy, movement, stamina, evasion, guard, contact,
+knockdown, count, referee, sealed judging, verdict — runs in Python and needs no
+engine:
+
+```
+python -m tools.uppercut_integrated.export_fight --seed 4242
+```
+
+It writes a fight JSON plus the authoritative marker stream. The replay viewer
+in `docs/fights/` opens the result in a browser. Unlike the Phase Q arena above,
+this one *does* have guard, stamina, damage, knockdowns and round structure —
+the arena is still the distance-only slice.
+
+## Drive the editor from an agent
+
+UE 5.8 ships Epic's own MCP server plugin, enabled for this project and proven
+live on 2026-08-09. Runbook and the four non-obvious client facts:
+[`docs/UNREAL_MCP.md`](UNREAL_MCP.md). Loopback only — it is reachable from the
+machine running the editor and from nowhere else.
 
 ---
 

@@ -9,7 +9,8 @@ criterion A.5 (all seven contact classes, pipeline total, quality bands tile),
 and criterion E.19 (swept, snapshotted, fixed-order resolution).
 """
 from __future__ import annotations
-import json
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:58 UTC | F1: strict canon JSON ]
+from . import strict_json as json
 from pathlib import Path
 
 from . import schema_check
