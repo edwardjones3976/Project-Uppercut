@@ -112,6 +112,13 @@ def fight_cards(bout):
     """
     if not bout.result:
         return {}
+    # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09
+    #   10:00 UTC | edit: Section 4's consumer guard ] A bout stopped before
+    # the first round closed has NO scored rounds, and the panel now refuses
+    # to invent a card from that absence (NoCardToRead). The export says the
+    # same thing the broadcast would: there are no cards to show.
+    if not bout.panel.seal_check():
+        return {}
     v = bout.panel.verdict()
     return {judge: {"totals": list(card["totals"]),
                     "rounds": [list(rnd) for rnd in card["rounds"]]}
