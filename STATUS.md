@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-09 00:32 UTC** at `3fa7b3d The first watchable fight. complete integrated fights = 1`.
+Generated **2026-08-09 01:13 UTC** at `410bd2d The specialist council, and the findings as executable facts`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **1364 passed** |
+| Test suite | **1370 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |
