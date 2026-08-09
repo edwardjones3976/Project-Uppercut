@@ -220,8 +220,19 @@ def test_the_stream_says_why_and_not_merely_whether(bout):
             assert f[-2] == "whiffed", r
             assert f[5].startswith("band=") and f[6] == "evasion=-", r
             continue
-        assert f[-1] in EVADE.REASONS, r
-        assert f[-2] in ("arrived", "dodged"), r
+        # [ Claude Opus 5 (claude-opus-5) | 2026-08-09 14:50 UTC | resolution:
+        #   the guard stage (Decision 0034) added two fields, and they say
+        #   MORE about why, not less. A resolved punch row is now
+        #     ...|<verdict>|<reason>|guard=<posture>|<outcome>
+        #   where the verdict is what the EVASION decided, the reason is its
+        #   four-word vocabulary, and the outcome is what the punch finally
+        #   did against structure. A blocked punch arrived past the movement
+        #   and was stopped by the guard, and the row can say exactly that -
+        #   which is the whole point of this test. ]
+        assert f[-1] in ("solid", "blocked", "dodged"), r
+        assert f[-2].startswith("guard="), r
+        assert f[-3] in EVADE.REASONS, r
+        assert f[-4] in ("arrived", "dodged"), r
         assert f[5].startswith("region=") and f[6].startswith("evasion="), r
     trailer = bout.stream().splitlines()[-1]
     for reason in EVADE.REASONS:

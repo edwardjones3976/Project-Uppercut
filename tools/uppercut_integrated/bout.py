@@ -40,6 +40,7 @@ if REPO not in sys.path:
 
 from tools.uppercut_range import core as RANGE          # noqa: E402
 from tools.uppercut_evade import core as EVADE          # noqa: E402
+from tools.uppercut_guard import core as GUARD          # noqa: E402
 from tools.uppercut_stamina import economy as E         # noqa: E402
 from tools.uppercut_integrated import contract as C     # noqa: E402
 from tools.uppercut_integrated import fighter as F      # noqa: E402
@@ -119,6 +120,24 @@ class IntegratedBout(object):
                              % "; ".join(self.evade["canon_errors"]))
         self.frames = EVADE.punch_frames(C.PUNCHES)
         self.contact = {r: 0 for r in EVADE.REASONS}
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+        #   14:00 UTC | START edit: Decision 0034 - the guard enters the fight ]
+        # Until now NOTHING IN THIS GAME STOPPED A PUNCH EXCEPT AN EVASION.
+        # The ten postures, their extents, their hold costs and canon's one
+        # interception threshold were all authored and all inert, which
+        # Decision 0034 measured as the largest cause of ~150 landed punches
+        # per round. Phase L already proved the rule; it is extracted to
+        # `uppercut_guard.core` and CALLED here, and Phase L re-proves
+        # byte-identically.
+        self.guard = GUARD.guard_pack()
+        if self.guard["canon_errors"]:
+            raise SystemExit("the guard canon fails its own contract: %s"
+                             % "; ".join(self.guard["canon_errors"]))
+        # And the price on throwing, which canon authored and nothing read:
+        # blocked 1.15 < dodged 1.30 < whiffed 1.50 on the thrower's recovery.
+        self.outcome = GUARD.outcome_pack()
+        self.blocked = 0
+        # [ ... | 2026-08-09 14:00 UTC | END edit ]
         # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
         #   02:50 UTC | START edit: one authority on offence legality ]
         # THE SECTION-1 FIX, WIRED. `policy.BY_BAND` was a hand-authored second
@@ -393,12 +412,80 @@ class IntegratedBout(object):
                 # the outcome. Used windows close quietly; unused ones mistime.
                 foe.evasion = (foe.evasion[0], foe.evasion[1],
                                foe.evasion[2], True)
-            self.rows.append(
-                "P|%d|%s|%s|%s|region=%s|evasion=%s|%s|%s"
-                % (t, me.id, foe.id, move, region, active or "-",
-                   "arrived" if arrived else "dodged", reason))
+
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+            #   14:05 UTC | START edit: guard resolves, AFTER evasion ]
+            # Phase R's `outranks_guard` is the ordering and it is honoured by
+            # position: a punch that was dodged never reaches this branch, so
+            # a slipped punch can never also be blocked. Only a punch that
+            # ARRIVED past the evasion meets the defender's structure.
+            #
+            # COMMITMENT IS WHAT OPENS THE GUARD. A defender mid-punch, mid
+            # evasion or still in recovery has his extents scaled by canon's
+            # authored 0.6, and 0.95 x 0.6 = 0.57 falls under the 0.6
+            # interception threshold - so the lane a high guard normally
+            # closes opens for exactly as long as he is busy. That is the
+            # counterpunch, and no line of code decides it.
+            blocked = False
             if arrived:
+                # WHAT "COMMITTED" MEANS HERE, read narrowly and on purpose.
+                # Canon's committed_defense says "A fighter MID-PUNCH cannot
+                # slip and cannot fully cover" - the punch is in the air, or
+                # the evasion is running. It does NOT say a man is defenceless
+                # through the whole tail of a recovery he is standing in: the
+                # first version of this line included `recovery_ticks > 0`,
+                # which is true on almost every tick, and the guard blocked
+                # ONE punch in a twelve-round fight. A structure that is never
+                # up is not a guard, and a reading that makes canon's ten
+                # postures inert is the wrong reading of canon.
+                #
+                # (The knockdown model's `caught_committed` keeps the WIDER
+                # reading, because its own canon note says "caught inside his
+                # own recovery" in those words. Two different sentences, two
+                # different tests - and both are canon's, not this file's.)
+                d_committed = (foe.punch is not None
+                               or foe.evasion is not None)
+                blocked = GUARD.intercepts(self.guard, C.PUNCHES,
+                                           foe.posture, d_committed, move)
+            # TWO STAGES, TWO WORDS, and the row says both. The verdict is
+            # what the EVASION stage decided - did the punch get past the
+            # movement - and the outcome is what the punch finally did. A
+            # blocked punch ARRIVED (it beat the evasion) and was then stopped
+            # by structure; writing it as "dodged" would have said the
+            # defender moved when he actually covered, which is the exact
+            # distinction canon prices differently (dodged 1.30 > blocked
+            # 1.15, because the man who moves earns more than the man who
+            # covers).
+            outcome = ("blocked" if blocked
+                       else "solid" if arrived else "dodged")
+            self.rows.append(
+                "P|%d|%s|%s|%s|region=%s|evasion=%s|%s|%s|guard=%s|%s"
+                % (t, me.id, foe.id, move, region, active or "-",
+                   "arrived" if arrived else "dodged", reason,
+                   foe.posture, outcome))
+
+            # THE PRICE ON THROWING, canon's and never read until now. The arm
+            # that stops on structure travelled less far than the arm that
+            # found nothing, so blocked 1.15 < dodged 1.30 < whiffed 1.50 on
+            # the thrower's own recovery. Before this, missing cost exactly
+            # what landing cost, which is half of why the fight threw ~150
+            # landed punches a round (Decision 0034).
+            extra = self.outcome["recovery_multiplier"].get(outcome)
+            if extra is not None and extra > 10000:
+                me.recovery_ticks += (me.recovery_ticks * (extra - 10000)) // 10000
+            # [ ... | 2026-08-09 14:05 UTC | END edit ]
+
+            if arrived and not blocked:
                 self._contact(t, me, foe, move, region)
+            elif blocked:
+                self.blocked += 1
+                me.failed_attacks += 1
+                # Canon's guard_integrity: blocking "reduces clean damage
+                # without erasing consequence". The consequence it does not
+                # erase - arm condition, guard erosion - needs the arm-damage
+                # mechanic that does not exist yet, so the defender is
+                # credited with the denial and the rest is named, not faked.
+                self.evidence[foe.id]["denied"] += 1
             else:
                 me.failed_attacks += 1
                 self.evidence[foe.id]["denied"] += 1
@@ -672,6 +759,21 @@ class IntegratedBout(object):
                     # charged through the same economy as every punch.
                     move_id = d.execution
             me.tick_recovery()
+
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+            #   14:12 UTC | START edit: holding a guard costs what canon says ]
+            # `posture_economy.hold_cost_applies_when: "not_committed"` - you
+            # are not holding a guard mid-punch, you are punching. So the hold
+            # is charged on the ticks a fighter is actually carrying the
+            # structure, which is what makes carrying a tight one a decision
+            # rather than a free upgrade. Canon's own note: a tight high-work
+            # guard costs roughly a quarter of the pool across a round and the
+            # loosest costs a fifteenth.
+            if me.recovery_ticks == 0 and me.punch is None:
+                hold = self.guard["postures"][me.posture]["hold_per_tick"]
+                if hold:
+                    me.wind = max(0, me.wind - hold)
+            # [ ... | 2026-08-09 14:12 UTC | END edit ]
 
             travelled_ru = U.displacement(travelled)
             wind_debit = self.rates.movement_wind(travelled_ru)

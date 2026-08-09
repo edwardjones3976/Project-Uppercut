@@ -97,7 +97,8 @@ class FighterState(object):
     `[0, max]`, rejected rather than normalised when it arrives outside it.
     """
 
-    __slots__ = ("id", "wind", "reserve", "profile", "band", "on_ropes",
+    __slots__ = ("posture",
+                 "id", "wind", "reserve", "profile", "band", "on_ropes",
                  "cornered", "recovery_ticks", "recent_moves", "failed_attacks",
                  "committed", "advancing", "damaged_regions", "hurt",
                  "punches_thrown", "recovery_seeking",
@@ -152,6 +153,13 @@ class FighterState(object):
         self.pending = 0
         self.punch = None
         self.evasion = None
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+        #   14:10 UTC | edit: a fighter holds a structure ]
+        # The posture he is carrying. `high_guard` is canon's staple - "the
+        # trade that makes body work pay" - and it is a starting stance, not
+        # a default in the fail-closed sense: every posture is authored, and
+        # the guard core refuses one that is not.
+        self.posture = "high_guard"
         # Decision 0025's input rule applies to constructed state too, not only
         # to state that has been stepped. A fixture that starts a fighter
         # outside the interval is exactly the corrupt-save case the ruling
