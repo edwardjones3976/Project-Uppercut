@@ -36,8 +36,18 @@ from tools.uppercut_integrated import rng as R        # noqa: E402
 # costs nothing today because no integrated artifact has been pinned. It would
 # cost a re-prove of every integrated stream a week from now, so the version
 # moves while the move is free.
-CONTRACT = "uppercut-integrated-v2"
 STREAM_PHASE = "INTEGRATED"
+# [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09 10:28 UTC | START edit: v3 - the ruleset fought under is part of the fight's identity ]
+# v3, not v2, for the same reason v2 was not v1: what the contract DECLARES
+# changed. Decision 0033 Ruling 2 makes the ruleset the authority on how a
+# contest may end, so two bouts under different rulesets are different
+# contests and must not share a contract identity. The ruleset file actually
+# fought under enters the declared canon list and the header names it. Every
+# derived seed moves, which is the correct consequence and is free today for
+# the same reason it was free at v2: no integrated artifact has been pinned.
+CONTRACT = "uppercut-integrated-v3"
+DEFAULT_RULESET = "professional"
+# [ ... | 2026-08-09 10:28 UTC | END edit ]
 
 # The bout's stable authority identities. Corner names rather than "fighter_0"
 # and "fighter_1" on purpose: a slot number is one careless refactor away from
@@ -160,24 +170,34 @@ def rng_header_lines(bout_rng):
     return lines
 
 
-def header(repo, state, bout_rng=None, manifest=None):
+def header(repo, state, bout_rng=None, manifest=None,
+           ruleset=DEFAULT_RULESET):
     """The integrated stream's full header, in one declared order.
 
     Order is fixed here rather than left to callers: two callers emitting the
     same facts in different orders would produce two artifacts that are equally
     true and not byte-identical, and byte-identity is the entire currency.
+
+    [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09 10:28 UTC
+      | edit: the ruleset enters the declared canon ] Decision 0033 Ruling 2:
+    the ruleset actually fought under is hashed with the rest of canon and
+    named in the header, so two bouts under different rules can never share an
+    evidence identity. Appended to the declared tuple rather than inserted,
+    so the eleven existing entries keep their declared order.
     """
     rng = bout_rng or R.BoutRng(state.seed, CONTRACT, state.participants)
+    canon = list(CANON) + [("ruleset", "data/rulesets/%s.json" % ruleset)]
     lines = ["H|phase=%s" % STREAM_PHASE,
-             "H|contract=%s" % CONTRACT]
-    lines.extend(H.canon_header_lines(repo, list(CANON), manifest=manifest))
+             "H|contract=%s" % CONTRACT,
+             "H|ruleset=%s" % ruleset]
+    lines.extend(H.canon_header_lines(repo, canon, manifest=manifest))
     lines.extend(state.header_lines())
     lines.extend(rng_header_lines(rng))
     return lines
 
 
 def new_bout(repo, seed, rounds=12, round_ticks=180 * 60, manifest=None,
-             participants=DEFAULT_PARTICIPANTS):
+             participants=DEFAULT_PARTICIPANTS, ruleset=DEFAULT_RULESET):
     """(initial state, its substreams, its header) - the three together.
 
     Returned as a unit because they are only meaningful together: a header
@@ -186,5 +206,6 @@ def new_bout(repo, seed, rounds=12, round_ticks=180 * 60, manifest=None,
     """
     state = InitialState(seed, rounds, round_ticks, participants)
     rng = R.BoutRng(state.seed, CONTRACT, state.participants)
-    return state, rng, header(repo, state, rng, manifest=manifest)
+    return state, rng, header(repo, state, rng, manifest=manifest,
+                              ruleset=ruleset)
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 06:50 UTC | END ]

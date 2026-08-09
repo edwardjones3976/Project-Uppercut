@@ -46,6 +46,13 @@ def cp():
     return RES.condition_pack()
 
 
+def _stream():
+    """A legitimate fighter-local policy stream, the only kind decide() takes."""
+    from tools.uppercut_integrated import rng as R
+    return R.BoutRng(4242, C.CONTRACT, C.DEFAULT_PARTICIPANTS) \
+        .stream("policy_intent", C.DEFAULT_PARTICIPANTS[0])
+
+
 # ------------------------------------------------ the two range authorities --
 
 # The exact disagreement, pinned move by move. Written out rather than computed
@@ -62,165 +69,220 @@ BAND_DISAGREEMENTS = (
 )
 
 
-def test_the_policy_and_canon_disagree_about_where_a_punch_is_legal(rp):
-    """THE council's first finding, and the whole cause of one failure mode.
+def test_the_chooser_and_the_gate_are_one_derivation(rp):
+    """THE COUNTDOWN FIRED, 2026-08-09. This test's previous body pinned the
+    seven-way disagreement between `policy.BY_BAND` and canon's `range_band`,
+    and its docstring said: when this fails, the duplication is being removed -
+    delete the test and assert the invariant instead. The duplication was
+    removed (`BY_BAND` is deleted; `RANGE.throwable_from` is the single
+    authority) and this is that invariant.
 
-    `policy.BY_BAND` is a hand-authored Python table of which punches a fighter
-    may choose from which band. `data/moves/*.range_band` authors the same rule
-    and `RANGE.in_band` gates on it. They disagree seven ways, and canon has
-    already named the single authority: `punch_model.range_gate.band_source`
-    points at the movement model, so the policy's table is an unauthored second
-    opinion about a rule canon says has one source. Same class as the eight
-    copies of the LCG constants and the copied phase formulas - both deleted.
+    [ Claude Fable 5 (claude-fable-5) | 2026-08-09 09:30 UTC | retired the
+      countdown; the pinned disagreement list above it is kept as history. ]
 
-    WHEN THIS FAILS: the duplication is being removed. Delete this test and
-    assert the invariant instead - every move the policy can offer in a band is
-    legal in that band. That invariant is the fix.
+    The invariant is a coherence tautology by construction - the chooser CALLS
+    the gate rather than agreeing with it - and this asserts it end to end:
+    every punch the authority offers in a band passes the gate in that band,
+    nothing outside the declared vocabulary is ever offered, and every punch
+    in the vocabulary is reachable from some band.
     """
-    observed = []
-    for band, moves in sorted(P.BY_BAND.items()):
-        for move in moves:
-            canon = rp["move_band"].get(move, "<absent from canon>")
-            if canon != band:
-                observed.append((move, band, canon))
-    assert sorted(observed) == sorted(BAND_DISAGREEMENTS), (
-        "the policy/canon band disagreement changed. Expected %r, observed %r. "
-        "If it shrank, retire the entries that were fixed; if it grew, a new "
-        "second opinion was just written."
-        % (sorted(BAND_DISAGREEMENTS), sorted(observed)))
+    seen = set()
+    for band in RANGE.band_order(rp):
+        legal = RANGE.throwable_from(rp, band, C.PUNCHES)
+        for move in legal:
+            assert RANGE.in_band(rp, move, band), (move, band)
+        assert set(legal) <= set(C.PUNCHES), (band, legal)
+        seen.update(legal)
+        # And a non-punch canon happens to author a band for is never offered.
+        assert "guard_high" not in legal, band
+    assert seen == set(C.PUNCHES), (
+        "some punch in the bout's vocabulary is throwable from no band at "
+        "all: %s" % sorted(set(C.PUNCHES) - seen))
+    assert not hasattr(P, "BY_BAND"), "the second authority came back"
+    assert not hasattr(P, "BANDS"), "the copied band order came back"
 
 
-def test_two_of_the_four_bands_cannot_produce_a_legal_punch(rp):
-    """The consequence, stated as the fight experiences it.
+def test_the_punchless_bands_are_pinned_and_no_fighter_may_prefer_one(rp):
+    """THE COUNTDOWN FIRED, 2026-08-09, in an unexpected way worth recording:
+    not because offence appeared at outside or clinch - canon is unchanged and
+    they are still punch-less - but because the body computed the fact through
+    `P.BY_BAND`, which no longer exists. The FACT survives; the second
+    authority it was measured through does not.
 
-    From `outside` and from `clinch`, EVERY punch the policy can choose is
-    refused by the range gate. That is why two mirrored outside fighters threw
-    3,174 punches across twelve rounds and landed none of them: not a decision
-    they made, a band in which offence does not exist. The owner's protected
-    art - hitting without getting hit - is not currently reachable, and
-    Decision 0030 is not what prevents it.
+    [ Claude Fable 5 (claude-fable-5) | 2026-08-09 09:30 UTC | retired into
+      the two assertions that matter now. Decision 0033 Ruling 3 pins the
+      shape: `range_band` stays one band per move and `outside` stays
+      punch-less, so this tuple changing is a canon change announcing itself. ]
 
-    WHEN THIS FAILS: offence exists at those bands. Retire the test.
+    And the consequence that made the punch-less bands cost a twelve-round
+    fight is now refused at the door: no Profile may PREFER a band it cannot
+    punch from. The stalemate is a refused configuration, not a fight.
     """
-    legal = {}
-    for band, moves in sorted(P.BY_BAND.items()):
-        legal[band] = sum(1 for m in moves if RANGE.in_band(rp, m, band))
-    assert legal.get("outside") == 0, legal
-    assert legal.get("clinch") == 0, legal
-    # And the two that DO work, so a regression in them is also visible.
-    assert legal.get("mid") == 3 and legal.get("inside") == 5, legal
+    assert RANGE.bands_without_offence(rp, C.PUNCHES) == \
+        ("clinch", "outside", "out_of_range")
+    assert len(RANGE.throwable_from(rp, "mid", C.PUNCHES)) == 3
+    assert len(RANGE.throwable_from(rp, "inside", C.PUNCHES)) == 2
+
+    bands = P.Bands(RANGE.band_order(rp),
+                    RANGE.bands_without_offence(rp, C.PUNCHES))
+    with pytest.raises(P.PolicyError):
+        P.decide(  # a plan that cannot produce a punch is refused, not run
+            P.Observation(range_band="outside", preferred_band="outside",
+                          throwable_here=(), bands=bands),
+            _stream())
 
 
-def test_three_selectable_punches_never_enter_the_world():
-    """A fighter is charged for punches that never fly.
+def test_no_ghost_punches_and_the_gate_refuses_nothing():
+    """THE COUNTDOWN FIRED, 2026-08-09. Its docstring said: when this fails,
+    the vocabularies were reconciled - retire the test and assert the punch
+    ledger closes instead. They were (the policy now chooses only from
+    `RANGE.throwable_from(..., C.PUNCHES)`, so a move outside the vocabulary
+    is never looked at), and this is that assertion, run on a real fight.
 
-    The policy can select eight punches; `contract.PUNCHES` declares five. The
-    other three are charged their stamina and their recovery, increment
-    `punches_thrown`, are given a hardcoded 14-tick commitment - and are never
-    assigned to `me.punch`, so they never resolve, never whiff, never void. In
-    a codebase that fails closed everywhere else, an unknown move id is handed
-    an invented window instead of an exception.
+    [ Claude Fable 5 (claude-fable-5) | 2026-08-09 09:30 UTC | retired the
+      countdown into the two executable deaths of D1 and D2. ]
 
-    WHEN THIS FAILS: the vocabularies were reconciled. Retire the test and
-    assert the punch ledger closes instead.
+    whiff_band == 0 is the death of D1: no punch is ever refused by the range
+    gate, because the chooser and the gate are one derivation and the band a
+    punch is committed at is the band it resolves against. The closed ledger
+    is the death of D2: every punch thrown is accounted for through a named
+    exit, so a ghost - charged but never flying - cannot exist silently.
     """
-    selectable = sorted({m for moves in P.BY_BAND.values() for m in moves})
-    ghosts = [m for m in selectable if m not in C.PUNCHES]
-    assert ghosts == ["body_hook_lead", "hook_rear", "uppercut_lead"], ghosts
+    bout = IntegratedBout(seed=4242)
+    bout.run_fight()
+    assert bout.whiff_band == 0, (
+        "a punch was refused by the range gate; the chooser and the gate "
+        "have stopped being one derivation")
+    thrown = sum(f.punches_thrown for f in bout.fighters)
+    resolved = sum(bout.contact.values())
+    in_flight = sum(1 for f in bout.fighters if f.punch)
+    assert thrown == resolved + bout.voided + in_flight, (
+        "the punch ledger does not close: thrown=%d resolved=%d voided=%d "
+        "in_flight=%d" % (thrown, resolved, bout.voided, in_flight))
+    assert thrown > 0
 
 
 # ------------------------------------------------- one punch ends every fight --
 
-def test_exactly_one_punch_in_the_bout_can_cause_a_knockdown(cp):
-    """`jaw_chin` is the only knockdown-relevant region and one punch reaches it.
+def test_knockdown_eligibility_reads_every_authored_region(cp):
+    """THE COUNTDOWN'S PREMISE DIED WHILE THE TEST KEPT PASSING - the worst
+    way for a countdown to end, and worth recording as a lesson: this test
+    measured "one punch can knock anyone down" through the EVADE pack's
+    single-region index, which never changed, while the bout switched to
+    `RES.knockdown_capable`, which reads every authored region. The test
+    stayed green while the fact it pinned stopped being true. A countdown
+    must measure through the same door the runtime uses.
 
-    Every jab, cross, hook and body shot contributes exactly zero accumulated
-    knockdown pressure. Roughly 150 knockdowns across thirty measured fights
-    all came from one move id.
+    [ Claude Fable 5 (claude-fable-5) | 2026-08-09 10:58 UTC | retired into
+      the new shape, measured through the runtime's own door. ]
 
-    The sharper half is WHERE that authority lives: the region is read as
-    `target_regions[0]` - the first element of a JSON array - so reordering
-    `hook_lead`'s ["head", "jaw_chin"] would change which punches can end a
-    fight. Decision 0026 spent a whole ruling removing array order from RNG
-    ownership; it is still deciding this.
-
-    WHEN THIS FAILS: the Director authored more knockdown-relevant regions, or
-    the region stopped being an array index. Retire and assert the new shape.
+    The new facts: `jaw_chin` is still the only knockdown-relevant region
+    (changing THAT is Decision 0033 Ruling 4's deferred body-knockdown
+    question), but four of the five punches now reach it because canon
+    authors them to - the hook is ["head", "jaw_chin"] and array position is
+    no longer authority. The body straight correctly cannot drop anyone,
+    since neither torso region is knockdown-relevant. And the EVADE pack's
+    element-zero read remains CORRECT for evasion - a slip vacates one lane -
+    which is why it is asserted here rather than "fixed" by analogy.
     """
-    ec = EVADE.evade_pack(C.REGIONS)
     relevant = sorted(r for r, spec in cp["regions"].items()
                       if spec["knockdown_relevant"])
-    reaching = [m for m in sorted(C.PUNCHES) if ec["region"].get(m) in relevant]
     assert relevant == ["jaw_chin"], relevant
-    assert reaching == ["uppercut_rear"], reaching
+    capable = {m: RES.knockdown_capable(cp, m) for m in sorted(C.PUNCHES)}
+    assert capable == {"body_straight_rear": False, "cross_rear": True,
+                      "hook_lead": True, "jab_lead": True,
+                      "uppercut_rear": True}, capable
+    # Reordering an authored target list changes nothing (Decision 0026).
+    fake = dict(cp)
+    fake["move_regions"] = dict(cp["move_regions"],
+                                hook_lead=("jaw_chin", "head"))
+    assert RES.knockdown_capable(fake, "hook_lead") is True
+    # The evasion lane index is a LANE, not a target list, and stays.
+    ec = EVADE.evade_pack(C.REGIONS)
+    assert ec["region"]["hook_lead"] == "head"
 
 
 # ---------------------------------------------------- rules nobody is reading --
 
-def test_no_ruleset_file_is_in_the_integrated_contract():
-    """Every fight so far ended on a rule the declared ruleset switches off.
+def test_the_ruleset_rules_the_contest():
+    """THE COUNTDOWN'S PREMISE DIED, 2026-08-09 - a ruleset entered the
+    contract (v3, Decision 0033 Ruling 2), and the static `C.CANON` tuple this
+    test used to inspect was never where it landed: the ruleset is appended
+    per bout in `header()`, because WHICH ruleset is a per-fight fact.
 
-    `data/rulesets/professional.json` authors `three_knockdown_rule: false` and
-    both knockdown-stoppage counts as null. No ruleset file is in `C.CANON`, so
-    the bout reads `max_per_round`/`max_per_bout` out of `condition_model.json`
-    instead - and thirty of thirty fights ended on exactly that. Decision 0019
-    (versioned rulesets) is currently decorative, and
-    `condition_model.knockdown.decision_path_must_survive` is contradicted by
-    every ending on record.
+    [ Claude Fable 5 (claude-fable-5) | 2026-08-09 10:58 UTC | retired into
+      the invariants of the new authority. ]
 
-    WHEN THIS FAILS: a ruleset entered the contract. Retire the test, and note
-    that the contract version and the integrated stream hash both move with it.
+    What holds now: the header names the ruleset fought under; the integrated
+    condition pack no longer carries the knockdown limits at all (they are
+    unreachable from the runtime, not merely deprecated - see Decision 0033's
+    amendment for why the canon keys themselves survive for Phase O's frozen
+    loader); professional's nulls mean NO knockdown count stops a
+    professional bout; and the contradiction case is refused at load.
     """
-    assert not [p for p in C.CANON if "ruleset" in p], C.CANON
-    prof = json.load(io.open(os.path.join(REPO, "data/rulesets/professional.json"),
-                             encoding="utf-8"))
+    prof = RES.ruleset_pack("professional")
+    assert prof["per_round"] is None and prof["per_bout"] is None
     assert prof["three_knockdown_rule"] is False
-    assert prof["knockdowns_per_bout_stoppage"] is None
-    assert prof["knockdowns_per_round_stoppage"] is None
+    arcade = RES.ruleset_pack("arcade_three_knockdown")
+    assert arcade["per_round"] == 3 and arcade["per_bout"] == 4
+
+    assert "max_per_round" not in RES.condition_pack()
+    assert "max_per_bout" not in RES.condition_pack()
+
+    header = C.new_bout(REPO, 4242)[2]
+    assert "H|ruleset=professional" in header
+    assert any(l.startswith("H|canon_ruleset_semantic=") or
+               l.startswith("H|canon_ruleset_") for l in header), (
+        "the ruleset is named but not hashed - identity without evidence")
+
+    with pytest.raises(SystemExit):
+        RES.ruleset_pack("no_such_ruleset")
 
 
 # ------------------------------------------------------------ the scorecards --
 
-def test_two_judges_score_walking_forward_far_harder_than_punching():
-    """The units are not commensurate, and the docstring says the opposite.
+def test_walking_forward_and_missing_scores_nothing():
+    """THE COUNTDOWN'S PREMISE DIED, 2026-08-09 - the units were reconciled
+    (Section 4's margin normalisation: each criterion against its own round
+    total, no conversion constant), so "one advancing tick outscores a landed
+    punch 560 to 1" is no longer computable, and the old body's arithmetic on
+    the raw weights would have kept passing while describing nothing.
 
-    `evidence["pressed"]` accumulates q10000 reach units; `landed` is a punch
-    count; `score_round` weights them as if they were the same kind of number.
-    A landed punch is worth 1 to every judge. One capped advancing tick is
-    worth 140 to Bello and 560 to Reyes. Measured in one real round of seed
-    4245: landed 116 against pressed 4,200.
+    [ Claude Fable 5 (claude-fable-5) | 2026-08-09 10:58 UTC | retired into
+      the referee's surviving ruling, which the fix implemented: effective
+      aggression's defining word is EFFECTIVE. ]
 
-    The panel therefore has one degree of freedom - two footwork judges and one
-    punching judge - rather than three readings of one fight.
-
-    WHEN THIS FAILS: the units were reconciled. Retire the test. Note the
-    referee's separate ruling, which survives the fix: a CORRECT `pressed` is
-    still the wrong proxy, because effective aggression's defining word is
-    effective, and a fighter who walks forward and misses is scored against.
+    A fighter who marches forward all round and misses everything loses the
+    round on every card - including Reyes's, the aggression judge - because
+    ground advanced only scores when it bought clean punching.
     """
-    weights = dict(J.JUDGE_STYLES)
-    one_punch = {j: (1 * w["landed"]) // 10000 for j, w in weights.items()}
-    one_tick = {j: (1400 * w["pressed"]) // 10000 for j, w in weights.items()}
-    assert set(one_punch.values()) == {1}, one_punch
-    assert one_tick["marta_reyes"] == 560 and one_tick["aisha_bello"] == 140, \
-        one_tick
-    assert one_tick["tomasz_wojcik"] == 0, one_tick
+    panel = J.JudgingPanel(["walker", "boxer"])
+    panel.score_round(1,
+                      {"walker": {"landed": 0, "denied": 0, "pressed": 9000,
+                                  "thrown": 60},
+                       "boxer": {"landed": 3, "denied": 2, "pressed": 0,
+                                 "thrown": 10}},
+                      {})
+    panel.close()
+    for judge, card in panel.verdict()["cards"].items():
+        assert card["rounds"] == [(1, 9, 10)], (judge, card["rounds"])
 
 
-def test_the_round_winner_can_be_scored_below_ten():
-    """A card this panel can produce is not a legal ten-point-must card.
+def test_the_round_winner_always_receives_ten():
+    """THE COUNTDOWN FIRED, 2026-08-09. Its docstring said: when this fails,
+    the deduction moved to the loser - retire this test and assert the
+    ten-point must directly. It moved (Section 4's fix: a knockdown DECIDES
+    the round, unequal knockdowns pick the winner before any judge weighs
+    anything, and the invented max(7,...) floor is gone), and this is that
+    assertion.
 
-    The "must" in ten-point must is the rule that the round WINNER must receive
-    ten. Here the knockdown deduction is applied to both fighters, so a fighter
-    who wins a round 20 landed to 1, having been dropped twice, scores 8 - and
-    the man he outlanded twenty to one scores 9. The round inverts.
+    [ Claude Fable 5 (claude-fable-5) | 2026-08-09 10:58 UTC | retired. ]
 
-    It has never fired in a real fight only because no fight has reached the
-    cards with a knockdown in it, and First Bell's other half is a valid
-    decision. The `max(7, ...)` floor is invented; no canon file authors it.
-
-    WHEN THIS FAILS: the deduction moved to the loser. Retire this test and
-    assert the ten-point must directly - every scored round gives the winner 10.
+    The construction that used to invert - a man winning 20 landed to 1,
+    dropped twice - now scores 10-7 to the man who dropped him, on all three
+    cards, because a fighter who has been down twice has lost the round
+    whatever the work rate said. And in every scored round of a real fight,
+    someone receives exactly ten.
     """
     panel = J.JudgingPanel(["a", "b"])
     panel.score_round(1,
@@ -229,7 +291,16 @@ def test_the_round_winner_can_be_scored_below_ten():
                       {"a": 2, "b": 0})
     panel.close()
     for judge, card in panel.verdict()["cards"].items():
-        assert card["rounds"] == [(1, 8, 9)], (judge, card["rounds"])
+        assert card["rounds"] == [(1, 7, 10)], (judge, card["rounds"])
+
+    bout = IntegratedBout(seed=4243)
+    bout.run_fight()
+    if bout.panel.seal_check():
+        v = bout.panel.verdict() if bout.result else None
+        if v:
+            for judge, card in v["cards"].items():
+                for _, pa, pb in card["rounds"]:
+                    assert max(pa, pb) == 10, (judge, pa, pb)
 
 
 # ------------------------------------------------- nothing makes a man think --

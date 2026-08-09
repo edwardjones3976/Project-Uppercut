@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-09 01:13 UTC** at `410bd2d The specialist council, and the findings as executable facts`.
+Generated **2026-08-09 09:56 UTC** at `0128746 Decision 0033: delegated dispositions - knockdown regions land, rulesets rule, thresholds wait for measurement`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **1370 passed** |
+| Test suite | **1369 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |

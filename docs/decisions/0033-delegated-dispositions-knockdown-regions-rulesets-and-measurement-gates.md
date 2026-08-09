@@ -58,9 +58,18 @@ independently:
   `knockdowns_per_round_stoppage`, `knockdowns_per_bout_stoppage`,
   `three_knockdown_rule`, `saved_by_the_bell`, `standing_eight_count`,
   `mandatory_count_numbers`, `scoring`.
-- **`max_per_round` and `max_per_bout` are DELETED from `condition_model`**,
-  not left as fallbacks. A value that is only sometimes read is the same
-  defect one layer down.
+- **`max_per_round` and `max_per_bout` are DELETED from the integrated
+  condition pack**, so the integrated runtime cannot reach them at all.
+  *AMENDED IN IMPLEMENTATION, 2026-08-09 10:25 UTC:* the keys themselves
+  REMAIN in `condition_model.json`, because Phase O's frozen analyzer reads
+  them as its named `legacy_max_per_*` echo and the condition validator pins
+  them against the arcade ruleset's numbers — deleting them breaks a frozen
+  phase's loader, and frozen phases stay byte-identical. The ruling's intent
+  is preserved in the stronger form: the integrated bout's pack does not
+  carry the keys, so there is no fallback to sometimes-read — the values are
+  unreachable from the runtime rather than merely deprecated. Full deletion
+  waits for the day Phase O is deliberately re-pinned, and this note is the
+  record so the deferral cannot silently become the decision.
 - **`null` means "no stoppage by that mechanism", never "use a default."**
   Fail closed. Under `professional` both counts are null, so no knockdown
   count stops a professional bout — which is what

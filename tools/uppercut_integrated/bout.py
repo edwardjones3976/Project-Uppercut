@@ -94,7 +94,7 @@ class IntegratedBout(object):
 
     def __init__(self, repo=REPO, seed=4242, rounds=12, round_ticks=180 * 60,
                  profiles=None, start_separation=None,
-                 referee="nkiru_okafor"):
+                 referee="nkiru_okafor", ruleset=C.DEFAULT_RULESET):
         self.repo = repo
         self.econ = E.economy_pack()
         if self.econ["errors"]:
@@ -150,6 +150,18 @@ class IntegratedBout(object):
             raise SystemExit("the condition canon fails its own contract: %s"
                              % "; ".join(self.cond_pack["errors"]))
         self.referee = RES.referee_pack(referee)
+        # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09
+        #   10:30 UTC | START edit: Decision 0033 Ruling 2 - the contest has
+        #   rules and they are the ruleset's ]
+        # Thirty of thirty measured fights ended on a knockdown limit read
+        # from condition_model while the authored rulesets - which switch that
+        # limit OFF under professional rules - were read by nothing. The
+        # contest rules now come from the ruleset exclusively; null means "no
+        # stoppage by that mechanism"; and the panel scores under the
+        # ruleset's own scoring block rather than a restated default.
+        self.rules = RES.ruleset_pack(ruleset,
+                                      count_to=self.cond_pack["count_to"])
+        # [ ... | 2026-08-09 10:30 UTC | END edit ]
         self.whiff_band = 0
         # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-08
         #   23:35 UTC | edit: the punch ledger closes ] A punch can now leave
@@ -168,7 +180,7 @@ class IntegratedBout(object):
         # [ ... | 2026-08-08 23:45 UTC | END edit ]
 
         self.state, self.rng, self.header_lines = C.new_bout(
-            repo, seed, rounds, round_ticks)
+            repo, seed, rounds, round_ticks, ruleset=ruleset)
 
         profiles = profiles or {
             C.DEFAULT_PARTICIPANTS[0]: P.Profile(6500, "mid"),
@@ -199,8 +211,13 @@ class IntegratedBout(object):
         # because it is officiating and judging evidence, not fighter state.
         self.condition = {f.id: RES.RegionalCondition(self.cond_pack)
                           for f in self.fighters}
-        self.panel = J.JudgingPanel([f.id for f in self.fighters])
-        self.evidence = {f.id: {"landed": 0, "denied": 0, "pressed": 0}
+        # The panel scores under the ruleset actually fought (Decision 0033
+        # Ruling 2); `thrown` joins the evidence per Ruling 5, so effective
+        # aggression can one day be accuracy rather than ground covered.
+        self.panel = J.JudgingPanel([f.id for f in self.fighters],
+                                    scoring=self.rules["scoring"])
+        self.evidence = {f.id: {"landed": 0, "denied": 0, "pressed": 0,
+                                "thrown": 0}
                          for f in self.fighters}
         self.kd_round = {f.id: 0 for f in self.fighters}
         self.kd_bout = {f.id: 0 for f in self.fighters}
@@ -413,8 +430,13 @@ class IntegratedBout(object):
                 self._stop(t, foe, "referee_judgement")
                 return
 
-        relevant = self.cond_pack["regions"][region]["knockdown_relevant"]
-        if not relevant:
+        # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09
+        #   10:32 UTC | edit: Section 3's Flag 1, Decision 0033 Ruling 1 ]
+        # Eligibility reads EVERY region canon authors this punch to target,
+        # not the single region the damage was placed in. The hook is authored
+        # ["head", "jaw_chin"]: it targets the jaw, and until this line it was
+        # being refused the jaw's consequence by an array subscript.
+        if not RES.knockdown_capable(self.cond_pack, move):
             return
         wind_frac = (foe.wind * 10000) // self.econ["wind_max"]
         pressure = RES.knockdown_pressure(
@@ -437,8 +459,17 @@ class IntegratedBout(object):
                 self.voided += 1
             f.punch = None
             f.evasion = None
-        if (self.kd_round[foe.id] > self.cond_pack["max_per_round"]
-                or self.kd_bout[foe.id] > self.cond_pack["max_per_bout"]):
+        # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09
+        #   10:32 UTC | edit: Decision 0033 Ruling 2 ] The limits are the
+        # RULESET'S, null means no stoppage by that mechanism, and where a
+        # limit applies the fight ends ON the Nth knockdown (>=, tested after
+        # the increment) - the old `>` stopped on the fourth of a
+        # three-knockdown round, and a four-knockdown round is a thing a
+        # referee does not permit. Under professional rules both limits are
+        # null, so a professional bout ends by count, referee, or the cards.
+        per_round, per_bout = self.rules["per_round"], self.rules["per_bout"]
+        if ((per_round is not None and self.kd_round[foe.id] >= per_round)
+                or (per_bout is not None and self.kd_bout[foe.id] >= per_bout)):
             self._stop(t, foe, "knockdown_limit")
             return
         self.count = {"who": foe.id, "start": t, "n": 0}
@@ -454,7 +485,10 @@ class IntegratedBout(object):
             if n >= self.cond_pack["count_to"]:
                 self._stop(t, foe, "count_expired")
                 return
-            if n == 8 and self.cond_pack["mandatory_eight"]:
+            # Section 3's Flag 3: the eight is READ (rise_window_ticks over
+            # the count clock), not written. Same number, no invented literal.
+            if (n == self.cond_pack["mandatory_count_number"]
+                    and self.cond_pack["mandatory_eight"]):
                 # THE RISE RULE, structural and declared: a fighter beaten to
                 # the floor of a knockdown-relevant region, or with no breath
                 # at all, has nothing to rise WITH. Everyone else gets up at
@@ -508,7 +542,8 @@ class IntegratedBout(object):
             f.evasion = None
             f.recovery_ticks = 0
             self.unanswered[f.id] = 0
-        self.evidence = {f.id: {"landed": 0, "denied": 0, "pressed": 0}
+        self.evidence = {f.id: {"landed": 0, "denied": 0, "pressed": 0,
+                                "thrown": 0}
                          for f in self.fighters}
         self.kd_round = {f.id: 0 for f in self.fighters}
         self.round_no += 1
@@ -615,12 +650,22 @@ class IntegratedBout(object):
             family = FAMILY[d.tactical]
             move_id = None
             if d.tactical == P.ATTACK:
+                # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) |
+                #   2026-08-09 10:35 UTC | edit: the magic 14 dies ] The
+                # policy can no longer select a punch outside the declared
+                # vocabulary (it chooses from the range authority's answer
+                # over C.PUNCHES), so the `else 14` invented-window branch is
+                # unreachable - and an unreachable fail-open branch in a
+                # fail-closed codebase is kept as a RAISE, not a default.
+                if d.execution not in self.frames:
+                    raise AssertionError(
+                        "the policy chose %r, which the bout cannot fly - the "
+                        "vocabularies have diverged again" % (d.execution,))
                 me.committed_to(d.execution,
-                                self.frames[d.execution]["frames"]
-                                if d.execution in self.frames else 14)
+                                self.frames[d.execution]["frames"])
                 move_id = d.execution
-                if d.execution in self.frames:
-                    me.punch = (d.execution, t, me.band)
+                self.evidence[me.id]["thrown"] += 1
+                me.punch = (d.execution, t, me.band)
             elif d.tactical == P.EVADE and d.execution:
                 if self._commit_evasion(me, t, d.execution):
                     # Evade spam is not free: the authored per-action cost is

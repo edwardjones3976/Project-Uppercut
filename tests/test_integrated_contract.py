@@ -33,7 +33,11 @@ def test_the_header_order_is_fixed_not_incidental():
     lines = C.new_bout(ROOT, 4242)[2]
     assert lines[0] == "H|phase=INTEGRATED"
     assert lines[1] == "H|contract=%s" % C.CONTRACT
-    assert lines[2].startswith("H|canon_hash_contract=")
+    # [ Claude Fable 5 (claude-fable-5) | 2026-08-09 10:58 UTC | resolution:
+    #   Decision 0033 Ruling 2 - the ruleset fought under is part of the
+    #   fight's identity, named right after the contract that carries it. ]
+    assert lines[2] == "H|ruleset=%s" % C.DEFAULT_RULESET
+    assert lines[3].startswith("H|canon_hash_contract=")
     seed_at = lines.index("H|seed=4242")
     rng_at = [i for i, l in enumerate(lines)
               if l.startswith("H|rng_derivation=")][0]
@@ -204,7 +208,10 @@ def test_the_integrated_package_does_not_reach_into_phase_tooling():
 
 
 def test_the_contract_identifier_is_versioned():
-    assert C.CONTRACT.endswith("-v2")
+    # v3: the ruleset entered the declared canon (Decision 0033 Ruling 2).
+    # v2 was Decision 0026's hierarchical substreams. The derivation itself
+    # has not changed shape and stays v1.
+    assert C.CONTRACT.endswith("-v3")
     assert R.DERIVATION_VERSION.endswith("-v1")
 
 

@@ -1,0 +1,39 @@
+seed 4242 -> TKO referee_judgement r4 ticks 34522 kd 65 contact {'clear': 146, 'vacated': 48, 'counter': 24, 'region': 0} whiff 0
+seed 4243 -> UD decision r12 ticks 129718 kd 255 contact {'clear': 383, 'vacated': 75, 'counter': 26, 'region': 0} whiff 0
+seed 4244 -> UD decision r12 ticks 129925 kd 256 contact {'clear': 379, 'vacated': 73, 'counter': 23, 'region': 0} whiff 0
+seed 4245 -> UD decision r12 ticks 129649 kd 257 contact {'clear': 350, 'vacated': 65, 'counter': 15, 'region': 0} whiff 0
+seed 4246 -> SD decision r12 ticks 129636 kd 256 contact {'clear': 375, 'vacated': 63, 'counter': 13, 'region': 0} whiff 0
+seed 4247 -> SD decision r12 ticks 129701 kd 257 contact {'clear': 354, 'vacated': 69, 'counter': 12, 'region': 0} whiff 0
+seed 4248 -> UD decision r12 ticks 129741 kd 257 contact {'clear': 352, 'vacated': 66, 'counter': 13, 'region': 0} whiff 0
+seed 4249 -> TKO referee_judgement r2 ticks 13543 kd 26 contact {'clear': 48, 'vacated': 16, 'counter': 4, 'region': 0} whiff 0
+seed 4250 -> DRAW decision r12 ticks 129964 kd 256 contact {'clear': 376, 'vacated': 74, 'counter': 29, 'region': 0} whiff 0
+seed 4251 -> UD decision r12 ticks 129760 kd 257 contact {'clear': 359, 'vacated': 66, 'counter': 12, 'region': 0} whiff 0
+seed 4252 -> UD decision r12 ticks 129858 kd 256 contact {'clear': 376, 'vacated': 69, 'counter': 27, 'region': 0} whiff 0
+seed 4253 -> UD decision r12 ticks 129823 kd 257 contact {'clear': 353, 'vacated': 70, 'counter': 14, 'region': 0} whiff 0
+seed 4254 -> TKO referee_judgement r7 ticks 66115 kd 125 contact {'clear': 264, 'vacated': 84, 'counter': 44, 'region': 0} whiff 0
+seed 4255 -> SD decision r12 ticks 129877 kd 255 contact {'clear': 377, 'vacated': 80, 'counter': 38, 'region': 0} whiff 0
+seed 4256 -> UD decision r12 ticks 129982 kd 256 contact {'clear': 380, 'vacated': 82, 'counter': 16, 'region': 0} whiff 0
+seed 4257 -> TKO referee_judgement r3 ticks 22264 kd 42 contact {'clear': 87, 'vacated': 32, 'counter': 13, 'region': 0} whiff 0
+seed 4258 -> TKO referee_judgement r2 ticks 11926 kd 23 contact {'clear': 42, 'vacated': 12, 'counter': 3, 'region': 0} whiff 0
+seed 4259 -> UD decision r12 ticks 129678 kd 257 contact {'clear': 361, 'vacated': 62, 'counter': 15, 'region': 0} whiff 0
+seed 4260 -> SD decision r12 ticks 129600 kd 253 contact {'clear': 414, 'vacated': 86, 'counter': 39, 'region': 0} whiff 0
+seed 4261 -> UD decision r12 ticks 129963 kd 257 contact {'clear': 377, 'vacated': 67, 'counter': 11, 'region': 0} whiff 0
+seed 4262 -> UD decision r12 ticks 129762 kd 256 contact {'clear': 364, 'vacated': 78, 'counter': 17, 'region': 0} whiff 0
+seed 4263 -> DRAW decision r12 ticks 129957 kd 258 contact {'clear': 350, 'vacated': 59, 'counter': 8, 'region': 0} whiff 0
+seed 4264 -> UD decision r12 ticks 129770 kd 255 contact {'clear': 379, 'vacated': 84, 'counter': 29, 'region': 0} whiff 0
+seed 4265 -> UD decision r12 ticks 129820 kd 254 contact {'clear': 401, 'vacated': 94, 'counter': 25, 'region': 0} whiff 0
+seed 4266 -> UD decision r12 ticks 129861 kd 258 contact {'clear': 343, 'vacated': 60, 'counter': 8, 'region': 0} whiff 0
+seed 4267 -> UD decision r12 ticks 129600 kd 254 contact {'clear': 401, 'vacated': 85, 'counter': 26, 'region': 0} whiff 0
+seed 4268 -> UD decision r12 ticks 130048 kd 258 contact {'clear': 357, 'vacated': 58, 'counter': 12, 'region': 0} whiff 0
+seed 4269 -> UD decision r12 ticks 129951 kd 256 contact {'clear': 382, 'vacated': 70, 'counter': 28, 'region': 0} whiff 0
+seed 4270 -> TKO referee_judgement r4 ticks 32775 kd 64 contact {'clear': 98, 'vacated': 27, 'counter': 10, 'region': 0} whiff 0
+seed 4271 -> UD decision r12 ticks 129978 kd 257 contact {'clear': 366, 'vacated': 70, 'counter': 13, 'region': 0} whiff 0
+
+SUMMARY
+methods   {'TKO': 6, 'UD': 18, 'SD': 4, 'DRAW': 2}
+details   {'referee_judgement': 6, 'decision': 24}
+end round {2: 2, 3: 1, 4: 2, 7: 1, 12: 24}
+kd moves  {'cross_rear': 536, 'hook_lead': 1881, 'uppercut_rear': 4076}
+kd/fight  min 23 max 258 mean 216.4
+contacts  {'clear': 9594, 'vacated': 1944, 'counter': 567, 'region': 0}
+SWEEP DONE
