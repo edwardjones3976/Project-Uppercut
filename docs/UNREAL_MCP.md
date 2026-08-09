@@ -62,6 +62,45 @@ combat, and nothing it can do is allowed to become a source of truth. The
 existing fence applies unchanged: presentation may not gain combat authority.
 An agent moving actors around in the editor is presentation.
 
+## The live test (2026-08-09, measured)
+
+<!-- [ Claude (Cowork) | Claude Opus 4.7 (claude-opus-4-7) | 2026-08-09 19:50 UTC | live test record start ] -->
+Run end to end against the running editor, from a Python JSON-RPC client on
+blackbox (`tools/mcp_client.py`), Streamable HTTP with per-session
+`Mcp-Session-Id`:
+
+- `initialize` → session established; `tools/list` returns the three
+  tool-search tools (`list_toolsets`, `describe_toolset`, `call_tool`).
+- 25+ toolsets enumerated, including `AutomationTestToolset` (wraps the same
+  backend as Session Frontend), `SlateInspectorToolset` ("Playwright-style"
+  editor-UI automation), Niagara, GAS, PCG, and `EditorToolset.EditorAppToolset`.
+- Live calls that worked, in order: `IsPIERunning`, `GetCameraTransform`,
+  `GetVisibleActors` (returned the level's actors as refPaths),
+  `SetCameraTransform` (viewport visibly moved), `SelectActors` +
+  `FocusOnActors` on the PlayerStart (outliner showed "1 selected"),
+  `CaptureViewport` and `CaptureEditorImage` — the editor photographed
+  itself and returned PNGs over the wire. Captures archived at
+  `docs/visuals/mcp-live-test/`.
+
+Client-side facts a future session needs:
+
+1. **Toolset tools are dispatched through `call_tool`**
+   (`{toolset_name, tool_name, arguments}`), not called by their dotted
+   names — `bEnableToolSearch=True` keeps `tools/list` to three entries.
+2. **"Optional" params are not optional.** `CaptureViewport` refuses a call
+   without `captureTransform` AND `annotations`; pass the current camera pose
+   and a zeroed annotations object.
+3. **Images come back as JSON text**, `returnValue.image.{mimeType,data}`
+   (base64), not as MCP image content. Decode accordingly.
+4. **Launch the editor through the shell association** (`explorer <uproject>`
+   or a double-click). Two editors spawned from a service-context shell froze
+   at init (~1 GB, no window title, log stopped after Turnkey); shell-launched
+   instances booted clean every time. `bAutoStartServer=True` in the per-user
+   settings brings the server up without any command-line flag.
+5. One MCP session per connection; every client run re-initializes. The server
+   survives PIE start/stop and level changes; it dies with the editor.
+<!-- [ Claude (Cowork) | Claude Opus 4.7 (claude-opus-4-7) | 2026-08-09 19:50 UTC | live test record end ] -->
+
 ## Unity
 
 Not installed on this machine, and this project has no Unity target. Unity's
