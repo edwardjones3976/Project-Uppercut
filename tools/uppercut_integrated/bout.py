@@ -41,6 +41,7 @@ if REPO not in sys.path:
 from tools.uppercut_range import core as RANGE          # noqa: E402
 from tools.uppercut_evade import core as EVADE          # noqa: E402
 from tools.uppercut_guard import core as GUARD          # noqa: E402
+from tools.uppercut_punch import economy as PUNCHECON   # noqa: E402
 from tools.uppercut_stamina import economy as E         # noqa: E402
 from tools.uppercut_integrated import contract as C     # noqa: E402
 from tools.uppercut_integrated import fighter as F      # noqa: E402
@@ -137,6 +138,20 @@ class IntegratedBout(object):
         # blocked 1.15 < dodged 1.30 < whiffed 1.50 on the thrower's recovery.
         self.outcome = GUARD.outcome_pack()
         self.blocked = 0
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+        #   16:22 UTC | edit: Decision 0035 - canon's repetition economy ]
+        # Decision 0035 measured the fight throwing about four times too much
+        # and named these as the authored answers nothing had read. They are
+        # consequences a fighter chose - an arm that has been working, feet
+        # that have not moved - and both shed the moment he stops choosing
+        # them, which is canon's own requirement that nothing fire on a
+        # repeat count.
+        self.rep = PUNCHECON.repetition_pack()
+        if self.rep["canon_errors"]:
+            raise SystemExit("the repetition economy fails its own contract: "
+                             "%s" % "; ".join(self.rep["canon_errors"]))
+        self.arm_tax = {}
+        self.ceded_ru = 0
         # [ ... | 2026-08-09 14:00 UTC | END edit ]
         # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
         #   02:50 UTC | START edit: one authority on offence legality ]
@@ -727,6 +742,14 @@ class IntegratedBout(object):
             # 3. Turn the decision into an intent the range core will price.
             me.advancing = d.tactical == P.ADVANCE
             self._intend(me, d.tactical)
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+            #   16:20 UTC | edit: the feet reset the position cost ]
+            # Canon: `resets_on: step_in, step_out, step_lateral`. Moving the
+            # feet is what stops ceding ground - which is the whole mechanism,
+            # because it makes standing still and punching the thing that
+            # costs, not punching.
+            if d.tactical in (P.ADVANCE, P.RETREAT, P.MICRO_ADJUST):
+                me.stepped_since_throw = True
 
             # 4. Commit. A punch goes in the air; an evasion starts its
             #    startup. Both are charged their authored economy cost, and
@@ -753,12 +776,68 @@ class IntegratedBout(object):
                 move_id = d.execution
                 self.evidence[me.id]["thrown"] += 1
                 me.punch = (d.execution, t, me.band)
+                # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+                #   2026-08-09 16:15 UTC | START edit: canon's repetition
+                #   economy, Rule 4 ]
+                # ARM FATIGUE. The throwing arm's work accrues and multiplies
+                # what its next punch costs, up to canon's 1.7 ceiling - and
+                # it sheds every tick that arm is idle, so a fighter who mixes
+                # hands never carries it. Canon is explicit that this must not
+                # be a repeat counter: "the tax is on doing one thing, not on
+                # throwing punches."
+                hand = PUNCHECON.hand_of(self.rep, d.execution)
+                me.busy_hand = hand
+                mult = PUNCHECON.arm_multiplier(self.rep, me.arm_work[hand])
+                me.arm_work[hand] = PUNCHECON.worked(self.rep,
+                                                     me.arm_work[hand])
+                self.arm_tax[me.id] = mult
+                # POSITION COST. Punching without resetting the feet cedes
+                # ring position - "the thrower ends up where the opponent put
+                # them". It is not a penalty on punching; it is the reason a
+                # fighter has to walk his man down instead of standing still
+                # and letting his hands go for twelve rounds.
+                ceded = PUNCHECON.ground_ceded(self.rep, me.stepped_since_throw)
+                if ceded:
+                    away = -1 if me.pos < foe.pos else 1
+                    me.pos = max(0, min(self.range["axis"],
+                                        me.pos + away * ceded))
+                    self.ceded_ru += ceded
+                me.stepped_since_throw = False
+                # [ ... | 2026-08-09 16:15 UTC | END edit ]
             elif d.tactical == P.EVADE and d.execution:
                 if self._commit_evasion(me, t, d.execution):
                     # Evade spam is not free: the authored per-action cost is
                     # charged through the same economy as every punch.
                     move_id = d.execution
+            # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) |
+            #   2026-08-09 18:05 UTC | START edit: the arm that rested sheds ]
+            # Canon's `recovery_per_idle_tick` is the half that makes
+            # arm_fatigue a consequence instead of the repeat counter canon
+            # forbids: an arm that rests is forgiven, so the tax is on doing
+            # one thing rather than on throwing punches.
+            #
+            # AN ARM MID-PUNCH IS NOT AN IDLE ARM, and getting that wrong made
+            # the whole mechanism inert. Measured: with the shed running
+            # through a punch's own recovery, throw rate and landed rate were
+            # bit-identical to the mechanism being switched off - because
+            # canon's own ratio (0.05 gained per throw against 0.004 shed per
+            # idle tick) needs 12.5 idle ticks to undo one throw, and a jab
+            # occupies its arm for about fourteen. An arm could never carry
+            # work from one punch to the next. Canon does not author dead
+            # coefficients; a reading that makes a mechanism unable to fire is
+            # a misreading of "idle", not a discovery about the mechanism.
+            #
+            # So an arm sheds on the ticks it is neither throwing nor
+            # recovering from a throw. The OTHER arm sheds throughout, which
+            # is the mixing-hands forgiveness stated intact.
+            for _h in me.arm_work:
+                if _h != me.busy_hand:
+                    me.arm_work[_h] = PUNCHECON.rested(self.rep,
+                                                       me.arm_work[_h])
+            # [ ... | 2026-08-09 18:05 UTC | END edit ]
             me.tick_recovery()
+            if me.recovery_ticks == 0 and me.punch is None:
+                me.busy_hand = None
 
             # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
             #   14:12 UTC | START edit: holding a guard costs what canon says ]
@@ -780,6 +859,19 @@ class IntegratedBout(object):
 
             before_wind = me.wind
             me.step(self.econ, family, move_id=move_id, travel=travelled_ru)
+
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+            #   16:18 UTC | START edit: the arm's tax lands on the arm's cost ]
+            # Canon says arm_fatigue "multiplies the throwing arm's stamina
+            # cost". The economy charges the authored cost; the surcharge is
+            # applied here as the difference, so the economy module keeps
+            # owning what a punch costs and this loop only says how much more
+            # THIS arm's version of it cost today.
+            tax = self.arm_tax.pop(me.id, None)
+            if tax is not None and tax > 10000:
+                base = before_wind - me.wind
+                me.wind = max(0, me.wind - (base * (tax - 10000)) // 10000)
+            # [ ... | 2026-08-09 16:18 UTC | END edit ]
 
             applied_wind = before_wind - me.wind
             if move_id is None and family == "move" \

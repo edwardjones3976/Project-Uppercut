@@ -97,7 +97,7 @@ class FighterState(object):
     `[0, max]`, rejected rather than normalised when it arrives outside it.
     """
 
-    __slots__ = ("posture",
+    __slots__ = ("posture", "arm_work", "stepped_since_throw", "busy_hand",
                  "id", "wind", "reserve", "profile", "band", "on_ropes",
                  "cornered", "recovery_ticks", "recent_moves", "failed_attacks",
                  "committed", "advancing", "damaged_regions", "hurt",
@@ -160,6 +160,22 @@ class FighterState(object):
         # a default in the fail-closed sense: every posture is authored, and
         # the guard core refuses one that is not.
         self.posture = "high_guard"
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
+        #   16:10 UTC | edit: canon's repetition economy needs somewhere to
+        #   accumulate ] Work done BY EACH ARM, q10000 above 1.0, and whether
+        # the feet have moved since the last punch. Both shed the moment the
+        # fighter stops doing the one thing - which is why they are
+        # consequences a fighter chose rather than penalties on punching.
+        self.arm_work = {"lead": 0, "rear": 0}
+        self.stepped_since_throw = True
+        # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09
+        #   18:05 UTC | edit: an arm mid-punch is not an idle arm ]
+        # Which hand is currently occupied by a punch - in the air or still
+        # recovering from one. `recovery_per_idle_tick` sheds an arm's work
+        # while it rests, and an arm throwing is the opposite of resting; see
+        # the shedding block in `bout.py` for why this distinction is what
+        # makes the mechanism able to accumulate at all.
+        self.busy_hand = None
         # Decision 0025's input rule applies to constructed state too, not only
         # to state that has been stepped. A fixture that starts a fighter
         # outside the interval is exactly the corrupt-save case the ruling
