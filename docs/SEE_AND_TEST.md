@@ -21,6 +21,15 @@ Open `sandbox\UppercutSandbox.uproject`, open
 and open distance on canon's ring axis, throw punches, and miss when they throw
 from the wrong band.
 
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ] -->
+**Trap:** if the viewport is an empty landscape / level named `Untitled`, you are
+on the engine OpenWorld template — not the arena. Open
+`/Game/ProjectUppercut/Maps/L_UppercutDevArena` (also the project default map).
+Close Untitled; do not save it over the arena. With Fab + BoxingAttacks present,
+Play spawns the cartoon ring and Manny/Quinn on the same FightSubsystem path;
+cylinders remain the soft fallback when those packs are missing.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ] -->
+
 | Key | Does |
 |---|---|
 | `Space` | pause / resume |

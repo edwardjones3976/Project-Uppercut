@@ -1,6 +1,8 @@
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 20:50 UTC | START ]
 #include "UppercutMatchDirector.h"
 
+#include "UppercutArenaPresentation.h"
+
 #include "Components/InputComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
@@ -30,6 +32,15 @@ void AUppercutMatchDirector::BeginPlay()
                TEXT("UppercutMatchDirector: no fight subsystem - nothing to direct"));
         return;
     }
+
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
+    // Presentation-only Fab ring. Soft-fails when vendor packs are missing.
+    // Axis scale matches AUppercutFighterBase's default 100 cm per ring unit.
+    {
+        const double AxisCm = (double)Fight->GetRingAxisRu() * 100.0;
+        UppercutSpawnFabRing(GetWorld(), AxisCm);
+    }
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
 
     if (bBindDefaultKeys) { BindKeys(); }
     if (bAutoStart) { StartRound(); }

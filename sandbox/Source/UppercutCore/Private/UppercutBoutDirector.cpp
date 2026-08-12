@@ -1,6 +1,8 @@
 // [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-04 06:25 UTC | START ]
 #include "UppercutBoutDirector.h"
 
+#include "UppercutArenaPresentation.h"
+
 #include "Camera/CameraActor.h"
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-08 06:05 UTC | START edit: Decision 0023 header ]
 #include "UppercutCanonHash.h"   // UppercutCanonHeaderLines
@@ -609,135 +611,12 @@ void AUppercutBoutDirector::BuildMannequins()
 
 void AUppercutBoutDirector::BuildArena()
 {
-    // The imported cartoon ring, fitted to the fight rather than the other way
-    // round. The pack is authored at showroom scale - its six rings sit side by
-    // side in one scene, each mesh carrying its own layout offset, and ring five
-    // alone measures nearly 200 m across. So: spawn the ring's parts at the
-    // origin, measure what actually arrived, then scale and centre THAT onto the
-    // sim's track. Canon's axis length is the authority; the ring is the thing
-    // that moves.
-    UWorld* World = GetWorld();
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
+    // Shared with the live MatchDirector path (UppercutArenaPresentation).
     const FImpl& S = *Impl;
-    // Ring five is a CLUSTER IN SPACE, not a naming convention - and the two
-    // facts disagree. cartoon_boxing_arena_5_Led_ and _5_light_systems1 carry a
-    // 5 in their names but sit at the origin with arena one's fixtures, 40 m from
-    // the ring; including them on the strength of the name put the union's centre
-    // between the two and landed the visible ring beside the fight instead of
-    // around it. These seven are the meshes whose bounds actually cluster at
-    // (36846, 42052) - measured with import_fab_bounds.py, not read off names.
-    static const TCHAR* Parts[] = {
-        TEXT("cartoon_boxing_arena_511"), TEXT("cartoon_boxing_arena_5_1"),
-        TEXT("cartoon_boxing_arena_5_2"), TEXT("cartoon_boxing_arena_5_3"),
-        TEXT("cartoon_boxing_arena_5_4"), TEXT("cartoon_boxing_arena_5_5"),
-        TEXT("cartoon_boxing_arena_5_6") };
-    // The canvas is the top of the base platform (_511). Fighters stand at z=0,
-    // so the ring is sunk until its canvas meets their feet - anything else has
-    // two boxers shadow-boxing inside the apron.
-    const TCHAR* CanvasPart = TEXT("cartoon_boxing_arena_511");
-    double CanvasTop = 0.0;
-    // The four ropes, and where a real ring puts them. A professional ring has
-    // FOUR ropes at 18, 30, 42 and 54 inches above the canvas - 46, 76, 107 and
-    // 137 cm. The pack has four (correct) but bunches the lower two near the mat:
-    // measured at the right scale they land at 154 / 118 / 52 / 23, so the top
-    // pair sit about 12% high and the bottom pair less than half where they
-    // belong. They are separate meshes, so each goes on its own regulation line
-    // rather than staying where the artist left it.
-    static const TCHAR* RopeParts[4] = {
-        TEXT("cartoon_boxing_arena_5_3"), TEXT("cartoon_boxing_arena_5_4"),
-        TEXT("cartoon_boxing_arena_5_5"), TEXT("cartoon_boxing_arena_5_6") };
-    static const double RopeHeightCm[4] = { 137.0, 107.0, 76.0, 46.0 };
-    // Scale comes from the ROPE rectangle, because the rope line is what "ring
-    // size" means. Canon's ring is 6.4 m a side (movement_model's
-    // axis_length_derivation: 6.4 / 1.30), which sits between boxing's 20-foot
-    // championship standard and its 24-foot maximum. The first version of this
-    // scaled the widest mesh - the apron - to an invented 1.7x the fighting axis,
-    // and built a ring 44% too large with two fighters lost inside it.
-    const TCHAR* SpanPart = TEXT("cartoon_boxing_arena_5_3");
-    double SpanWidth = 0.0;
-    TArray<AStaticMeshActor*> RopeActor;
-    TArray<double> RopeCentreZ;
-    RopeActor.SetNumZeroed(4);
-    RopeCentreZ.SetNumZeroed(4);
-
-    TArray<AStaticMeshActor*> Spawned;
-    FBox Bounds(ForceInit);
-    for (const TCHAR* Part : Parts)
-    {
-        const FString Path = FString::Printf(
-            TEXT("/Game/FabImports/CartoonBoxingArena/%s.%s"), Part, Part);
-        // A name here can resolve to a Texture2D: the FBX import dropped meshes,
-        // materials and textures into one folder. LoadObject<UStaticMesh> returns
-        // null for those, which is exactly the filter wanted.
-        UStaticMesh* Mesh = LoadObject<UStaticMesh>(nullptr, *Path);
-        if (!Mesh) { continue; }
-        AStaticMeshActor* A = World->SpawnActor<AStaticMeshActor>(
-            FVector::ZeroVector, FRotator::ZeroRotator);
-        if (!A) { continue; }
-        A->SetMobility(EComponentMobility::Movable);
-        UStaticMeshComponent* C = A->GetStaticMeshComponent();
-        C->SetStaticMesh(Mesh);
-        C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-        const FBox MeshBox = Mesh->GetBoundingBox();
-        Bounds += MeshBox;
-        if (FCString::Strcmp(Part, CanvasPart) == 0) { CanvasTop = MeshBox.Max.Z; }
-        if (FCString::Strcmp(Part, SpanPart) == 0)
-        {
-            SpanWidth = FMath::Max(MeshBox.Max.X - MeshBox.Min.X,
-                                   MeshBox.Max.Y - MeshBox.Min.Y);
-        }
-        for (int32 R = 0; R < 4; ++R)
-        {
-            if (FCString::Strcmp(Part, RopeParts[R]) == 0)
-            {
-                RopeActor[R] = A;
-                RopeCentreZ[R] = MeshBox.GetCenter().Z;
-            }
-        }
-        Spawned.Add(A);
-    }
-    if (Spawned.Num() == 0)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("UppercutBoutDirector: arena OFF (no ring meshes)"));
-        return;
-    }
-
-    // Canon's ring side, in centimetres: the track axis IS the rope line.
     const double AxisCm = S.Axis / 10000.0 * S.RuToCm;
-    const double Scale = (SpanWidth > 1.0) ? AxisCm / SpanWidth : 1.0;
-    const FVector Centre = Bounds.GetCenter();
-    const FVector Target(AxisCm / 2.0, 0.0, 0.0);
-    // A genuine near-coplanar case, kept as cheap insurance: _5_1's underside
-    // lands 0.9 cm below the mat once scaled, and two surfaces that close can
-    // fight for depth across a 6.4 m floor. Two centimetres of separation is
-    // invisible at ring scale.
-    //
-    // Honest note, because this was twice blamed for something else: the pale
-    // shape on the canvas is NOT a depth artifact. It is the pack's own painted
-    // emblem - two boxing gloves in the middle of the mat, visible in the source
-    // texture. Removing the debug floor did not shift it and neither did this
-    // nudge, which is what finally sent someone to look at the PNG.
-    const double DepthNudgeCm = 2.0;
-    for (AStaticMeshActor* A : Spawned)
-    {
-        A->SetActorScale3D(FVector(Scale));
-        const bool bIsCanvas = (A->GetStaticMeshComponent()->GetStaticMesh()
-            && A->GetStaticMeshComponent()->GetStaticMesh()->GetName() == CanvasPart);
-        A->SetActorLocation(FVector(Target.X - Centre.X * Scale,
-                                    Target.Y - Centre.Y * Scale,
-                                    -CanvasTop * Scale + (bIsCanvas ? 0.0 : DepthNudgeCm)));
-    }
-    // Each rope onto its own regulation line, overriding the pack's spacing.
-    for (int32 R = 0; R < 4; ++R)
-    {
-        if (!RopeActor[R]) { continue; }
-        const FVector L = RopeActor[R]->GetActorLocation();
-        RopeActor[R]->SetActorLocation(
-            FVector(L.X, L.Y, RopeHeightCm[R] - RopeCentreZ[R] * Scale));
-    }
-    UE_LOG(LogTemp, Display,
-           TEXT("UppercutBoutDirector: arena ON (%d parts, ropes %.2f m a side, ")
-           TEXT("scale %.5f, fighters 1.80 m)"),
-           Spawned.Num(), SpanWidth * Scale / 100.0, Scale);
+    UppercutSpawnFabRing(GetWorld(), AxisCm);
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
 }
 
 void AUppercutBoutDirector::PoseMannequins()

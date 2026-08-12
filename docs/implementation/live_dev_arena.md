@@ -107,13 +107,27 @@ it, and the second reader is always the one that drifts. Two identical actions
 in a row are distinguished by the decision tick rather than the action string,
 so a jab-jab plays two animations.
 
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ] -->
+## Ring and mannequins on Press Play
+
+`AUppercutMatchDirector::BeginPlay` calls `UppercutSpawnFabRing` before
+`StartRound`. Each `AUppercutFighterBase` soft-loads Manny/Quinn and action clips
+from BoxingAttacks when present, otherwise keeps the engine cylinder. Shared
+helpers live in `UppercutArenaPresentation` (also used by
+`AUppercutBoutDirector::BuildArena`). Vendor packs stay gitignored; nothing is
+baked into `L_UppercutDevArena.umap`.
+
+Default maps in `sandbox/Config/DefaultEngine.ini` point at
+`/Game/ProjectUppercut/Maps/L_UppercutDevArena` — if you see Untitled landscape,
+you opened the wrong level.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ] -->
+
 ## What this arena does not do yet
 
 Phase Q is a fight about **distance**. There is no guard, no stamina, no damage,
-no knockdown and no round structure in it, because those are Phases O, P and S
-and Phase O is held on gate **G7**. Nothing here anticipates that ruling. What
-the arena shows is exactly what Phase Q's contract describes and no more, which
-is the only honest thing it could show.
+no knockdown and no round structure in it. Those layers belong to the integrated
+session work (see `docs/SEE_AND_TEST.md`); this arena shows exactly what Phase
+Q's contract describes and no more, which is the only honest thing it could show.
 
 The map is authored offline by `tools/engine/build_dev_arena.py` (Decision 0012:
 Python offline only, never in the runtime path) and regenerated rather than
