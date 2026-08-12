@@ -1,18 +1,13 @@
 // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
 #include "UppercutThinPolicy.h"
+#include "UppercutRangeCore.h"
 
 namespace
 {
-    uint32 LcgNext(uint32& X)
-    {
-        X = X * 1664525u + 1013904223u;
-        return X;
-    }
-
     int32 LcgMod(uint32& X, int32 Mod)
     {
         if (Mod <= 0) { return 0; }
-        return (int32)(LcgNext(X) % (uint32)Mod);
+        return (int32)(UppercutLcgNext(X) % (uint32)Mod);
     }
 }
 
@@ -57,7 +52,7 @@ FUppercutThinDecision FUppercutThinPolicy::Decide(
 
     // Punish a recovering opponent when aggression seeks initiative.
     if (Obs.bOpponentRecovering && Obs.ThrowableHere.Num() > 0
-        && (int32)(LcgNext(SubstreamX) % 10000u) < AggressionBiasQ)
+        && (int32)(UppercutLcgNext(SubstreamX) % 10000u) < AggressionBiasQ)
     {
         D.Tactic = EUppercutThinTactic::Attack;
         D.Execution = Obs.ThrowableHere[LcgMod(SubstreamX, Obs.ThrowableHere.Num())];
@@ -79,7 +74,7 @@ FUppercutThinDecision FUppercutThinPolicy::Decide(
 
     // At preferred range: attack or hold based on aggression bias.
     if (Obs.ThrowableHere.Num() > 0
-        && (int32)(LcgNext(SubstreamX) % 10000u) < AggressionBiasQ)
+        && (int32)(UppercutLcgNext(SubstreamX) % 10000u) < AggressionBiasQ)
     {
         D.Tactic = EUppercutThinTactic::Attack;
         D.Execution = Obs.ThrowableHere[LcgMod(SubstreamX, Obs.ThrowableHere.Num())];
@@ -92,3 +87,8 @@ FUppercutThinDecision FUppercutThinPolicy::Decide(
     return D;
 }
 // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
+
+// [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+// LCG constants live in UppercutRangeCore; this file must not re-paste them
+// (Decision 0022 copy-count guard).
+// [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]

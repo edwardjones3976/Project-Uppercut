@@ -1,0 +1,16 @@
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+# Repository text is LF. Without this, Windows runners convert JSON to CRLF and
+# canon_hash_roles_raw (byte provenance of data/hash_roles.json) drifts from
+# committed goldens while Linux stays green - a false "fight changed" signal.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.mp4 binary
+*.uasset binary
+*.umap binary
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]

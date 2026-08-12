@@ -365,3 +365,21 @@ void FUppercutRangeSession::Step(TArray<FString>* OutRows)
     }
 }
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 15:40 UTC | the loop | END ]
+
+// [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+uint32 UppercutLcgNext(uint32& X)
+{
+    X = LcgA * X + LcgC;
+    return X;
+}
+
+uint32 UppercutMixSeed(uint32 Seed, const FString& Name)
+{
+    uint32 X = Seed;
+    for (TCHAR C : Name)
+    {
+        X = LcgA * X + LcgC + (uint32)C;
+    }
+    return X ? X : 1u;
+}
+// [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]

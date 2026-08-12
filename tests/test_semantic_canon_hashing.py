@@ -396,6 +396,21 @@ def test_r1_the_manifest_has_its_own_semantic_identities():
     assert m.version == "uppercut-hash-roles-v1"
 
 
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+def test_r1c_roles_raw_is_stable_under_crlf_checkout(tmp_path):
+    """windows-authority was failing goldens solely because autocrlf rewrote
+    hash_roles.json to CRLF and roles_raw is byte provenance. LF and CRLF of
+    the same manifest must hash identically after Manifest.load."""
+    import hashlib
+    lf = io.open(MANIFEST, encoding="utf-8", newline="").read()
+    assert "\r" not in lf
+    crlf_path = tmp_path / "hash_roles.json"
+    crlf_path.write_bytes(lf.replace("\n", "\r\n").encode("utf-8"))
+    loaded = C.Manifest.load(str(crlf_path))
+    assert loaded.raw_hash == hashlib.sha256(lf.encode("utf-8")).hexdigest()
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
+
+
 def test_r1b_reclassifying_a_field_moves_the_semantic_hash():
     """The attack requirement 1 exists to stop.
 

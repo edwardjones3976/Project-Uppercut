@@ -608,9 +608,16 @@ bool UppercutCanonHeaderLines(const FString& RepoDir,
     {
         return false;
     }
-    const FTCHARToUTF8 ManifestUtf8(*ManifestText);
-    const FString ManifestRaw = UppercutSha256Hex((const uint8*)ManifestUtf8.Get(),
-                                                  (uint64)ManifestUtf8.Length());
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+    // Provenance is the repository bytes (LF). Windows checkouts may present
+    // CRLF; normalize before hashing so roles_raw matches Linux goldens.
+    FString ManifestForRaw = ManifestText;
+    ManifestForRaw.ReplaceInline(TEXT("\r\n"), TEXT("\n"));
+    ManifestForRaw.ReplaceInline(TEXT("\r"), TEXT("\n"));
+    const FTCHARToUTF8 ManifestRawUtf8(*ManifestForRaw);
+    const FString ManifestRaw = UppercutSha256Hex((const uint8*)ManifestRawUtf8.Get(),
+                                                  (uint64)ManifestRawUtf8.Length());
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
 
     // The manifest doc again, this time to read the per-file patterns.
     UppercutCanon::FValue Manifest;

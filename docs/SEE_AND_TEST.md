@@ -39,6 +39,12 @@ python -m tools.engine.prove_one_round
 python -m tools.uppercut_integrated.export_fight --out-dir /tmp/uc1r --rounds 1 --default-cards --round-seconds 180
 ```
 
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ] -->
+Decision 0037 path: the integrated bout now reads `opponent_read` (defender
+`reads` → readiness on evade timing and guard extents). Do not retune
+`pressure_threshold` to chase connect rate.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ] -->
+
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ] -->
 
 ## Press Play on it (Phase Q distance — historical)

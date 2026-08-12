@@ -391,6 +391,26 @@ class IntegratedBout(object):
         return (f.evasion is not None
                 and f.evasion[1] <= t < f.evasion[2])
 
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+    def _evasion_active_for_read(self, f, t, readiness):
+        """Evasion window, opened earlier by opponent_read when readiness > ONE.
+
+        Bookkeeping (_tick_evasions / open-close rows) still uses authored
+        open_at. Only the punch resolver asks whether the window was already
+        live against a pattern the defender has read. readiness==ONE is
+        bit-identical to _evasion_active.
+        """
+        if f.evasion is None:
+            return False
+        ev, open_at, close_at, _used = f.evasion
+        if readiness <= PUNCHECON.ONE:
+            return open_at <= t < close_at
+        spec = self.evade["evasions"].get(ev) or {}
+        early = (int(spec.get("startup", 0))
+                 * (readiness - PUNCHECON.ONE)) // PUNCHECON.ONE
+        return (open_at - early) <= t < close_at
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
+
     def _tick_evasions(self, t):
         for f in self.fighters:
             if f.evasion is None:
@@ -438,7 +458,13 @@ class IntegratedBout(object):
                                  % (t, me.id, foe.id, move, band))
                 continue
 
-            active = foe.evasion[0] if self._evasion_active(foe, t) else None
+            # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+            # Decision 0037: defender readiness against this offered pattern.
+            readiness = PUNCHECON.readiness_q(self.rep, foe.reads, move)
+            active = (foe.evasion[0]
+                      if self._evasion_active_for_read(foe, t, readiness)
+                      else None)
+            # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
             arrived, reason, region = EVADE.resolve(
                 self.evade, C.PUNCHES, move, active)
             self.contact[reason] += 1
@@ -480,8 +506,11 @@ class IntegratedBout(object):
                 # different tests - and both are canon's, not this file's.)
                 d_committed = (foe.punch is not None
                                or foe.evasion is not None)
+                # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
                 blocked = GUARD.intercepts(self.guard, C.PUNCHES,
-                                           foe.posture, d_committed, move)
+                                           foe.posture, d_committed, move,
+                                           readiness)
+                # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
             # TWO STAGES, TWO WORDS, and the row says both. The verdict is
             # what the EVASION stage decided - did the punch get past the
             # movement - and the outcome is what the punch finally did. A
@@ -836,6 +865,12 @@ class IntegratedBout(object):
                                         me.pos + away * ceded))
                     self.ceded_ru += ceded
                 me.stepped_since_throw = False
+                # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+                # The offer is what the defender observes - made before the
+                # outcome, so a pattern is read for having been shown, not for
+                # having worked (Decision 0037 / Rule 4).
+                PUNCHECON.observe_offer(self.rep, foe.reads, d.execution)
+                # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
                 # [ ... | 2026-08-09 16:15 UTC | END edit ]
             elif d.tactical == P.EVADE and d.execution:
                 if self._commit_evasion(me, t, d.execution):

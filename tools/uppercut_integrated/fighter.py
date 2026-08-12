@@ -121,8 +121,12 @@ class FighterState(object):
                  # rather than a wasted input.
                  "punch", "evasion",
                  # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
-                 "attrs")
+                 "attrs",
                  # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
+                 # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+                 # Decision 0037 opponent_read: patterns this defender has seen.
+                 "reads")
+                 # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
                  # [ ... | 2026-08-09 00:35 UTC | END edit ]
 
     def __init__(self, fighter_id, economy, profile=None, band="mid"):
@@ -177,6 +181,10 @@ class FighterState(object):
         # consequences a fighter chose rather than penalties on punching.
         self.arm_work = {"lead": 0, "rear": 0}
         self.stepped_since_throw = True
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+        # Patterns this defender has observed (Decision 0037 opponent_read).
+        self.reads = {}
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
         # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09
         #   18:05 UTC | edit: an arm mid-punch is not an idle arm ]
         # Which hand is currently occupied by a punch - in the air or still

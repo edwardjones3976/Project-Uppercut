@@ -5,17 +5,6 @@
 
 namespace
 {
-    uint32 MixSeed(uint32 Seed, const FString& Name)
-    {
-        // Decision 0022 / 0026: fighter-local substream from bout seed + identity.
-        uint32 X = Seed;
-        for (TCHAR C : Name)
-        {
-            X = X * 1664525u + 1013904223u + (uint32)C;
-        }
-        return X ? X : 1u;
-    }
-
     FString BandKeyOf(const FUppercutRangeCanon& C, int32 Band)
     {
         return C.BandKey.IsValidIndex(Band) ? C.BandKey[Band] : FString(TEXT("mid"));
@@ -80,7 +69,8 @@ void FUppercutFightSession::Reset(uint32 Seed, int32 TickBudget)
         Fighter[i].Wind = StaminaCanon.WindStart;
         Fighter[i].Reserve = StaminaCanon.ReserveStart;
         Fighter[i].WindMax = StaminaCanon.WindMax;
-        Fighter[i].PolicyStream = MixSeed(Seed, Fighter[i].ParticipantId);
+        // Decision 0022 / 0026: fighter-local substream from bout seed + identity.
+        Fighter[i].PolicyStream = UppercutMixSeed(Seed, Fighter[i].ParticipantId);
         Fighter[i].DecisionBusy = 0;
     }
     Round.Reset(TickBudget);
