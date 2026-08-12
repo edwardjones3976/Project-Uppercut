@@ -118,8 +118,30 @@ jobs:
             Write-Host "::warning::SKIP UBT compile - an Unreal editor is running on this runner; compile NOT verified this run. Re-run with the editor closed before merge."
             exit 0
           }
-          powershell -NoProfile -ExecutionPolicy Bypass -File tools/engine/build_uppercut_core.ps1
+          # [ Claude (Opus 4.8, Cowork) | 2026-08-12 21:14 UTC | START: build the CHECKED-OUT revision, not build_uppercut_core.ps1's hard-coded local defaults. Engine from UPPERCUT_ENGINE; project/log derived from GITHUB_WORKSPACE so a green build reflects this checkout, not an assumed clone path. ]
+          $engine  = $env:UPPERCUT_ENGINE
+          $project = Join-Path $env:GITHUB_WORKSPACE 'sandbox\UppercutSandbox.uproject'
+          $log     = Join-Path $env:GITHUB_WORKSPACE 'sandbox\Saved\build_last.txt'
+          Write-Host "UBT target -> Engine  = $engine"
+          Write-Host "UBT target -> Project = $project"
+          Write-Host "UBT target -> Log     = $log"
+          if (-not (Test-Path $project)) {
+            Write-Host "::error::Checked-out Unreal project not found at $project"
+            exit 1
+          }
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools/engine/build_uppercut_core.ps1 -Engine $engine -Project $project -Log $log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          # [ Claude (Opus 4.8, Cowork) | 2026-08-12 21:14 UTC | END ]
       # [ Claude (Opus 4.8, Cowork) | 2026-08-12 21:02 UTC | END: port PRO-12 UBT compile step onto main ]
+      # [ Claude (Opus 4.8, Cowork) | 2026-08-12 21:14 UTC | START: retain the UBT build log as a durable artifact (Issue #14 evidence). if-no-files-found: ignore so skip/hosted runs stay clean. ]
+      - name: Retain UBT build log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: uppercut-build-log
+          path: sandbox/Saved/build_last.txt
+          if-no-files-found: ignore
+          retention-days: 14
+      # [ Claude (Opus 4.8, Cowork) | 2026-08-12 21:14 UTC | END ]
   # [ ... | 2026-08-09 21:35 UTC | END edit ]
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | END ]
