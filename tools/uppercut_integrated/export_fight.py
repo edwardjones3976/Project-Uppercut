@@ -184,6 +184,12 @@ def main(argv=None):
                     metavar="AGGRESSION:BAND",
                     help="per-fighter disposition in participant order, e.g. "
                          "--profile 1500:outside --profile 6500:mid")
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+    ap.add_argument("--default-cards", action="store_true",
+                    help="load test_pressure_power vs test_range_timing cards")
+    ap.add_argument("--round-seconds", type=int, default=180,
+                    help="authored round length: 60, 120 or 180")
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
     args = ap.parse_args(argv)
 
     profiles = None
@@ -200,7 +206,10 @@ def main(argv=None):
             profiles[who] = P.Profile(int(bias), band or "mid")
 
     bout = IntegratedBout(seed=args.seed, rounds=args.rounds,
-                          referee=args.referee, profiles=profiles)
+                          referee=args.referee, profiles=profiles,
+                          fighter_cards=("default_pair" if args.default_cards
+                                         else None),
+                          round_ticks=args.round_seconds * TICK_HZ)
     # [ ... | 2026-08-09 00:20 UTC | END edit ]
     bout.run_fight()
     fight = export_fight(bout)

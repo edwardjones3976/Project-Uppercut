@@ -119,7 +119,14 @@ class FighterState(object):
                  # evasion die. A slip that has expired is not passed to the
                  # resolver at all, so a mistimed evasion is a vulnerability
                  # rather than a wasted input.
-                 "punch", "evasion")
+                 "punch", "evasion",
+                 # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+                 "attrs",
+                 # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
+                 # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+                 # Decision 0037 opponent_read: patterns this defender has seen.
+                 "reads")
+                 # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
                  # [ ... | 2026-08-09 00:35 UTC | END edit ]
 
     def __init__(self, fighter_id, economy, profile=None, band="mid"):
@@ -153,6 +160,12 @@ class FighterState(object):
         self.pending = 0
         self.punch = None
         self.evasion = None
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+        # Complete Rule-10 attribute card. Empty = baseline multipliers (1.0).
+        # Loaded from fixtures/fighters/legal/<id>.json when the profile carries
+        # a fighter_card_id, otherwise left empty so stress profiles stay valid.
+        self.attrs = {}
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
         # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09
         #   14:10 UTC | edit: a fighter holds a structure ]
         # The posture he is carrying. `high_guard` is canon's staple - "the
@@ -168,6 +181,10 @@ class FighterState(object):
         # consequences a fighter chose rather than penalties on punching.
         self.arm_work = {"lead": 0, "rear": 0}
         self.stepped_since_throw = True
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+        # Patterns this defender has observed (Decision 0037 opponent_read).
+        self.reads = {}
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
         # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09
         #   18:05 UTC | edit: an arm mid-punch is not an idle arm ]
         # Which hand is currently occupied by a punch - in the air or still

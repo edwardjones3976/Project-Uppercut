@@ -47,6 +47,23 @@ Team **Project Uppercut**, project **Unreal live backend integration**.
 `PRO-8` M4 dev arena and HUD · `PRO-9` M5 round flow and soul proof ·
 `PRO-10` whitelist the repo in Bitdefender (needs Ed).
 
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ] -->
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:05 UTC | START edit ] -->
+Linear hygiene (2026-08-12, Unreal 1-round work). Update these on the board when
+the Linear MCP / Director UI is available (cloud agent had no Linear tools):
+
+- **PRO-10** — **close** (Windows A/B/C + `nightly_verify --no-engine` PASS on
+  blackbox; packet `evidence/2026-08-12-bitdefender-allowlist/`). Residual:
+  packet does not claim commandlet/PIE coverage.
+- **PRO-6** — progress = `FUppercutFightSession` + subsystem integrated mode,
+  not merely "subsystem exists".
+- **PRO-7** — Phase R C++ is already PASS; remaining is Phase S **in the session**
+  (thin policy landed; full S still later).
+- **PRO-9** — 1-round ending path started (count or sealed decision); soul proof
+  stays later.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:05 UTC | END edit ] -->
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ] -->
+
 The milestone plan lives here rather than only in a markdown file so that
 "what is actually left" survives a session boundary.
 
@@ -102,7 +119,44 @@ account's claude.ai catalog, so it cannot be installed into Cowork. If that
 methodology is wanted, run Claude Code CLI in this repo and add the marketplace
 there; it operates on the same working tree.
 
-**Bitdefender whitelisting** — `PRO-10`. It is currently deleting scripts from
-the working tree and blocking git from restoring them.
+**Bitdefender whitelisting** — `PRO-10`. Recorded 2026-08-06 as deleting scripts
+and blocking git restore.
+
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ] -->
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:05 UTC | START edit ] -->
+Allowlist retest closed 2026-08-12 on Edward's blackbox: probes A (`git restore`),
+B (`build_uppercut_core.ps1` → `BUILD EXIT: 0`), C (throwaway `.cmd` survives),
+and `nightly_verify --no-engine` RC=0. Packet:
+`evidence/2026-08-12-bitdefender-allowlist/` (+ `nightly_verify-no-engine.log`).
+**PRO-10 may be closed.** Residual: no commandlet/PIE in that packet; editor
+binary coverage still rests on the first clean `prove_core_range`.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:05 UTC | END edit ] -->
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ] -->
+
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:34 UTC | START ] -->
+
+## Cursor MCP and host tools
+
+Tokens stay in Cursor / `gh` credential store — never in this repo.
+
+| Tool | Host (Windows / desktop) | Cloud agent (this run) |
+|---|---|---|
+| **Linear** | MCP + team doc [Agent tool routing](https://linear.app/project-uppercut/document/agent-tool-routing-beb58abfab20) | **Absent** from MCP catalog — use paste blocks in `cross_platform_status_*.md` |
+| **GitHub** | `gh` authenticated; GitHub MCP may fail discovery | `gh` read-only; PR comments via ManagePullRequest; GitHub MCP **error** |
+| **Slack** | `#uppercut-ops` (`C0BP62MBFNK`) | MCP **error**; interactive auth desktop-only — paste in packet |
+| **Snyk** | SCA clean 2026-08-11 on host | Not exercised this run |
+| **Unreal MCP** | `.mcp.json` → loopback | Unreachable (expected) |
+
+### Cross-platform notes
+
+Procedure: `docs/implementation/cross_platform_notes_procedure.md`.  
+Packet for this slice: `docs/implementation/cross_platform_status_2026-08-12.md`.  
+Disposition evidence: `evidence/2026-08-12-cross-platform-notes/`.
+
+Linear hygiene for PRO-6/7/9/10 remains in
+`docs/implementation/linear_update_2026-08-12_one_round.md` and is duplicated
+as paste-ready comments in the status packet.
+
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:34 UTC | END ] -->
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 05:50 UTC | END ] -->

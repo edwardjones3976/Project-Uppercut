@@ -159,7 +159,7 @@ def outcome_pack():
     }
 
 
-def covered(pack, posture_id, committed):
+def covered(pack, posture_id, committed, readiness_q=10000):
     """The height classes this posture closes right now.
 
     `committed` is the fighter being caught inside his own commitment - mid
@@ -167,6 +167,9 @@ def covered(pack, posture_id, committed):
     than disabling the guard, which is why a committed fighter still covers
     what he covered MOST strongly and loses only the lanes he was covering
     marginally. Nothing is switched off; the structure is simply worse.
+
+    `readiness_q` is Decision 0037's opponent_read lever (default ONE=10000).
+    Silent readiness leaves extents unchanged so Phase L stays bit-identical.
     """
     spec = pack["postures"].get(posture_id)
     if spec is None:
@@ -177,9 +180,13 @@ def covered(pack, posture_id, committed):
             % (posture_id, ", ".join(sorted(pack["postures"]))))
     mult = pack["committed_multiplier"] if committed else 10000
     thr = pack["threshold"]
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+    # readiness_q defaults to ONE: (extent * mult * ONE) // ONE // ONE == old.
     return frozenset(
         hc for hc, vid in pack["vol_by_class"].items()
-        if (spec["extents"].get(vid, 0) * mult) // 10000 >= thr)
+        if (spec["extents"].get(vid, 0) * mult * readiness_q)
+        // 10000 // 10000 >= thr)
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
 
 
 def lane_of(pack, punches, move_id):
@@ -212,15 +219,18 @@ def lane_of(pack, punches, move_id):
     return lane
 
 
-def intercepts(pack, punches, posture_id, committed, move_id):
+def intercepts(pack, punches, posture_id, committed, move_id, readiness_q=10000):
     """Does this structure, in this state, close the lane this punch takes?
 
-    The whole of guard resolution, and deliberately a pure function of four
-    declared things. No dice: the same posture against the same punch answers
-    the same way every time, which is the rule evasion already follows and the
-    reason a replay can explain a block in boxing's words rather than as a
-    number that came up short.
+    The whole of guard resolution, and deliberately a pure function of declared
+    things. No dice: the same posture against the same punch answers the same
+    way every time, which is the rule evasion already follows and the reason a
+    replay can explain a block in boxing's words rather than as a number that
+    came up short.
+
+    `readiness_q` defaults to ONE so callers that omit it (Phase L) stay
+    bit-identical; the integrated bout passes opponent_read readiness.
     """
     return lane_of(pack, punches, move_id) in covered(pack, posture_id,
-                                                      committed)
+                                                      committed, readiness_q)
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 13:45 UTC | END ]

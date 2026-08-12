@@ -40,6 +40,11 @@ def test_canon_holds_its_own_contract(pack):
     assert pack["max_multiplier"] > ONE
     assert pack["per_throw_same_arm"] > 0
     assert pack["recovery_per_idle_tick"] > 0
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+    assert pack["sightings_before_effect"] >= 1
+    assert pack["gain_per_sighting"] > 0
+    assert pack["max_gain"] >= pack["gain_per_sighting"]
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
 
 
 def test_every_punch_authors_the_hand_that_throws_it(pack):
@@ -164,4 +169,58 @@ def test_the_feet_reset_the_position_cost(bout):
     per_throw = bout.rep["ru_ceded_per_throw_without_step"]
     assert bout.ceded_ru < thrown * per_throw, \
         "every single throw ceded ground, so the feet never reset it"
+
+
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+def test_opponent_read_is_silent_until_seen_twice(pack):
+    """Decision 0037: empty / one sighting must leave readiness at ONE so Phase
+    L and an unread bout stay bit-identical."""
+    assert PE.read_gain(pack, {}, "jab_lead") == 0
+    assert PE.readiness_q(pack, {}, "jab_lead") == ONE
+    reads = {}
+    PE.observe_offer(pack, reads, "jab_lead")
+    assert PE.read_gain(pack, reads, "jab_lead") == 0
+    PE.observe_offer(pack, reads, "jab_lead")
+    assert PE.read_gain(pack, reads, "jab_lead") == pack["gain_per_sighting"]
+    assert PE.readiness_q(pack, reads, "jab_lead") == ONE + pack["gain_per_sighting"]
+
+
+def test_opponent_read_decays_when_the_pattern_stops(pack):
+    reads = {}
+    for _ in range(5):
+        PE.observe_offer(pack, reads, "jab_lead")
+    assert "jab_lead" in reads
+    for _ in range(reads["jab_lead"] + 1):
+        PE.observe_offer(pack, reads, "cross_rear")
+    assert "jab_lead" not in reads
+
+
+def test_opponent_read_fires_inside_the_bout():
+    """If the defender never accumulates a read, the mechanism is inert - the
+    same failure mode arm_fatigue had when idle-tick was misread.
+
+    End-of-bout reads are often empty: decay_per_unseen_offer sheds patterns
+    the moment the thrower varies. The load-bearing check is that readiness
+    was ever above ONE while punches resolved.
+    """
+    seen = []
+    real = PE.readiness_q
+
+    def spy(p, reads, move_id):
+        r = real(p, reads, move_id)
+        seen.append(r)
+        return r
+
+    PE.readiness_q = spy
+    try:
+        b = IntegratedBout(seed=4242)
+        b.run(20000)
+    finally:
+        PE.readiness_q = real
+
+    assert seen, "no punch resolved, so readiness was never asked"
+    matured = [r for r in seen if r > ONE]
+    assert matured, ("opponent_read never raised readiness above ONE - the "
+                     "defender is not observing offers")
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
 # [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-09 18:35 UTC | END ]

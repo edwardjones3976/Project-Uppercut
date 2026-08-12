@@ -12,17 +12,20 @@ below: "Nothing here fires on a repeat count: every mechanism fires on an
 observable consequence the opponent could have caused or prevented, so a
 punished spammer was punished by boxing rather than by bookkeeping."
 
-So neither mechanism counts repeats. `arm_fatigue` accumulates WORK BY AN ARM
-and sheds it whenever that arm rests - a fighter who mixes hands never carries
-it, which is the point: the tax is on doing one thing, not on throwing
+So neither thrower mechanism counts repeats. `arm_fatigue` accumulates WORK BY
+AN ARM and sheds it whenever that arm rests - a fighter who mixes hands never
+carries it, which is the point: the tax is on doing one thing, not on throwing
 punches. `position_cost` accumulates only while the feet do not move and
 resets the moment they do. Both are things a fighter chose and can stop
 choosing, which is what separates a consequence from a penalty.
 
+Decision 0037: connect rate is the critical path. `opponent_read` is the
+defender-side half - stored on the defender, keyed by the pattern offered,
+decaying when the pattern stops. `counter_window_growth` remains unread.
+
 WHAT THIS MODULE REFUSES. To decide when a fighter throws (policy), to charge
 anything itself (the economy owns Wind), or to move anybody (the range core
-owns position). It answers two questions and returns numbers: how much more
-this arm's next punch costs, and how much ground this throw cedes.
+owns position). It answers numbered questions and returns numbers.
 """
 import io
 import json
@@ -77,6 +80,19 @@ def repetition_pack():
             q(k["ru_ceded_per_throw_without_step"])
         c["position_resets_on"] = tuple(
             s.strip() for s in str(k["resets_on"]).split(","))
+
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+    # Decision 0037: defender-side connect-rate lever. Silent when unread.
+    read = by_id.get("opponent_read")
+    if read is None:
+        c["canon_errors"].append("repetition_economy authors no opponent_read")
+    else:
+        k = read["coefficients"]
+        c["sightings_before_effect"] = int(k["sightings_before_effect"])
+        c["gain_per_sighting"] = q(k["gain_per_sighting"])
+        c["max_gain"] = q(k["max_gain"])
+        c["decay_per_unseen_offer"] = int(k["decay_per_unseen_offer"])
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
 
     if arm is not None and c["max_multiplier"] <= ONE:
         c["canon_errors"].append(
@@ -134,4 +150,40 @@ def ground_ceded(pack, stepped_since_last_throw):
     if stepped_since_last_throw:
         return 0
     return pack["ru_ceded_per_throw_without_step"]
+
+
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+def read_gain(pack, reads, move_id):
+    """q10000 gain for the defender against this offered pattern.
+
+    Empty reads / below threshold → 0, so readiness_q = ONE + 0 leaves Phase L
+    and the current bout bit-identical. Never a thrower-side counter.
+    """
+    seen = reads.get(move_id, 0) if reads else 0
+    before = pack["sightings_before_effect"]
+    if seen < before:
+        return 0
+    gained = (seen - before + 1) * pack["gain_per_sighting"]
+    return min(pack["max_gain"], gained)
+
+
+def readiness_q(pack, reads, move_id):
+    """ONE when the read is silent; ONE + gain once the pattern is known."""
+    return ONE + read_gain(pack, reads, move_id)
+
+
+def observe_offer(pack, reads, move_id):
+    """The defender sees this pattern once more, and forgets a little of every
+    other one. Mutates `reads` in place; returns it for chaining."""
+    if reads is None:
+        raise ValueError("opponent_read needs a defender reads dict to mutate")
+    reads[move_id] = reads.get(move_id, 0) + 1
+    decay = pack["decay_per_unseen_offer"]
+    for k in list(reads):
+        if k != move_id:
+            reads[k] = max(0, reads[k] - decay)
+            if reads[k] == 0:
+                del reads[k]
+    return reads
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 16:05 UTC | END ]

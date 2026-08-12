@@ -4,28 +4,18 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "UppercutRangeCore.h"
+#include "UppercutFightSession.h"
 #include "UppercutFightSubsystem.generated.h"
 
 // THE LIVE FIGHT.
 //
-// This owns one FUppercutRangeSession and advances it on the authoritative
-// clock. It is deliberately the ONLY thing in the runtime that may call Step():
-// actors and widgets read snapshots and never touch the session, so no amount
-// of presentation code can move a fighter.
+// This owns one authoritative session and advances it on the clock.
+// Phase Q distance-only mode keeps FUppercutRangeSession for prove_live_arena.
+// Integrated 1-round mode (default for MatchDirector) owns FUppercutFightSession:
+// cards, thin policy, knockdown/count or sealed decision (Decision 0022).
 //
 // CRITERION E.19 - WALL-CLOCK TIME NEVER DRIVES THE SIMULATION. Real time
-// decides WHEN a tick runs, never how big one is. Delta seconds accumulate and
-// are spent in whole ticks; a frame that took four ticks' worth of time runs
-// four identical ticks. The speed control multiplies how fast the accumulator
-// fills - it does not scale the tick. This is why a fight watched at 0.25x
-// speed and one watched at 4x produce the same marker stream, and it is the
-// difference between a dev control and a lie.
-//
-// WHAT MAKES THIS WORTH WATCHING: the session, the canon reader and the stream
-// format are the same code the Phase Q parity proof is taken against. `Dump()`
-// writes a stream `tools/engine/prove_core_range` can check. So the arena is
-// not "a runtime that agrees with the proof" - it is the proven artifact, run
-// with a camera pointed at it.
+// decides WHEN a tick runs, never how big one is.
 
 UENUM(BlueprintType)
 enum class EUppercutFightState : uint8
@@ -147,6 +137,26 @@ struct UPPERCUTCORE_API FUppercutFightView
 
     UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Evidence")
     int32 RowCount = 0;
+
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+    UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Round")
+    FString RoundMethod;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Round")
+    int32 CardRed = 0;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Round")
+    int32 CardBlue = 0;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Round")
+    bool bRoundFinished = false;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Fighter")
+    FString CardIdA;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Fighter")
+    FString CardIdB;
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUppercutFightTick,
@@ -245,6 +255,22 @@ public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Uppercut|Evidence")
     bool bCaptureRows = false;
 
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+    // When true, Play runs FUppercutFightSession (1-round cards + ending).
+    // When false, Phase Q FUppercutRangeSession (prove_live_arena).
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Uppercut|Mode")
+    bool bIntegratedOneRound = true;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Uppercut|Mode")
+    FString FighterCardA = TEXT("test_pressure_power");
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Uppercut|Mode")
+    FString FighterCardB = TEXT("test_range_timing");
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Uppercut|Mode")
+    FString RulesetId = TEXT("professional");
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
+
     // --- presentation hooks (read-only by construction) ---------------------
 
     UPROPERTY(BlueprintAssignable, Category = "Uppercut|Events")
@@ -265,6 +291,10 @@ private:
     // commandlet does - the header needs the repo, not just the parsed canon.
     FString RepoDir;
     FUppercutRangeSession Session;
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+    FUppercutFightSession Integrated;
+    bool bIntegratedLoaded = false;
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
 
     EUppercutFightState State = EUppercutFightState::NoCanon;
 

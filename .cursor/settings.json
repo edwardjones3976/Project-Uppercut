@@ -1,0 +1,13 @@
+{
+  "plugins": {
+    "snyk-secure-development": {
+      "enabled": true
+    },
+    "linear": {
+      "enabled": true
+    },
+    "slack": {
+      "enabled": true
+    }
+  }
+}

@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-09 20:36 UTC** at `a21962f Merge remote-tracking branch 'origin/main' into wip/section-ownership-band-gate`.
+Generated **2026-08-12 04:02 UTC** at `c9a9a29 fix: restore full .gitignore (LF) with snyk ignores`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **1413 passed** |
+| Test suite | **1432 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |

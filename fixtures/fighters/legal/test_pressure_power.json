@@ -1,0 +1,65 @@
+{
+  "contribution": {
+    "agent": "Auto (Cursor Agent)",
+    "model": "Auto (Cursor Agent)",
+    "start": "2026-08-12 02:53 UTC",
+    "end": "2026-08-12 02:53 UTC"
+  },
+  "schema_version": "0.1.0-draft",
+  "id": "test_pressure_power",
+  "display_name": "Test Pressure Power",
+  "fixture_kind": "generic_test_fixture",
+  "primary_stance": "orthodox",
+  "ambidextrous": false,
+  "stance_familiarity_penalties": {
+    "accuracy": -8,
+    "power_transfer": -10
+  },
+  "attributes": {
+    "power": 40,
+    "hand_speed": -20,
+    "foot_speed": -15,
+    "stamina_pool": -10,
+    "durability": 25,
+    "chin": 30,
+    "recovery": 10,
+    "reach": 10,
+    "frame": 20,
+    "accuracy": -10,
+    "defensive_technique": -15,
+    "footwork_technique": -20,
+    "combination_fluency": 10,
+    "counter_timing": -10,
+    "body_work": 25,
+    "guard_structure": 5,
+    "inside_work": 20,
+    "composure": 15,
+    "ring_awareness": 5,
+    "adaptability": -5,
+    "discipline": 10,
+    "coachability": 0,
+    "ringcraft": -10,
+    "showmanship": 5
+  },
+  "compensations": [
+    {
+      "negative": "hand_speed",
+      "positive": "power",
+      "rationale": "Heavy hands arrive slower."
+    },
+    {
+      "negative": "footwork_technique",
+      "positive": "frame",
+      "rationale": "Size replaces fancy feet."
+    }
+  ],
+  "severe_negative_consequences": [],
+  "traits": [],
+  "specials": [],
+  "ultimate": null,
+  "full_crowd_trait": null,
+  "vulnerabilities": [
+    "speed",
+    "mobility under fire"
+  ]
+}
