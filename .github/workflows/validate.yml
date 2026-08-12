@@ -101,5 +101,25 @@ jobs:
       - name: C++ core source integrity (not a compile - no UE on runner)
         run: python -m tools.engine.check_core_compiles
       # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 22:14 UTC | END edit: Rule 18 step name ]
+      # [ Claude (Opus 4.8, Cowork) | 2026-08-12 21:02 UTC | START: port PRO-12 UBT compile step onto main + add editor-safe guard. Original step authored by Cursor Agent on feat/authenticity-program (2026-08-12 06:00); this brings it to main so a self-hosted UE runner actually compiles. Dedupe to one step when that branch merges. ]
+      # PRO-12: real UBT compile, active only when a self-hosted runner exposes UE 5.8.
+      # Skips with an explicit message on github-hosted runners (no UE install).
+      - name: UppercutCore UBT compile (self-hosted with UE only)
+        env:
+          UPPERCUT_ENGINE: ${{ vars.UPPERCUT_ENGINE }}
+        run: |
+          if (-not $env:UPPERCUT_ENGINE -or -not (Test-Path $env:UPPERCUT_ENGINE)) {
+            Write-Host "SKIP: UPPERCUT_ENGINE not set or missing on this runner (no compile claim)."
+            exit 0
+          }
+          # editor-safe: an open Unreal editor holds the Live Coding / build mutex; UBT -WaitMutex would hang the job rather than fail fast.
+          $editors = @(Get-CimInstance Win32_Process -Filter "name like 'UnrealEditor%'")
+          if ($editors.Count -gt 0) {
+            Write-Host "::warning::SKIP UBT compile - an Unreal editor is running on this runner; compile NOT verified this run. Re-run with the editor closed before merge."
+            exit 0
+          }
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools/engine/build_uppercut_core.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      # [ Claude (Opus 4.8, Cowork) | 2026-08-12 21:02 UTC | END: port PRO-12 UBT compile step onto main ]
   # [ ... | 2026-08-09 21:35 UTC | END edit ]
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-02 19:34 UTC | END ]
