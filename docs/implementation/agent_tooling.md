@@ -106,3 +106,30 @@ there; it operates on the same working tree.
 the working tree and blocking git from restoring them.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 05:50 UTC | END ] -->
+
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-11 19:21 UTC | START ] -->
+
+## Cursor MCP and host tools (2026-08-11)
+
+These are wired for agents on the Windows host. Tokens stay in Cursor / `gh`
+credential store — never in this repo.
+
+| Tool | Status | How an agent should use it |
+|---|---|---|
+| **Linear** | MCP authenticated. Team `Project Uppercut` (`b0ce8ea1-…`). Project *Unreal live backend integration*. Team doc: [Agent tool routing](https://linear.app/project-uppercut/document/agent-tool-routing-beb58abfab20). | Issues are work truth. PRO-2 and PRO-5 Done. PRO-11 (Snyk Code) Backlog. PRO-6/7/8/9/10 still Backlog. |
+| **GitHub CLI** | `gh` logged in as `edwardjones3976` (keyring). Scopes: `repo`, `read:org`, `gist`. | PRs, issues, Actions. GitHub **MCP** may still fail tool discovery — use `gh`, do not report "no GitHub". |
+| **Slack** | MCP ready. `#uppercut-ops` (`C0BP62MBFNK`). | Humans only. Nightly drift, Director asks, Bitdefender. Draft if the user has not seen the text. |
+| **Snyk** | MCP ready. Folder trusted. SCA of `requirements-dev.txt`: **0 issues** (2026-08-11). | Re-scan after dependency edits. Snyk Code (SAST) is **disabled** for org `edwardjones3976` (`SNYK-CODE-0005`) until the Director enables it. |
+| **Unreal MCP** | `.mcp.json` → `http://127.0.0.1:8000/mcp`. Proven 2026-08-09. | Editor loopback only. See `docs/UNREAL_MCP.md`. Cloud / Cowork cannot reach it. |
+| **Cursor plugins** | `.cursor/settings.json` enables Linear, Slack, Snyk. | If a session cannot see a plugin, check this file and Cursor Settings → MCP. |
+
+Repo-side pointers: `AGENTS.md`, `.cursor/rules/agent-tooling.mdc`, `evidence/`.
+
+### Snyk note (supersedes the unauthenticated claim above)
+
+Snyk MCP `snyk_sca_scan` ran clean on `requirements-dev.txt` (Python 3.14.5).
+The earlier "unauthenticated" sentence is stale. SAST is a separate org switch,
+not a missing login.
+
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-11 19:21 UTC | END ] -->
+

@@ -1,0 +1,30 @@
+---
+description: Route work through Linear, GitHub, Slack, Snyk, and Unreal MCP. Never treat presentation or chat as combat authority.
+alwaysApply: true
+---
+
+# Agent tooling
+
+Read `docs/implementation/agent_tooling.md` and `AGENTS.md` before claiming a tool is missing.
+
+## Where truth lives
+
+- **Canon / combat:** `data/`, `schemas/`, `sandbox/Source/UppercutCore/`. Unreal is authoritative (Decision 0002 / 0012). Python is a reference instrument.
+- **Work remaining:** Linear team **Project Uppercut**, project **Unreal live backend integration**. Create or update a Linear issue when you start lasting work. Do not invent a parallel todo list in Slack or STATUS.md.
+- **Code:** GitHub `edwardjones3976/Project-Uppercut`. Prefer `gh` (authenticated). GitHub MCP in Cursor may still be disconnected — that is not "gh is broken".
+- **Humans:** Slack `#uppercut-ops` (`C0BP62MBFNK`). Nightly drift, Bitdefender, Director judgment. Do not post sealed scorecards (Rule 3). Prefer `slack_send_message_draft` if the user has not reviewed the text.
+- **Vulns:** Snyk. Folder `C:\Users\edwar\project-uppercut` is trusted. SCA of `requirements-dev.txt` was clean 2026-08-11. Snyk Code is **not** enabled for org `edwardjones3976` until the Director says yes. Never run `snyk_trust` unless instructed.
+- **Editor:** Unreal MCP at `http://127.0.0.1:8000/mcp` (repo `.mcp.json`). Loopback only. Presentation holds zero fight authority.
+
+## Do not
+
+- Hand-edit `STATUS.md`.
+- Pin a DCC/engine version that is not installed (Rule 18 / D-7).
+- Adopt GAS or StateTree as combat authority.
+- Drive Unreal MCP from a cloud agent.
+- Commit `snyk.exe`, tokens, or `sandbox/Saved/`.
+- Average away Rule 21 findings in Slack.
+
+## Evidence
+
+Put probe logs under `evidence/<run-id>/` per `CONTRIBUTING.md`, not only in gitignored `sandbox/Saved/`.

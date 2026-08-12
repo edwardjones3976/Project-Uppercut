@@ -101,6 +101,12 @@ push half a thought:
 One per workstream — `ws0-repo`, `ws1-schemas`, `ws2-validators`, `ws3-acceptance`, `ws4-combat`,
 `ws5-evidence`, `ws6-watchability` — plus `gate-phase0`, `gate-phase1a`, `director-decision`.
 
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-11 19:21 UTC | START ] -->
+Linear is the work tracker (team **Project Uppercut**). Host-tool labels there:
+`agent-ops`, `slack`, `github`, `snyk`. Do not invent a parallel todo list in Slack
+or in `STATUS.md`.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-11 19:21 UTC | END ] -->
+
 ## Evidence artifacts
 
 Simulation reports, matchup matrices, replay logs and balance evidence are committed under
