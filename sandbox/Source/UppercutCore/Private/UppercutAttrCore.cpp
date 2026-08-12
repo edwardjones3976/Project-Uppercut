@@ -105,7 +105,7 @@ bool UppercutLoadFighterCard(const FString& RepoDir, const FString& FighterId,
         OutError = TEXT("fighter card missing attributes");
         return false;
     }
-    for (const auto& Pair : (*Attrs)->Values)
+    for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : (*Attrs)->Values)
     {
         Out.Attributes.Add(Pair.Key, (int32)Pair.Value->AsNumber());
     }
