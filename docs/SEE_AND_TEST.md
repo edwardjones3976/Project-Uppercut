@@ -43,8 +43,21 @@ It drives the real subsystem inside a real world, through the same single-step
 control the `.` key uses, and compares the dump to the contract byte for byte.
 
 Phase Q is a fight about **distance**. There is no guard, stamina, damage,
-knockdown or round structure in the arena, because Phase O is held on gate
-**G7**. Full write-up: `docs\implementation\live_dev_arena.md`.
+knockdown or round structure in the arena.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | START correction ] -->
+> **Correction, 2026-08-12.** This paragraph used to end "because Phase O is
+> held on gate **G7**." That has not been true since Decision 0021: `G7` is
+> **CLOSED** in `docs/decisions/OPEN_GATES.md`, and there are no open Director
+> gates at all. The arena is thin because the integrated C++ session that would
+> compose guard, stamina, condition and the round ending
+> (`FUppercutFightSession`) **has not been written yet** — it is implementation
+> work, not a ruling anybody is waiting on. Saying "held on a gate" made a
+> to-do look like a blocker.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | END correction ] -->
+
+Full write-up: `docs\implementation\live_dev_arena.md`.
 
 To rebuild the map after changing the actors:
 
@@ -220,8 +233,7 @@ your machine does not.
 **Phase R is the latest engine phase proven in C++** (2026-08-06:
 `UppercutCoreEvadeCommandlet` reproduces its contract byte for byte at 4242/5400,
 777/5400 and 4242/1200; Phase Q was proven the day before). Phases O, P and S
-exist as Python contracts with tests and no C++ at all — and **Phase O is held
-on gate G7**, the stamina economy. A `feat(core)` commit subject does not
+exist as Python contracts with tests and no C++ at all. A `feat(core)` commit subject does not
 mean an engine phase shipped — `STATUS.md` is the authority, it is generated
 from the `PASS` headings in `docs/phase1a/determinism_probe_results.md`, and a
 test enforces that it cannot name a contract-only phase.
@@ -229,9 +241,25 @@ test enforces that it cannot name a contract-only phase.
 So: the numbers you can run above are real and the pictures are real, and the
 range and evasion pipelines now exist on both sides of the line, each agreeing
 with itself to the byte. What has not met yet is the round itself — Phase O,
-which carries the policy, the scoring and the knockdowns, and which is held on
-G7. Closing the gap is the port of S (policy), the Director's ruling on G7, and
-then the live runtime
-(`docs/implementation/unreal_live_backend_integration.md`).
+which carries the policy, the scoring and the knockdowns.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | START correction ] -->
+> **Correction, 2026-08-12.** The two sentences above used to say Phase O was
+> "held on gate G7" and that closing the gap needed "the Director's ruling on
+> G7." **G7 is closed** (Decision 0021, Wind over Reserve) and
+> `docs/decisions/OPEN_GATES.md` lists no open Director gates. Everything
+> remaining here is implementation: the integrated C++ session
+> (`FUppercutFightSession`) that composes the already-extracted Range, Evade and
+> Stamina cores with the guard and condition arithmetic, the observable-only
+> thin policy, the round ending, and a new integrated evidence contract. Nobody
+> is waiting on a ruling.
+>
+> The authored fighter pair those slices will fight with **does** exist as of
+> today — see `docs/design/generic_match_pair.md`. It reaches the Python
+> reference simulator and not yet the C++ runtime.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | END correction ] -->
+
+Live runtime plan: `docs/implementation/unreal_live_backend_integration.md`.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 20:35 UTC | END ] -->

@@ -1,0 +1,72 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-12 03:35 UTC",
+    "end": "2026-08-12 03:35 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "schema_version": "0.1.0-draft",
+  "id": "generic_pressure_a",
+  "display_name": "Generic Pressure A",
+  "ring_name": "Fixture A",
+  "fixture_kind": "generic_test_fixture",
+  "primary_stance": "orthodox",
+  "ambidextrous": false,
+  "stance_familiarity_penalties": {
+    "accuracy": -10,
+    "power_transfer": -12,
+    "defensive_familiarity": -8,
+    "combination_fluency": -6,
+    "stamina_efficiency": -5,
+    "recovery_quality": -4
+  },
+  "attributes": {
+    "power": 45,
+    "hand_speed": -15,
+    "foot_speed": 18,
+    "stamina_pool": 35,
+    "durability": 40,
+    "chin": 38,
+    "recovery": 12,
+    "reach": -22,
+    "frame": 28,
+    "accuracy": -18,
+    "defensive_technique": -42,
+    "footwork_technique": -12,
+    "combination_fluency": 22,
+    "counter_timing": -28,
+    "body_work": 45,
+    "guard_structure": 30,
+    "inside_work": 25,
+    "composure": 15,
+    "ring_awareness": -10,
+    "adaptability": -15,
+    "discipline": -20,
+    "coachability": 10,
+    "ringcraft": -8,
+    "showmanship": 12
+  },
+  "compensations": [
+    {
+      "negative": "defensive_technique",
+      "positive": "power",
+      "rationale": "He does not evade; he makes the exchange expensive enough that the other man stops offering it. Rule 10 requires the trade be explicit data, so it is stated here rather than implied by the shape of the card."
+    }
+  ],
+  "severe_negative_consequences": [
+    {
+      "attribute": "defensive_technique",
+      "visible_consequence": "Walks through jabs rather than slipping them; visibly eats clean lead hands on the way in, and the tape shows him taking two to land one."
+    }
+  ],
+  "traits": [],
+  "specials": [],
+  "ultimate": null,
+  "full_crowd_trait": null,
+  "vulnerabilities": [
+    "gives up the outside entirely - negative reach and no counter timing means the first half of every exchange belongs to the other man",
+    "slow hands: the telegraph is long enough to read",
+    "no answer to a fighter who will not stand still"
+  ]
+}

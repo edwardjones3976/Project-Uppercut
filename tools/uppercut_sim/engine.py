@@ -71,6 +71,12 @@ class Fighter:
     # effect by exactly one - so a fighter with no card fights the baseline model and
     # any difference between two fighters is attributable to their cards (Rule 10).
     attrs: dict = field(default_factory=dict)
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC
+    #   | START edit ] Which authored card this fighter is carrying, or "" for
+    # a stress-profile loadout. Presentation and evidence only - nothing in the
+    # simulation branches on it, because a fighter is his numbers.
+    card_id: str = ""
+    # [ ... | 2026-08-12 03:26 UTC | END edit ]
     last_hand: str = ""
     last_move_category: str = ""
     link_open_until: int = 0
@@ -84,12 +90,59 @@ class Fighter:
         return self.knockdowns < canon.condition()["knockdown"]["max_per_bout"]
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | START ]
+def _resolve_cards(cards):
+    """Normalise the `cards=` argument to a pair of card dicts or Nones.
+
+    Accepts a fixture id, an already-loaded card dict, or None per side, so a
+    caller may write `cards=("generic_pressure_a", "generic_range_b")` and get
+    the authored cards without this module acquiring an opinion about where
+    fixtures live - `pairing.load_card` remains the one answer to that.
+
+    A card missing its `attributes` block is refused loudly rather than
+    silently treated as an empty card: an empty card fights the baseline, and a
+    baseline fighter who was supposed to be an authored one is the exact defect
+    that made two live C++ fighters indistinguishable.
+    """
+    if cards is None:
+        return (None, None)
+    if len(cards) != 2:
+        raise ValueError("cards= takes exactly two entries, got %d" % len(cards))
+    out = []
+    for c in cards:
+        if c is None:
+            out.append(None)
+            continue
+        if isinstance(c, str):
+            from tools.uppercut_validate import pairing as _pairing
+            c = _pairing.load_card(c)
+        if "attributes" not in c:
+            raise ValueError(
+                "fighter card %r has no 'attributes' block; a card that cannot "
+                "say what it is must not be quietly treated as a baseline "
+                "fighter" % (c.get("id", c),))
+        out.append(c)
+    return tuple(out)
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | END ]
+
+
 class Bout:
     """One CPU-vs-CPU bout. Nothing here reads a scorecard."""
 
     def __init__(self, seed: int, profile_a: str, profile_b: str,
                  rounds: int = 3, round_seconds: int = 180,
-                 referee: str = "hana_mori"):
+                 referee: str = "hana_mori",
+                 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+                 #   2026-08-12 03:26 UTC | START edit: authored cards ]
+                 # An authored pair of fighter cards, or None to keep the
+                 # stress-profile loadouts. Optional and defaulted so that every
+                 # existing caller - and therefore every pinned measurement -
+                 # constructs exactly the bout it constructed before this line
+                 # existed. A card supplied here REPLACES the profile's
+                 # loadout rather than merging with it: two sources adding into
+                 # one dict is a second opinion about what a fighter is.
+                 cards=None):
+                 # [ ... | 2026-08-12 03:26 UTC | END edit ]
         self.seed = seed
         self.rng = random.Random(seed)
         self.rounds = rounds
@@ -100,9 +153,19 @@ class Bout:
             Fighter(name="B", profile=profile_b, stamina=cm["stamina"]["max"]),
         ]
         from . import policy as _policy      # local: policy imports canon, not engine
+        # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | START edit ]
+        resolved_cards = _resolve_cards(cards)
+        # [ ... | 2026-08-12 03:26 UTC | END edit ]
         for f in self.fighters:
             f.condition = {d["region"]: 0.0 for d in cm["damage_regions"]}
             f.attrs = dict(_policy.attributes_for(f.profile))
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12
+            #   03:26 UTC | START edit: an authored card outranks a profile ]
+            card = resolved_cards[0] if f.name == "A" else resolved_cards[1]
+            if card is not None:
+                f.attrs = dict(card["attributes"])
+                f.card_id = card.get("id", "")
+            # [ ... | 2026-08-12 03:26 UTC | END edit ]
             # The tank is attribute-scaled, so a fighter starts full of THEIR
             # pool rather than of the canon baseline (stamina.start_fraction).
             f.stamina = self._stamina_max(f) * cm["stamina"]["start_fraction"]

@@ -110,10 +110,28 @@ so a jab-jab plays two animations.
 ## What this arena does not do yet
 
 Phase Q is a fight about **distance**. There is no guard, no stamina, no damage,
-no knockdown and no round structure in it, because those are Phases O, P and S
-and Phase O is held on gate **G7**. Nothing here anticipates that ruling. What
-the arena shows is exactly what Phase Q's contract describes and no more, which
-is the only honest thing it could show.
+no knockdown and no round structure in it, because those are Phases O, P and S.
+What the arena shows is exactly what Phase Q's contract describes and no more,
+which is the only honest thing it could show.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | START correction ] -->
+> **Correction, 2026-08-12.** The sentence above used to read "...and Phase O is
+> held on gate **G7**. Nothing here anticipates that ruling." **G7 was closed by
+> Decision 0021** and `docs/decisions/OPEN_GATES.md` now lists no open Director
+> gates at all. There is no ruling to anticipate. What is missing is
+> `FUppercutFightSession`: an integrated session that COMPOSES the already
+> extracted `UppercutRangeCore`, `UppercutEvadeCore` and `UppercutStaminaCore`
+> with the Phase L/N guard and condition arithmetic, and that both the
+> commandlet and `UUppercutFightSubsystem` call — the same four-seam split this
+> document describes for Phase Q, applied to the whole round. Until that exists
+> the subsystem ticks only `FUppercutRangeSession` and the round ends on the
+> tick budget, which is a timeout rather than a boxing ending.
+>
+> The two authored fighter cards the integrated session is meant to fight with
+> exist as of today and reach the Python reference simulator only:
+> `docs/design/generic_match_pair.md`.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | END correction ] -->
 
 The map is authored offline by `tools/engine/build_dev_arena.py` (Decision 0012:
 Python offline only, never in the runtime path) and regenerated rather than

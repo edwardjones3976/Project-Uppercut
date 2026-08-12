@@ -1,0 +1,72 @@
+{
+  "contribution": {
+    "agent": "Claude (Cowork)",
+    "model": "Claude Opus 5 (claude-opus-5)",
+    "start": "2026-08-12 03:35 UTC",
+    "end": "2026-08-12 03:35 UTC",
+    "procedure": "Director contribution-tagging procedure (docs/decisions/0006)."
+  },
+  "schema_version": "0.1.0-draft",
+  "id": "generic_range_b",
+  "display_name": "Generic Range B",
+  "ring_name": "Fixture B",
+  "fixture_kind": "generic_test_fixture",
+  "primary_stance": "orthodox",
+  "ambidextrous": false,
+  "stance_familiarity_penalties": {
+    "accuracy": -12,
+    "power_transfer": -6,
+    "defensive_familiarity": -14,
+    "combination_fluency": -8,
+    "stamina_efficiency": -4,
+    "recovery_quality": -5
+  },
+  "attributes": {
+    "power": -45,
+    "hand_speed": 40,
+    "foot_speed": 42,
+    "stamina_pool": -15,
+    "durability": -30,
+    "chin": -18,
+    "recovery": 20,
+    "reach": 45,
+    "frame": -10,
+    "accuracy": 44,
+    "defensive_technique": 40,
+    "footwork_technique": 28,
+    "combination_fluency": 25,
+    "counter_timing": 45,
+    "body_work": -25,
+    "guard_structure": 15,
+    "inside_work": -25,
+    "composure": 25,
+    "ring_awareness": 30,
+    "adaptability": 20,
+    "discipline": 25,
+    "coachability": 15,
+    "ringcraft": 22,
+    "showmanship": -12
+  },
+  "compensations": [
+    {
+      "negative": "power",
+      "positive": "reach",
+      "rationale": "He cannot take a round away from anyone, so he has to win every one of them on the outside. The reach is what pays for the missing power: it is the attribute that lets him bank rounds he could never end."
+    }
+  ],
+  "severe_negative_consequences": [
+    {
+      "attribute": "power",
+      "visible_consequence": "Clean, correct punches that move nobody - the other man walks through the best shot of the round and the crowd notices before the judges do."
+    }
+  ],
+  "traits": [],
+  "specials": [],
+  "ultimate": null,
+  "full_crowd_trait": null,
+  "vulnerabilities": [
+    "cannot hurt anyone: negative power means rounds must be won on volume and accuracy, never taken away",
+    "thin durability and a poor chin - the accumulation model catches up with him faster than with anyone he fights",
+    "loses the argument entirely if he is trapped on the ropes or in the corner"
+  ]
+}

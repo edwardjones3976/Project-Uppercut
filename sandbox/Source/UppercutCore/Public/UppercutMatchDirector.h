@@ -16,9 +16,25 @@ class AUppercutFighterBase;
 // there when you need it), and owns nothing the simulation depends on.
 //
 // It is deliberately a director and not a referee: it decides when a round
-// begins and ends and nothing about what happens inside one. Phase O - the
-// round itself, with stoppages and decisions - is held on gate G7, and this
-// class is where it will attach when the Director rules.
+// begins and ends and nothing about what happens inside one.
+//
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | START correction ]
+// This comment used to end: "Phase O - the round itself, with stoppages and
+// decisions - is held on gate G7, and this class is where it will attach when
+// the Director rules."
+//
+// G7 IS CLOSED (Decision 0021, Wind over Reserve). docs/decisions/OPEN_GATES.md
+// lists no open Director gates. Nothing about the round is waiting on a ruling.
+//
+// What is actually missing is FUppercutFightSession: an integrated session that
+// composes UppercutRangeCore, UppercutEvadeCore and UppercutStaminaCore with the
+// Phase L/N guard and condition arithmetic, called by BOTH the commandlet and
+// UUppercutFightSubsystem so there is one implementation of the round rather
+// than two. Until it exists the subsystem ticks only FUppercutRangeSession and
+// a round ends when the tick budget runs out - a timeout, not a boxing ending.
+// This class is still where the ending attaches; it is waiting on code, not on
+// authority.
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | END correction ]
 
 UCLASS(Blueprintable)
 class UPPERCUTCORE_API AUppercutMatchDirector : public AActor

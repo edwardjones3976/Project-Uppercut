@@ -10,6 +10,9 @@ from . import (ability, animation, attribute_effects, attributes, budget, camera
                combat_states, condition, contracts, coverage, cpu, crowd, event, guard,
                judge_boundary, movement, punches, referee_semantics, replay, schema_check,
                score_isolation, stamina)
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | START edit: matched-pair check ]
+from . import pairing
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | END edit ]
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -511,6 +514,30 @@ def cmd_stamina() -> int:
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 07:45 UTC | END edit ]
 
 
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | START edit ]
+def cmd_pairing() -> int:
+    """Two cards put in a ring together must be two fighters, not one twice.
+
+    Prints the whole expressed-attribute delta table on failure, because the
+    author of a rejected pair needs to know which knob to turn.
+    """
+    a, b = (pairing.load_card(i) for i in pairing.MATCH_PAIR)
+    r = pairing.compare(a, b)
+    findings = pairing.check_pair(a, b)
+    print(f"{'PASS' if not findings else 'FAIL'}  {r['a']} vs {r['b']}: "
+          f"{r['differing_count']}/{r['expressed_count']} expressed attributes "
+          f"differ by >= {r['min_delta']} (need {r['min_differing']})")
+    for f in findings:
+        print(f"        {f}")
+    if findings:
+        for k, d in sorted(r["deltas"].items(), key=lambda kv: -kv[1]):
+            print(f"        {k:24} delta {d}")
+    else:
+        print(f"INFO  differing: {', '.join(r['differing'])}")
+    return 1 if findings else 0
+# [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | END edit ]
+
+
 def main(argv: list) -> int:
     cmd = argv[1] if len(argv) > 1 else "all"
     total = 0
@@ -562,6 +589,10 @@ def main(argv: list) -> int:
         print("== Authoritative clock =="); total += cmd_clock(); print()
     if cmd in ("all", "stamina"):
         print("== Decision 0021 two-tier stamina =="); total += cmd_stamina(); print()
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | START edit ]
+    if cmd in ("all", "pairing"):
+        print("== Matched-pair uniqueness =="); total += cmd_pairing(); print()
+    # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 03:26 UTC | END edit ]
     print(f"RESULT: {'OK' if total == 0 else str(total) + ' FAILURE(S)'}")
     return 1 if total else 0
 
