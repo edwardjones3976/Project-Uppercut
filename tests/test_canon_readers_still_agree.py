@@ -48,10 +48,29 @@ PHASE_Q_CHAIN = (
 )
 
 # The quantizer every reader uses to turn an authored ru value into a q10000
-# integer. Duplicated across the module; tolerable ONLY while byte-identical,
-# because a quantizer that rounded differently would quantize the same canon
-# into different integers and two phases would disagree about a boundary.
-Q_DEF_RE = re.compile(r"int64\s+Q\s*\(\s*double\s+\w+\s*\)\s*\{[^}]*\}")
+# integer. There are TEN owners today: nine helper sites (`Q` or `QFromFloat`)
+# plus one inline probe reader. Duplicated quantization is tolerated ONLY while
+# every owner still applies the same RoundToDouble(... * 10000.0) rule.
+HELPER_Q_DEF_RE = re.compile(
+    r"int64\s+(?:Q|QFromFloat)\s*\(\s*double\s+\w+\s*\)\s*\{[^}]*\}"
+)
+PROBE_Q_EXPR_RE = re.compile(
+    r"\(int64\)FMath::RoundToDouble\((?P<operand>.+?)\s*\*\s*10000\.0\)",
+    re.S,
+)
+EXPECTED_QUANTIZER_HELPER_OWNERS = (
+    "UppercutAttrCore.cpp",
+    "UppercutBoutDirector.cpp",
+    "UppercutCoreConditionCommandlet.cpp",
+    "UppercutCoreGuardCommandlet.cpp",
+    "UppercutCoreLoopCommandlet.cpp",
+    "UppercutCoreSweepCommandlet.cpp",
+    "UppercutRangeCanonLoader.cpp",
+    "UppercutRoundCore.cpp",
+    "UppercutStaminaCore.cpp",
+)
+PROBE_INLINE_QUANTIZER_OWNER = "UppercutCoreProbeCommandlet.cpp"
+NORMALIZED_Q10000_RULE = "(int64)FMath::RoundToDouble(_ * 10000.0)"
 
 # The open-ended top band (`max_ru: null`) has no authored ceiling. The inline
 # readers substitute a finite sentinel. Two spellings are in the tree today:
@@ -86,33 +105,76 @@ def _inline_band_readers():
     return out
 
 
-def test_every_quantizer_definition_is_byte_identical():
-    """One rounding rule, however many copies of it there are.
+def _normalize_helper_quantizer(src):
+    src = re.sub(r"\s+", " ", src).strip()
+    src = re.sub(r"\b(?:Q|QFromFloat)\b", "Q_HELPER", src, count=1)
+    src = re.sub(r"\(\s*double\s+\w+\s*\)", "(double _)", src, count=1)
+    src = re.sub(r"RoundToDouble\(\s*\w+\s*\*", "RoundToDouble(_ *", src, count=1)
+    return src
 
-    The module defines `int64 Q(double)` in many files. That duplication is a
-    known, tolerated shortcut - but it is only harmless while every copy is the
-    same operation. This asserts they are. A single copy edited to truncate
-    instead of round would quantize canon differently in one phase, and no
-    existing test would notice because they all count occurrences rather than
-    comparing them.
+
+def _normalize_probe_quantizer(expr):
+    expr = re.sub(r"\s+", " ", expr).strip()
+    return re.sub(
+        r"\(int64\)FMath::RoundToDouble\((?P<operand>.+?)\s*\*\s*10000\.0\)",
+        NORMALIZED_Q10000_RULE,
+        expr,
+        count=1,
+    )
+
+
+def test_every_quantizer_definition_is_byte_identical():
+    """All ten quantizer owners still apply the same q10000 rounding rule.
+
+    The module currently owns q10000 quantization in ten places: nine helper
+    definitions (`Q` or `QFromFloat`) and the probe commandlet's inline
+    range-band quantization. That duplication is a known, tolerated shortcut -
+    but it is only harmless while every owner still uses the same
+    RoundToDouble(... * 10000.0) rule. A single owner edited to truncate, floor
+    or scale differently would quantize the same authored canon into different
+    integers and two phases would disagree about a boundary.
     """
     defs = {}
-    for name in _cpp_files():
-        for m in Q_DEF_RE.finditer(read(name)):
-            defs[name] = re.sub(r"\s+", " ", m.group(0)).strip()
+    for name in EXPECTED_QUANTIZER_HELPER_OWNERS:
+        matches = list(HELPER_Q_DEF_RE.finditer(read(name)))
+        assert len(matches) == 1, (
+            "expected exactly one helper quantizer definition in %s; found %d. "
+            "If the helper moved or multiplied, update this owner list and the "
+            "drift test together." % (name, len(matches))
+        )
+        defs[name] = _normalize_helper_quantizer(matches[0].group(0))
 
-    assert defs, "no `int64 Q(double)` definitions found - did the helper get renamed?"
+    assert set(defs) == set(EXPECTED_QUANTIZER_HELPER_OWNERS), (
+        "the helper quantizer owner set drifted: expected %s, found %s"
+        % (sorted(EXPECTED_QUANTIZER_HELPER_OWNERS), sorted(defs))
+    )
 
     canonical = defs[sorted(defs)[0]]
     disagreeing = {n: d for n, d in defs.items() if d != canonical}
     assert not disagreeing, (
-        "the quantizer is not identical everywhere. %d file(s) differ from\n"
+        "the helper quantizer is not identical everywhere. %d file(s) differ from\n"
         "  %s\n%s\n"
         "A quantizer that rounds differently turns the same authored canon into "
         "different integers - the exact 'agree until edited' divergence the "
         "convergence rule exists to stop."
         % (len(disagreeing), canonical,
            "\n".join("  %s: %s" % (n, d) for n, d in sorted(disagreeing.items())))
+    )
+
+    probe_text = read(PROBE_INLINE_QUANTIZER_OWNER)
+    probe_quantizers = [
+        _normalize_probe_quantizer(m.group(0))
+        for m in PROBE_Q_EXPR_RE.finditer(probe_text)
+        if "10000.0" in m.group(0)
+    ]
+    assert len(probe_quantizers) == 3, (
+        "%s should own exactly three inline q10000 quantizers (min, max, "
+        "hysteresis); found %d: %s"
+        % (PROBE_INLINE_QUANTIZER_OWNER, len(probe_quantizers), probe_quantizers)
+    )
+    assert set(probe_quantizers) == {NORMALIZED_Q10000_RULE}, (
+        "%s no longer uses the shared q10000 rounding rule everywhere: %s"
+        % (PROBE_INLINE_QUANTIZER_OWNER, probe_quantizers)
     )
 
 
