@@ -1,4 +1,5 @@
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:34 UTC | START ] -->
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:05 UTC | START edit ] -->
 
 # Cross-platform status — Unreal 1-round + Decision 0037 (2026-08-12)
 
@@ -56,8 +57,8 @@ opponent_read wired in the integrated bout; pressure_threshold untouched.
 Connect ~43.5% avg on seeds 4242–4251 (was ~55%).
 
 Needs Ed:
-• PRO-10 — Windows AV probes B/C still open (evidence/2026-08-12-bitdefender-allowlist/)
-• Linear comments on PRO-6/7/9 (packet in repo if MCP down)
+• Linear: mark PRO-10 Done (Windows A/B/C packet in repo); comments on PRO-6/7/9
+• Merge PR #31, then land port PR (canon pair + AV evidence + adversarial tests)
 
 Agent: https://cursor.com/agents/bc-3cb0e490-0afd-44e5-b56d-c08885cd1ce3
 Packet: docs/implementation/cross_platform_status_2026-08-12.md
@@ -100,11 +101,12 @@ PR #31 · docs/implementation/cross_platform_status_2026-08-12.md
 ### PRO-10 (Bitdefender)
 
 ```
-2026-08-12 — KEEP OPEN.
+2026-08-12 — MARK DONE.
 
-Linux git restore of tools/engine/build_uppercut_core.ps1 PASS.
-Windows PowerShell build + .cmd AV probes B/C still required before Done.
-Evidence: evidence/2026-08-12-bitdefender-allowlist/README.md
+Windows blackbox probes A/B/C PASS + nightly_verify --no-engine RC=0.
+Evidence: evidence/2026-08-12-bitdefender-allowlist/ (incl. nightly_verify-no-engine.log).
+Residual: packet does not claim commandlet/PIE; editor binary path still rests
+on the first clean prove_core_range.
 ```
 
 ---
@@ -116,4 +118,5 @@ Evidence: evidence/2026-08-12-bitdefender-allowlist/README.md
 - Tooling map: `docs/implementation/agent_tooling.md`, `AGENTS.md`
 - Dev log: `docs/development-log/2026-08-12-one-round-and-opponent-read.md`
 
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:05 UTC | END edit ] -->
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:34 UTC | END ] -->

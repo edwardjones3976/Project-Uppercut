@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-12 03:25 UTC** at `3157169 fix: CI LCG sprawl, Windows roles_raw CRLF, wire opponent_read`.
+Generated **2026-08-12 04:02 UTC** at `c9a9a29 fix: restore full .gitignore (LF) with snyk ignores`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **1425 passed** |
+| Test suite | **1432 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |

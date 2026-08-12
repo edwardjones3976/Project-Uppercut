@@ -48,17 +48,20 @@ Team **Project Uppercut**, project **Unreal live backend integration**.
 `PRO-10` whitelist the repo in Bitdefender (needs Ed).
 
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ] -->
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:05 UTC | START edit ] -->
 Linear hygiene (2026-08-12, Unreal 1-round work). Update these on the board when
 the Linear MCP / Director UI is available (cloud agent had no Linear tools):
 
-- **PRO-10** — leave open until Windows B/C AV probes pass
-  (`evidence/2026-08-12-bitdefender-allowlist/`).
+- **PRO-10** — **close** (Windows A/B/C + `nightly_verify --no-engine` PASS on
+  blackbox; packet `evidence/2026-08-12-bitdefender-allowlist/`). Residual:
+  packet does not claim commandlet/PIE coverage.
 - **PRO-6** — progress = `FUppercutFightSession` + subsystem integrated mode,
   not merely "subsystem exists".
 - **PRO-7** — Phase R C++ is already PASS; remaining is Phase S **in the session**
   (thin policy landed; full S still later).
 - **PRO-9** — 1-round ending path started (count or sealed decision); soul proof
   stays later.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:05 UTC | END edit ] -->
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ] -->
 
 The milestone plan lives here rather than only in a markdown file so that
@@ -120,11 +123,14 @@ there; it operates on the same working tree.
 and blocking git restore.
 
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ] -->
-Allowlist retest started 2026-08-12: `git restore` of
-`tools/engine/build_uppercut_core.ps1` **PASS** on Linux cloud. PowerShell build
-and `.cmd` probe still need the Windows Director box — see
-`evidence/2026-08-12-bitdefender-allowlist/README.md`. Do not close PRO-10 until
-those pass.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:05 UTC | START edit ] -->
+Allowlist retest closed 2026-08-12 on Edward's blackbox: probes A (`git restore`),
+B (`build_uppercut_core.ps1` → `BUILD EXIT: 0`), C (throwaway `.cmd` survives),
+and `nightly_verify --no-engine` RC=0. Packet:
+`evidence/2026-08-12-bitdefender-allowlist/` (+ `nightly_verify-no-engine.log`).
+**PRO-10 may be closed.** Residual: no commandlet/PIE in that packet; editor
+binary coverage still rests on the first clean `prove_core_range`.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:05 UTC | END edit ] -->
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ] -->
 
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:34 UTC | START ] -->
