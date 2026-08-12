@@ -66,6 +66,19 @@ def attributes_for(profile: str) -> dict:
     """The card this instrument fights with. An exploit policy has no card, so it
     fights the baseline model - which is what makes an abuse's result attributable to
     the abuse rather than to a stat line."""
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+    # Complete Rule-10 fixtures under fixtures/fighters/legal/ override the
+    # partial style sketch when the profile name matches a fighter id. That is
+    # how the Unreal 1-round test cards reach the Python reference bout without
+    # retuning attribute_effects.json.
+    from pathlib import Path
+    from tools.uppercut_validate import strict_json as _json
+    fixture = (Path(__file__).resolve().parents[2]
+               / "fixtures" / "fighters" / "legal" / f"{profile}.json")
+    if fixture.is_file():
+        data = _json.loads(fixture.read_text(encoding="utf-8"))
+        return dict(data.get("attributes") or {})
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
     return ATTRIBUTES.get(profile, {})
 
 

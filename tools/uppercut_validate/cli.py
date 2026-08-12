@@ -40,6 +40,21 @@ def cmd_fighters() -> int:
     return failures
 
 
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+def cmd_fighter_pair() -> int:
+    from . import fighter_pair as FP
+    errs = FP.validate_default_pair()
+    if errs:
+        for e in errs:
+            print(f"FAIL  {e}")
+        return len(errs)
+    a, b = FP.DEFAULT_PAIR
+    diffs = FP.expressed_diffs(FP.load_fighter(a), FP.load_fighter(b))
+    print(f"PASS  default pair {a} vs {b}: {len(diffs)} expressed diffs >= {FP.DEFAULT_MIN_DELTA}")
+    return 0
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
+
+
 def cmd_isolation() -> int:
     contract = score_isolation.load_contract()
     failures = 0
@@ -516,6 +531,10 @@ def main(argv: list) -> int:
     total = 0
     if cmd in ("all", "fighters"):
         print("== Rule 10 fighter fixtures ==");  total += cmd_fighters(); print()
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+    if cmd in ("all", "fighter_pair"):
+        print("== 1-round fighter pair uniqueness =="); total += cmd_fighter_pair(); print()
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
     if cmd in ("all", "isolation"):
         print("== Rule 3 score isolation ==");    total += cmd_isolation(); print()
     if cmd in ("all", "judge"):

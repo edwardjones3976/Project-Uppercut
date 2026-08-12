@@ -12,7 +12,36 @@ installed.
 
 ---
 
-## Press Play on it
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ] -->
+
+## Press Play on a 1-round match (integrated)
+
+Open `sandbox\UppercutSandbox.uproject`, open
+`/Game/ProjectUppercut/Maps/L_UppercutDevArena`, press Play.
+
+`UUppercutFightSubsystem` defaults to **integrated 1-round** mode:
+
+- Cards: `test_pressure_power` vs `test_range_timing` (complete Rule-10 fixtures)
+- Thin observable policy (G2 rest/hold, G3 aggression-as-intent) — not the Phase Q LCG
+- Round ends with knockdown/count **or** a sealed 10-point-must decision
+- `P` dumps an integrated stream; check with `python -m tools.engine.prove_one_round`
+
+Phase O is **not** held on G7. See `docs/decisions/OPEN_GATES.md`.
+
+To force the old Phase Q distance-only session (for `prove_live_arena`):
+
+set `bIntegratedOneRound = false` on the fight subsystem before StartFight.
+
+Python instrument (CI / Linux):
+
+```
+python -m tools.engine.prove_one_round
+python -m tools.uppercut_integrated.export_fight --out-dir /tmp/uc1r --rounds 1 --default-cards --round-seconds 180
+```
+
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ] -->
+
+## Press Play on it (Phase Q distance — historical)
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 22:40 UTC | arena start ] -->
 
@@ -42,9 +71,11 @@ python -m tools.engine.prove_live_arena        # ~2 minutes, needs UE
 It drives the real subsystem inside a real world, through the same single-step
 control the `.` key uses, and compares the dump to the contract byte for byte.
 
-Phase Q is a fight about **distance**. There is no guard, stamina, damage,
-knockdown or round structure in the arena, because Phase O is held on gate
-**G7**. Full write-up: `docs\implementation\live_dev_arena.md`.
+Phase Q is a fight about **distance**. With `bIntegratedOneRound=false` there is
+no guard, stamina, damage, knockdown or round structure in the arena. The
+integrated 1-round path (default) is documented above — Phase O is no longer
+held on G7 (`docs/decisions/OPEN_GATES.md`). Full write-up:
+`docs\implementation\live_dev_arena.md`.
 
 To rebuild the map after changing the actors:
 

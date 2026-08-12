@@ -16,9 +16,10 @@ class AUppercutFighterBase;
 // there when you need it), and owns nothing the simulation depends on.
 //
 // It is deliberately a director and not a referee: it decides when a round
-// begins and ends and nothing about what happens inside one. Phase O - the
-// round itself, with stoppages and decisions - is held on gate G7, and this
-// class is where it will attach when the Director rules.
+// begins and ends and nothing about what happens inside one. The integrated
+// 1-round session (FUppercutFightSession via FightSubsystem.bIntegratedOneRound)
+// owns knockdown/count/decision. Phase O is no longer held on G7 —
+// docs/decisions/OPEN_GATES.md has no open Director gates.
 
 UCLASS(Blueprintable)
 class UPPERCUTCORE_API AUppercutMatchDirector : public AActor

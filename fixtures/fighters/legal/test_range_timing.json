@@ -1,0 +1,65 @@
+{
+  "contribution": {
+    "agent": "Auto (Cursor Agent)",
+    "model": "Auto (Cursor Agent)",
+    "start": "2026-08-12 02:53 UTC",
+    "end": "2026-08-12 02:53 UTC"
+  },
+  "schema_version": "0.1.0-draft",
+  "id": "test_range_timing",
+  "display_name": "Test Range Timing",
+  "fixture_kind": "generic_test_fixture",
+  "primary_stance": "orthodox",
+  "ambidextrous": false,
+  "stance_familiarity_penalties": {
+    "accuracy": -8,
+    "power_transfer": -10
+  },
+  "attributes": {
+    "power": -15,
+    "hand_speed": 25,
+    "foot_speed": 20,
+    "stamina_pool": 15,
+    "durability": -10,
+    "chin": 5,
+    "recovery": 15,
+    "reach": 30,
+    "frame": -5,
+    "accuracy": 35,
+    "defensive_technique": 25,
+    "footwork_technique": 20,
+    "combination_fluency": 20,
+    "counter_timing": 40,
+    "body_work": -10,
+    "guard_structure": 20,
+    "inside_work": -15,
+    "composure": 20,
+    "ring_awareness": 25,
+    "adaptability": 15,
+    "discipline": 20,
+    "coachability": 10,
+    "ringcraft": 25,
+    "showmanship": -5
+  },
+  "compensations": [
+    {
+      "negative": "power",
+      "positive": "counter_timing",
+      "rationale": "Timing replaces force."
+    },
+    {
+      "negative": "inside_work",
+      "positive": "reach",
+      "rationale": "Keeps the fight outside."
+    }
+  ],
+  "severe_negative_consequences": [],
+  "traits": [],
+  "specials": [],
+  "ultimate": null,
+  "full_crowd_trait": null,
+  "vulnerabilities": [
+    "power exchanges",
+    "corner pressure"
+  ]
+}

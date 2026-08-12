@@ -6,6 +6,14 @@ Open `sandbox/UppercutSandbox.uproject`, open
 on canon's ring axis, close and open distance, throw punches, and miss when they
 throw from the wrong band. The round ends when the tick budget runs out.
 
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ] -->
+**Update 2026-08-12.** MatchDirector defaults `bIntegratedOneRound=true` on
+`UUppercutFightSubsystem`. That path loads `FUppercutFightSession`: unique
+fighter cards, thin policy, and a round ending (count or sealed decision).
+Phase Q `FUppercutRangeSession` remains for `prove_live_arena` when the flag
+is false. Phase O is not held on G7 — see `docs/decisions/OPEN_GATES.md`.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ] -->
+
 The point of this document is the sentence that makes the arena worth having:
 
 > **What you press Play on is the artifact the parity proof is taken against —

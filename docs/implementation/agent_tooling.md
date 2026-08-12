@@ -47,6 +47,20 @@ Team **Project Uppercut**, project **Unreal live backend integration**.
 `PRO-8` M4 dev arena and HUD · `PRO-9` M5 round flow and soul proof ·
 `PRO-10` whitelist the repo in Bitdefender (needs Ed).
 
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ] -->
+Linear hygiene (2026-08-12, Unreal 1-round work). Update these on the board when
+the Linear MCP / Director UI is available (cloud agent had no Linear tools):
+
+- **PRO-10** — leave open until Windows B/C AV probes pass
+  (`evidence/2026-08-12-bitdefender-allowlist/`).
+- **PRO-6** — progress = `FUppercutFightSession` + subsystem integrated mode,
+  not merely "subsystem exists".
+- **PRO-7** — Phase R C++ is already PASS; remaining is Phase S **in the session**
+  (thin policy landed; full S still later).
+- **PRO-9** — 1-round ending path started (count or sealed decision); soul proof
+  stays later.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ] -->
+
 The milestone plan lives here rather than only in a markdown file so that
 "what is actually left" survives a session boundary.
 
@@ -102,7 +116,15 @@ account's claude.ai catalog, so it cannot be installed into Cowork. If that
 methodology is wanted, run Claude Code CLI in this repo and add the marketplace
 there; it operates on the same working tree.
 
-**Bitdefender whitelisting** — `PRO-10`. It is currently deleting scripts from
-the working tree and blocking git from restoring them.
+**Bitdefender whitelisting** — `PRO-10`. Recorded 2026-08-06 as deleting scripts
+and blocking git restore.
+
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ] -->
+Allowlist retest started 2026-08-12: `git restore` of
+`tools/engine/build_uppercut_core.ps1` **PASS** on Linux cloud. PowerShell build
+and `.cmd` probe still need the Windows Director box — see
+`evidence/2026-08-12-bitdefender-allowlist/README.md`. Do not close PRO-10 until
+those pass.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ] -->
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 05:50 UTC | END ] -->
