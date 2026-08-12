@@ -2,12 +2,26 @@
 #include "UppercutMatchDirector.h"
 
 #include "UppercutArenaPresentation.h"
+#include "UppercutFighterBase.h"
 
+#include "Camera/CameraActor.h"
 #include "Components/InputComponent.h"
+#include "Components/LightComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/DirectionalLight.h"
+#include "Engine/Engine.h"
+#include "Engine/StaticMesh.h"
+#include "Engine/StaticMeshActor.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
+#include "HAL/FileManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "Misc/Paths.h"
+#include "TimerManager.h"
+#include "UnrealClient.h"
 
 AUppercutMatchDirector::AUppercutMatchDirector()
 {
@@ -30,6 +44,112 @@ void AUppercutMatchDirector::BeginPlay()
     {
         UE_LOG(LogTemp, Error,
                TEXT("UppercutMatchDirector: no fight subsystem - nothing to direct"));
+        return;
+    }
+
+    // Presentation-only pose studio: isolate a fighter, do not start a round.
+    // Combat authority is untouched - this path never calls StartFight.
+    // Lit floor + locked camera + FScreenshotRequest (not Desktop CopyFromScreen /
+    // HighResShot) are what produce a non-black JPG of the looping clip.
+    const bool bPoseStudio = FParse::Param(FCommandLine::Get(), TEXT("UppercutPoseStudio"));
+    if (bPoseStudio)
+    {
+        UE_LOG(LogTemp, Display,
+               TEXT("UppercutMatchDirector: POSE STUDIO on - no auto-start, no Fab ring"));
+        if (UWorld* World = GetWorld())
+        {
+            // Key + fill lights so geometry reads against the void.
+            if (ADirectionalLight* Sun = World->SpawnActor<ADirectionalLight>(
+                    FVector(200.f, -200.f, 500.f), FRotator(-55.f, -40.f, 0.f)))
+            {
+                if (ULightComponent* C = Sun->GetLightComponent())
+                {
+                    C->SetIntensity(12.f);
+                    C->SetVisibility(true);
+                }
+            }
+            if (ADirectionalLight* Fill = World->SpawnActor<ADirectionalLight>(
+                    FVector(-200.f, 200.f, 300.f), FRotator(-35.f, 140.f, 0.f)))
+            {
+                if (ULightComponent* C = Fill->GetLightComponent())
+                {
+                    C->SetIntensity(4.f);
+                    C->SetVisibility(true);
+                }
+            }
+
+            if (UStaticMesh* Plane = LoadObject<UStaticMesh>(
+                    nullptr, TEXT("/Engine/BasicShapes/Plane.Plane")))
+            {
+                if (AStaticMeshActor* Floor = World->SpawnActor<AStaticMeshActor>(
+                        FVector(0.f, 0.f, 0.f), FRotator::ZeroRotator))
+                {
+                    Floor->SetActorLabel(TEXT("PoseStudioFloor"));
+                    Floor->GetStaticMeshComponent()->SetStaticMesh(Plane);
+                    Floor->SetActorScale3D(FVector(12.f, 12.f, 1.f));
+                }
+            }
+
+            int32 PoseFighter = 0;
+            FParse::Value(FCommandLine::Get(), TEXT("UppercutPoseFighter="), PoseFighter);
+            FVector Focus(0.f, 0.f, 110.f);
+            for (TActorIterator<AUppercutFighterBase> It(World); It; ++It)
+            {
+                if (It->FighterIndex == PoseFighter)
+                {
+                    Focus = It->GetActorLocation() + FVector(0.f, 0.f, 110.f);
+                    if (It->Body)
+                    {
+                        It->Body->SetHiddenInGame(false);
+                        It->Body->SetVisibility(true);
+                    }
+                    break;
+                }
+            }
+            const FVector CamLoc = Focus + FVector(40.f, -320.f, 50.f);
+            const FRotator CamRot = (Focus - CamLoc).Rotation();
+            ACameraActor* Cam = World->SpawnActor<ACameraActor>(CamLoc, CamRot);
+            if (Cam)
+            {
+                Cam->SetActorLabel(TEXT("PoseStudioCamera"));
+                if (APlayerController* PC =
+                        UGameplayStatics::GetPlayerController(World, 0))
+                {
+                    PC->bAutoManageActiveCameraTarget = false;
+                    PC->SetViewTargetWithBlend(Cam, 0.f);
+                }
+                UE_LOG(LogTemp, Display,
+                       TEXT("UppercutMatchDirector: pose camera at %s -> %s"),
+                       *CamLoc.ToCompactString(), *Focus.ToCompactString());
+            }
+
+            const FString ShotPath = FPaths::ConvertRelativePathToFull(
+                FPaths::ProjectSavedDir() / TEXT("pose_studio") /
+                TEXT("fighter0_overhand_right_orthodox.png"));
+            IFileManager::Get().MakeDirectory(*FPaths::GetPath(ShotPath), true);
+            FTimerHandle ShotHandle;
+            World->GetTimerManager().SetTimer(
+                ShotHandle,
+                FTimerDelegate::CreateLambda([World, Cam, ShotPath]()
+                {
+                    if (Cam)
+                    {
+                        if (APlayerController* PC =
+                                UGameplayStatics::GetPlayerController(World, 0))
+                        {
+                            PC->bAutoManageActiveCameraTarget = false;
+                            PC->SetViewTargetWithBlend(Cam, 0.f);
+                        }
+                    }
+                    FScreenshotRequest::RequestScreenshot(ShotPath, false, false);
+                    UE_LOG(LogTemp, Display,
+                           TEXT("UppercutMatchDirector: pose screenshot requested -> %s"),
+                           *ShotPath);
+                }),
+                6.0f,
+                false);
+        }
+        if (bBindDefaultKeys) { BindKeys(); }
         return;
     }
 
