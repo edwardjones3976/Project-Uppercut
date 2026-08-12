@@ -46,7 +46,8 @@ generator also refuses a duplicate or non-contiguous number.
 | 0037 | [The throw rate was never four times too much](0037-the-throw-rate-was-never-four-times-too-much.md) |
 | 0038 | [Two numbering collisions, resolved; and the external audit answered](0038-two-numbering-collisions-resolved-and-the-audit-answered.md) |
 | 0039 | [Evidence is a supply chain, and the chain is now guarded](0039-evidence-is-a-supply-chain.md) |
+| 0040 | [the C++ round is the fight, and neither outcome is authentic yet](0040-the-cpp-round-is-the-fight-and-neither-outcome-is-authentic.md) |
 
-39 decisions, 0001-0039, contiguous.
+40 decisions, 0001-0040, contiguous.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 20:55 UTC | decision index end ] -->
