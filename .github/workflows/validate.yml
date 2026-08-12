@@ -75,7 +75,9 @@ jobs:
   # in docs/SEE_AND_TEST.md is where they live. When a self-hosted runner with
   # UE 5.8 exists, it goes here and this comment changes.
   windows-authority:
-    runs-on: windows-latest
+    # [ Claude (Opus 4.8, Cowork) | 2026-08-12 21:10 UTC | START: route Windows CI to the blackbox self-hosted UE runner so the UBT compile step actually runs (PRO-12 #2). Pinned to the ue5.8 label. REQUIRES the runner service online, else this job queues forever. ]
+    runs-on: [self-hosted, windows, ue5.8]
+    # [ Claude (Opus 4.8, Cowork) | 2026-08-12 21:10 UTC | END ]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
