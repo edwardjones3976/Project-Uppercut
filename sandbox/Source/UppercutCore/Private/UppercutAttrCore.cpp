@@ -105,10 +105,12 @@ bool UppercutLoadFighterCard(const FString& RepoDir, const FString& FighterId,
         OutError = TEXT("fighter card missing attributes");
         return false;
     }
+    // UE 5.8 FJsonObject::Values keys are shared-string storage, not FString.
     for (const auto& Pair : (*Attrs)->Values)
     {
-        Out.Attributes.Add(Pair.Key, (int32)Pair.Value->AsNumber());
+        Out.Attributes.Add(FString(Pair.Key), (int32)Pair.Value->AsNumber());
     }
     return true;
 }
+// [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:20 UTC | END edit: UE5.8 JSON keys ]
 // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]

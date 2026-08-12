@@ -5,17 +5,17 @@
 
 # Status
 
-Generated **2026-08-12 03:25 UTC** at `3157169 fix: CI LCG sprawl, Windows roles_raw CRLF, wire opponent_read`.
+Generated **2026-08-12 05:18 UTC** at `4bea91b checkpoint before checking out main`.
 
 | Evidence | Result |
 |---|---|
 | Test suite | **1425 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
-| Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |
+| Latest engine phase proven | Phase O - integrated 1-round Play path (FUppercutFightSession) |
 | Phase 0 | gate **PASSED** 2026-08-02 (`docs/phase0/phase0_status.md`) |
 | Phase 1A | definitions complete for all twelve steps; the quality gate is **not** passed - see `docs/phase1a/phase1a_status.md` |
-| Next step | Slice item 9: one rendered round with knockdown, count, stoppage and decision (C++) (`docs/plans/next_steps.md`) |
+| Next step | Director Play review of L_UppercutDevArena 1-round path; then PRO-8 HUD / full Phase S / soul proof as ordered (`docs/plans/next_steps.md`) |
 
 Open findings, named rather than rounded away:
 

@@ -254,21 +254,15 @@ your machine does not.
 
 ## What is proven, and what is not
 
-**Phase R is the latest engine phase proven in C++** (2026-08-06:
-`UppercutCoreEvadeCommandlet` reproduces its contract byte for byte at 4242/5400,
-777/5400 and 4242/1200; Phase Q was proven the day before). Phases O, P and S
-exist as Python contracts with tests and no C++ at all — and **Phase O is held
-on gate G7**, the stamina economy. A `feat(core)` commit subject does not
-mean an engine phase shipped — `STATUS.md` is the authority, it is generated
-from the `PASS` headings in `docs/phase1a/determinism_probe_results.md`, and a
-test enforces that it cannot name a contract-only phase.
-
-So: the numbers you can run above are real and the pictures are real, and the
-range and evasion pipelines now exist on both sides of the line, each agreeing
-with itself to the byte. What has not met yet is the round itself — Phase O,
-which carries the policy, the scoring and the knockdowns, and which is held on
-G7. Closing the gap is the port of S (policy), the Director's ruling on G7, and
-then the live runtime
-(`docs/implementation/unreal_live_backend_integration.md`).
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:20 UTC | START ] -->
+**Phase R** remains the latest *unit* engine phase with a byte-identical C++
+commandlet pin (2026-08-06). The **integrated 1-round Play path**
+(`FUppercutFightSession`) is in the editor binary: unique cards, thin policy,
+knockdown/count or sealed decision. Python instrument:
+`python -m tools.engine.prove_one_round`. Phase O is **not** held on G7
+(`docs/decisions/OPEN_GATES.md`). Full Phase S, soul proof, and PRO-8 HUD are
+still open. `STATUS.md` is generated from `PASS` headings in
+`docs/phase1a/determinism_probe_results.md`.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:20 UTC | END ] -->
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 20:35 UTC | END ] -->

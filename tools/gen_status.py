@@ -142,7 +142,11 @@ def main() -> int:
         # review on 2026-08-04 found STATUS still naming slice item 8 as next
         # AFTER Phase N had completed it, because the newest marker had no link.
         # Adding a phase means adding its branch HERE, above the previous one.
-        if "Phase N is proven" in txt:
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:20 UTC | edit ]
+        if "Integrated 1-round is proven" in txt or "Phase O — integrated 1-round" in txt:
+            next_step = ("Director Play review of L_UppercutDevArena 1-round path; "
+                         "then PRO-8 HUD / full Phase S / soul proof as ordered")
+        elif "Phase N is proven" in txt:
             next_step = ("Slice item 9: one rendered round with knockdown, count, "
                          "stoppage and decision (C++)")
         elif "Phase L is proven" in txt:

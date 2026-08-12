@@ -2,6 +2,14 @@
 
 # Next steps, measured against the Phase 1A gate
 
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:20 UTC | START ] -->
+**Integrated 1-round is proven** (2026-08-12): `FUppercutFightSession` in the
+editor binary; Python `prove_one_round` reaches sealed decisions on seeds 4242
+and 777 with unique Rule-10 cards. Phase O unit hold on G7 is obsolete
+(`OPEN_GATES.md`). Next: Director Play review, then PRO-8 HUD / full Phase S /
+soul proof — not Adewale vs Calvin yet.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:20 UTC | END ] -->
+
 Written after a QA pass on the audit, Phase F and Phase G. Everything below is checked
 against the repository rather than recalled, and the three findings that reorder the
 priorities are stated first because they change what "nearly done" means.

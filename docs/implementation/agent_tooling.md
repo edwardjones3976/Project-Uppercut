@@ -48,17 +48,18 @@ Team **Project Uppercut**, project **Unreal live backend integration**.
 `PRO-10` whitelist the repo in Bitdefender (needs Ed).
 
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ] -->
-Linear hygiene (2026-08-12, Unreal 1-round work). Update these on the board when
-the Linear MCP / Director UI is available (cloud agent had no Linear tools):
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 05:15 UTC | edit ] -->
+Linear hygiene (2026-08-12, Unreal 1-round work):
 
-- **PRO-10** — leave open until Windows B/C AV probes pass
-  (`evidence/2026-08-12-bitdefender-allowlist/`).
-- **PRO-6** — progress = `FUppercutFightSession` + subsystem integrated mode,
-  not merely "subsystem exists".
+- **PRO-10** — **Done** (Windows A/B/C + `nightly_verify --no-engine` PASS;
+  packet `evidence/2026-08-12-bitdefender-allowlist/`).
+- **PRO-6** — **In Progress** = `FUppercutFightSession` + subsystem integrated
+  mode (not merely "subsystem exists").
 - **PRO-7** — Phase R C++ is already PASS; remaining is Phase S **in the session**
   (thin policy landed; full S still later).
-- **PRO-9** — 1-round ending path started (count or sealed decision); soul proof
+- **PRO-9** — 1-round ending path in C++ (count or sealed decision); soul proof
   stays later.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 05:15 UTC | END edit ] -->
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ] -->
 
 The milestone plan lives here rather than only in a markdown file so that
@@ -126,6 +127,12 @@ and `.cmd` probe still need the Windows Director box — see
 `evidence/2026-08-12-bitdefender-allowlist/README.md`. Do not close PRO-10 until
 those pass.
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ] -->
+
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:20 UTC | START ] -->
+**Superseded:** Windows A/B/C all PASS on this branch (`BUILD EXIT: 0`, throwaway
+`.cmd` survived). Linear **PRO-10 is Done**. Packet:
+`evidence/2026-08-12-bitdefender-allowlist/README.md`.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:20 UTC | END ] -->
 
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:34 UTC | START ] -->
 

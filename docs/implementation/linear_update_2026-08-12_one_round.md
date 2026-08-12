@@ -11,10 +11,10 @@ Director host (or paste from the status packet):
 
 | Issue | Action |
 |---|---|
-| PRO-10 | Keep Backlog until Windows AV probes B/C pass; cite `evidence/2026-08-12-bitdefender-allowlist/` |
-| PRO-6 | Comment: FightSubsystem integrated mode + `FUppercutFightSession` + opponent_read on `cursor/unreal-1-round-match-1ce3` |
+| PRO-10 | **Done** — Windows A/B/C allowlist probes PASS; see `evidence/2026-08-12-bitdefender-allowlist/` |
+| PRO-6 | **In Progress** — FightSubsystem integrated mode + `FUppercutFightSession` + cards/policy/ending on `cursor/unreal-1-round-match-1ce3` |
 | PRO-7 | Comment: Phase R already C++ PASS; thin policy in session; full Phase S still open |
-| PRO-9 | Comment: 1-round ending (count or sealed decision) path started; soul proof deferred |
+| PRO-9 | 1-round ending (count or sealed decision) path in C++; soul proof still deferred |
 
 Follow-up (2026-08-12 03:13+ UTC):
 

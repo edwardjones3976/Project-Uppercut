@@ -33,6 +33,11 @@ int32 UUppercutLiveArenaCommandlet::Main(const FString& Params)
     int32 Result = 1;
     if (UUppercutFightSubsystem* Fight = World->GetSubsystem<UUppercutFightSubsystem>())
     {
+        // prove_live_arena compares against Phase Q expected_stream.
+        // Integrated 1-round is the Press Play default; force Q before LoadCanon
+        // so bIntegratedLoaded stays false and the parity dump is Phase Q.
+        Fight->bIntegratedOneRound = false;
+
         // The subsystem loads canon from the project's parent on Initialize.
         // Loading again from an explicit repo makes the proof independent of
         // where the commandlet happened to be run from.

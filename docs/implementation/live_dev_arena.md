@@ -117,11 +117,16 @@ so a jab-jab plays two animations.
 
 ## What this arena does not do yet
 
-Phase Q is a fight about **distance**. There is no guard, no stamina, no damage,
-no knockdown and no round structure in it, because those are Phases O, P and S
-and Phase O is held on gate **G7**. Nothing here anticipates that ruling. What
-the arena shows is exactly what Phase Q's contract describes and no more, which
-is the only honest thing it could show.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:20 UTC | START ] -->
+**Integrated path (default).** `bIntegratedOneRound=true` runs
+`FUppercutFightSession`: cards, thin policy, knockdown/count or sealed decision.
+That is the 1-round test harness. Soul proof, full Phase S, and PRO-8 HUD remain
+open. Phase O is **not** held on G7 (`docs/decisions/OPEN_GATES.md`).
+
+**Phase Q path (`bIntegratedOneRound=false`).** Distance-only: no guard,
+stamina, damage, knockdown, or round structure. Used by `prove_live_arena`
+against the Phase Q pin. Do not confuse the two modes.
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:20 UTC | END ] -->
 
 The map is authored offline by `tools/engine/build_dev_arena.py` (Decision 0012:
 Python offline only, never in the runtime path) and regenerated rather than
@@ -133,8 +138,9 @@ Six other phases' commandlets each parse `data/movement_model.json` inline, with
 their own opinion about which field means what. That is not a defect today —
 each is proven against its own contract, so each is right about the phase it
 describes. It becomes one the moment a live runtime wants to run those phases
-too, which is precisely what Phase O will want. The count is pinned in
-`tests/test_live_arena_is_one_implementation.py` so a seventh is a decision
-somebody makes on purpose.
+too. The integrated session now shares `UppercutRangeCore` / `UppercutEvadeCore`
+rather than copying them. The count is pinned in
+`tests/test_live_arena_is_one_implementation.py` so a seventh inline parser is a
+decision somebody makes on purpose.
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 22:20 UTC | END ] -->
