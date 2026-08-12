@@ -12,10 +12,26 @@
 param(
     [string]$Target = "UppercutSandboxEditor",
     [string]$Config = "Development",
-    [string]$Engine = "C:\Program Files\Epic Games\UE_5.8",
-    [string]$Project = "C:\Users\edwar\project-uppercut\sandbox\UppercutSandbox.uproject",
-    [string]$Log = "C:\Users\edwar\project-uppercut\sandbox\Saved\build_last.txt"
+    [string]$Engine = "",
+    [string]$Project = "",
+    [string]$Log = ""
 )
+
+# [ Claude (Opus 4.8, Cowork) | 2026-08-12 21:45 UTC | START: repo-relative defaults so a direct invocation never builds a hard-coded clone path. Engine from UPPERCUT_ENGINE (fallback to the standard UE_5.8 install); Project/Log derived from the repo root ($PSScriptRoot\..\..). CI still passes -Engine/-Project/-Log explicitly (PR #39), so this only changes manual/operator runs. Salvaged from Cursor Agent's PR #40 (superseded by this + #39). ]
+$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+if (-not $Engine) {
+    if ($env:UPPERCUT_ENGINE) { $Engine = $env:UPPERCUT_ENGINE }
+    else { $Engine = "C:\Program Files\Epic Games\UE_5.8" }
+}
+if (-not $Project) { $Project = Join-Path $RepoRoot "sandbox\UppercutSandbox.uproject" }
+if (-not $Log)     { $Log     = Join-Path $RepoRoot "sandbox\Saved\build_last.txt" }
+Write-Host "UBT Engine=$Engine"
+Write-Host "UBT Project=$Project"
+Write-Host "UBT Log=$Log"
+Write-Host "UBT Target=$Target Config=$Config"
+if (-not (Test-Path $Engine))  { Write-Host "BUILD EXIT: 1 (engine missing: $Engine)";  exit 1 }
+if (-not (Test-Path $Project)) { Write-Host "BUILD EXIT: 1 (project missing: $Project)"; exit 1 }
+# [ Claude (Opus 4.8, Cowork) | 2026-08-12 21:45 UTC | END ]
 
 $dotnet = Join-Path $Engine "Engine\Binaries\ThirdParty\DotNet\10.0\win-x64\dotnet.exe"
 $ubt = Join-Path $Engine "Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll"
