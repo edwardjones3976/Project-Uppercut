@@ -13,15 +13,41 @@
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
 #include "Engine/World.h"
-#include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
 #include "HAL/FileManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
-#include "TimerManager.h"
 #include "UnrealClient.h"
+
+namespace
+{
+    // Resolve -UppercutPoseClip= to a filename slug. Unknown non-empty keys are
+    // rejected so captures are never labelled with the wrong punch.
+    bool ResolvePoseClipSlug(const FString& ClipKey, FString& OutSlug, FString& OutError)
+    {
+        if (ClipKey.IsEmpty() ||
+            ClipKey.Equals(TEXT("overhand_right"), ESearchCase::IgnoreCase) ||
+            ClipKey.Equals(TEXT("overhand_rear"), ESearchCase::IgnoreCase) ||
+            ClipKey.Equals(TEXT("overhand_right_hook"), ESearchCase::IgnoreCase))
+        {
+            OutSlug = TEXT("overhand_right");
+            return true;
+        }
+        if (ClipKey.Equals(TEXT("hook_rear"), ESearchCase::IgnoreCase) ||
+            ClipKey.Equals(TEXT("rear_hook"), ESearchCase::IgnoreCase))
+        {
+            OutSlug = TEXT("hook_rear");
+            return true;
+        }
+        OutError = FString::Printf(
+            TEXT("unsupported -UppercutPoseClip=%s (allowed: overhand_right, "
+                 "overhand_rear, overhand_right_hook, hook_rear, rear_hook)"),
+            *ClipKey);
+        return false;
+    }
+}
 
 AUppercutMatchDirector::AUppercutMatchDirector()
 {
@@ -51,13 +77,31 @@ void AUppercutMatchDirector::BeginPlay()
     // Combat authority is untouched - this path never calls StartFight.
     // Lit floor + locked camera + FScreenshotRequest (not Desktop CopyFromScreen /
     // HighResShot) are what produce a non-black JPG of the looping clip.
+    // Actor scan uses GameplayStatics (whitelist-safe); capture delay uses Tick
+    // instead of TimerManager.h so check_core_compiles stays honest and green.
     const bool bPoseStudio = FParse::Param(FCommandLine::Get(), TEXT("UppercutPoseStudio"));
     if (bPoseStudio)
     {
+        bPoseStudioActive = true;
         UE_LOG(LogTemp, Display,
                TEXT("UppercutMatchDirector: POSE STUDIO on - no auto-start, no Fab ring"));
         if (UWorld* World = GetWorld())
         {
+            int32 PoseFighter = 0;
+            FParse::Value(FCommandLine::Get(), TEXT("UppercutPoseFighter="), PoseFighter);
+            FString ClipKey;
+            FParse::Value(FCommandLine::Get(), TEXT("UppercutPoseClip="), ClipKey);
+            FString ClipSlug;
+            FString ClipError;
+            if (!ResolvePoseClipSlug(ClipKey, ClipSlug, ClipError))
+            {
+                UE_LOG(LogTemp, Error,
+                       TEXT("UppercutMatchDirector: pose capture refused - %s"),
+                       *ClipError);
+                if (bBindDefaultKeys) { BindKeys(); }
+                return;
+            }
+
             // Key + fill lights so geometry reads against the void.
             if (ADirectionalLight* Sun = World->SpawnActor<ADirectionalLight>(
                     FVector(200.f, -200.f, 500.f), FRotator(-55.f, -40.f, 0.f)))
@@ -90,21 +134,21 @@ void AUppercutMatchDirector::BeginPlay()
                 }
             }
 
-            int32 PoseFighter = 0;
-            FParse::Value(FCommandLine::Get(), TEXT("UppercutPoseFighter="), PoseFighter);
             FVector Focus(0.f, 0.f, 110.f);
-            for (TActorIterator<AUppercutFighterBase> It(World); It; ++It)
+            TArray<AActor*> FighterActors;
+            UGameplayStatics::GetAllActorsOfClass(
+                World, AUppercutFighterBase::StaticClass(), FighterActors);
+            for (AActor* Actor : FighterActors)
             {
-                if (It->FighterIndex == PoseFighter)
+                AUppercutFighterBase* Fighter = Cast<AUppercutFighterBase>(Actor);
+                if (!Fighter || Fighter->FighterIndex != PoseFighter) { continue; }
+                Focus = Fighter->GetActorLocation() + FVector(0.f, 0.f, 110.f);
+                if (Fighter->Body)
                 {
-                    Focus = It->GetActorLocation() + FVector(0.f, 0.f, 110.f);
-                    if (It->Body)
-                    {
-                        It->Body->SetHiddenInGame(false);
-                        It->Body->SetVisibility(true);
-                    }
-                    break;
+                    Fighter->Body->SetHiddenInGame(false);
+                    Fighter->Body->SetVisibility(true);
                 }
+                break;
             }
             const FVector CamLoc = Focus + FVector(40.f, -320.f, 50.f);
             const FRotator CamRot = (Focus - CamLoc).Rotation();
@@ -123,31 +167,12 @@ void AUppercutMatchDirector::BeginPlay()
                        *CamLoc.ToCompactString(), *Focus.ToCompactString());
             }
 
+            const FString ShotName = FString::Printf(
+                TEXT("fighter%d_%s_orthodox.png"), PoseFighter, *ClipSlug);
             const FString ShotPath = FPaths::ConvertRelativePathToFull(
-                FPaths::ProjectSavedDir() / TEXT("pose_studio") /
-                TEXT("fighter0_overhand_right_orthodox.png"));
+                FPaths::ProjectSavedDir() / TEXT("pose_studio") / ShotName);
             IFileManager::Get().MakeDirectory(*FPaths::GetPath(ShotPath), true);
-            FTimerHandle ShotHandle;
-            World->GetTimerManager().SetTimer(
-                ShotHandle,
-                FTimerDelegate::CreateLambda([World, Cam, ShotPath]()
-                {
-                    if (Cam)
-                    {
-                        if (APlayerController* PC =
-                                UGameplayStatics::GetPlayerController(World, 0))
-                        {
-                            PC->bAutoManageActiveCameraTarget = false;
-                            PC->SetViewTargetWithBlend(Cam, 0.f);
-                        }
-                    }
-                    FScreenshotRequest::RequestScreenshot(ShotPath, false, false);
-                    UE_LOG(LogTemp, Display,
-                           TEXT("UppercutMatchDirector: pose screenshot requested -> %s"),
-                           *ShotPath);
-                }),
-                6.0f,
-                false);
+            ArmPoseStudioCapture(Cam, ShotPath);
         }
         if (bBindDefaultKeys) { BindKeys(); }
         return;
@@ -269,9 +294,55 @@ FUppercutFightView AUppercutMatchDirector::GetView() const
     return Fight ? Fight->GetView() : FUppercutFightView();
 }
 
+void AUppercutMatchDirector::ArmPoseStudioCapture(ACameraActor* Cam, const FString& ShotPath)
+{
+    PoseCamera = Cam;
+    PoseShotPath = ShotPath;
+    PoseShotDelayRemaining = 6.0f;
+    bPoseShotArmed = true;
+    UE_LOG(LogTemp, Display,
+           TEXT("UppercutMatchDirector: pose screenshot armed (%.1fs) -> %s"),
+           PoseShotDelayRemaining, *PoseShotPath);
+}
+
+void AUppercutMatchDirector::FirePoseStudioCapture()
+{
+    if (ACameraActor* Cam = PoseCamera.Get())
+    {
+        if (UWorld* World = GetWorld())
+        {
+            if (APlayerController* PC =
+                    UGameplayStatics::GetPlayerController(World, 0))
+            {
+                PC->bAutoManageActiveCameraTarget = false;
+                PC->SetViewTargetWithBlend(Cam, 0.f);
+            }
+        }
+    }
+    FScreenshotRequest::RequestScreenshot(PoseShotPath, false, false);
+    UE_LOG(LogTemp, Display,
+           TEXT("UppercutMatchDirector: pose screenshot requested -> %s"),
+           *PoseShotPath);
+}
+
 void AUppercutMatchDirector::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+
+    if (bPoseStudioActive)
+    {
+        if (bPoseShotArmed)
+        {
+            PoseShotDelayRemaining -= DeltaSeconds;
+            if (PoseShotDelayRemaining <= 0.f)
+            {
+                bPoseShotArmed = false;
+                FirePoseStudioCapture();
+            }
+        }
+        return;
+    }
+
     if (!Fight || bAnnouncedFinish) { return; }
     const FUppercutFightView V = Fight->GetView();
     if (V.State == EUppercutFightState::Finished)

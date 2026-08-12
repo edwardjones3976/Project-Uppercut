@@ -7,6 +7,7 @@
 #include "UppercutMatchDirector.generated.h"
 
 class AUppercutFighterBase;
+class ACameraActor;
 
 // THE THING YOU PRESS PLAY ON.
 //
@@ -113,7 +114,18 @@ private:
     void BindKeys();
     int32 AuthoredRoundLength(int32 Requested) const;
 
+    // Pose studio (presentation-only): delay capture without TimerManager.h so
+    // tools.engine.check_core_compiles stays on its observed UE whitelist.
+    void ArmPoseStudioCapture(ACameraActor* Cam, const FString& ShotPath);
+    void FirePoseStudioCapture();
+
     bool bAnnouncedFinish = false;
     float SpeedNow = 1.f;
+
+    bool bPoseStudioActive = false;
+    bool bPoseShotArmed = false;
+    float PoseShotDelayRemaining = 0.f;
+    TWeakObjectPtr<ACameraActor> PoseCamera;
+    FString PoseShotPath;
 };
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 20:50 UTC | END ]

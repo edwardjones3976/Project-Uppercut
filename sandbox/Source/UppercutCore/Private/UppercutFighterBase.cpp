@@ -143,18 +143,28 @@ void AUppercutFighterBase::EnterPoseStudioIfRequested()
     // Rear hook     = rear-hand HORIZONTAL hook (KB_Hook-R_*) — different punch.
     // Demo language "overhand right hook" / "rear power hand overhand" maps to
     // Overhand-R, not Hook-R. Ask explicitly for hook_rear to get the lateral hook.
-    FString ClipPath =
-        TEXT("/Game/BoxingAttacks/TRADITIONAL/Attacks/In-Place/KB_Overhand-R_T_IP.KB_Overhand-R_T_IP");
-    if (ClipKey.Equals(TEXT("hook_rear"), ESearchCase::IgnoreCase) ||
-        ClipKey.Equals(TEXT("rear_hook"), ESearchCase::IgnoreCase))
+    // Unsupported keys are refused so we never loop the wrong punch under a
+    // mislabelled capture name.
+    FString ClipPath;
+    if (ClipKey.Equals(TEXT("overhand_right"), ESearchCase::IgnoreCase) ||
+        ClipKey.Equals(TEXT("overhand_rear"), ESearchCase::IgnoreCase) ||
+        ClipKey.Equals(TEXT("overhand_right_hook"), ESearchCase::IgnoreCase))
+    {
+        ClipPath = TEXT("/Game/BoxingAttacks/TRADITIONAL/Attacks/In-Place/KB_Overhand-R_T_IP.KB_Overhand-R_T_IP");
+    }
+    else if (ClipKey.Equals(TEXT("hook_rear"), ESearchCase::IgnoreCase) ||
+             ClipKey.Equals(TEXT("rear_hook"), ESearchCase::IgnoreCase))
     {
         ClipPath = TEXT("/Game/BoxingAttacks/TRADITIONAL/Attacks/In-Place/KB_Hook-R_T_IP.KB_Hook-R_T_IP");
     }
-    else if (ClipKey.Equals(TEXT("overhand_rear"), ESearchCase::IgnoreCase) ||
-             ClipKey.Equals(TEXT("overhand_right"), ESearchCase::IgnoreCase) ||
-             ClipKey.Equals(TEXT("overhand_right_hook"), ESearchCase::IgnoreCase))
+    else
     {
-        ClipPath = TEXT("/Game/BoxingAttacks/TRADITIONAL/Attacks/In-Place/KB_Overhand-R_T_IP.KB_Overhand-R_T_IP");
+        UE_LOG(LogTemp, Error,
+               TEXT("UppercutFighter %d: unsupported -UppercutPoseClip=%s "
+                    "(allowed: overhand_right, overhand_rear, overhand_right_hook, "
+                    "hook_rear, rear_hook)"),
+               FighterIndex, *ClipKey);
+        return;
     }
 
     PlayPoseStudioLoop(ClipPath);
