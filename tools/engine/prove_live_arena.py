@@ -48,6 +48,18 @@ def run_arena(seed: int, ticks: int) -> str:
         os.remove(out)
     argv = [CMD, PROJECT, "-run=UppercutLiveArena", "-seed=%d" % seed,
             "-ticks=%d" % ticks, "-repo=%s" % REPO, "-out=%s" % out,
+            # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+            #   2026-08-12 05:15 UTC | START edit ]
+            # This file proves the PHASE Q contract, so it must ask for the
+            # Phase Q session explicitly. The subsystem now defaults to the
+            # integrated one-round fight, and without this the arena emitted
+            # "phase=INTEGRATED_1R" while the contract expected "phase=Q" -
+            # the proof failed on line one and had no way to succeed.
+            #
+            # Asking rather than assuming is the point: the default is Play's
+            # default and should stay wherever the game wants it.
+            "-integrated=0",
+            # [ ... | 2026-08-12 05:15 UTC | END edit ]
             "-unattended", "-nopause", "-nosplash"]
     proc = subprocess.Popen(argv, stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL)

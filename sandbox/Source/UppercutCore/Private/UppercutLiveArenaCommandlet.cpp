@@ -13,6 +13,21 @@ int32 UUppercutLiveArenaCommandlet::Main(const FString& Params)
     FParse::Value(*Params, TEXT("ticks="), Ticks);
     FParse::Value(*Params, TEXT("repo="), Repo);
     FParse::Value(*Params, TEXT("out="), OutPath);
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 05:15 UTC | START edit ]
+    // WHICH FIGHT TO PROVE. The subsystem defaults to the integrated one-round
+    // session, so without this switch the arena can only ever emit an
+    // INTEGRATED_1R stream - and prove_live_arena, which asserts the Phase Q
+    // contract, had no way to ask for the fight it is the proof of. It failed
+    // on the very first line, comparing "phase=INTEGRATED_1R" against
+    // "phase=Q".
+    //
+    // Phase Q parity is a PINNED claim, not a superseded one, so the correct
+    // repair is to let the caller choose rather than to retire the proof.
+    // -integrated=0 selects the Phase Q range session; the default stays the
+    // integrated round, so Play is unaffected.
+    int32 Integrated = 1;
+    FParse::Value(*Params, TEXT("integrated="), Integrated);
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 05:15 UTC | END edit ]
     if (Ticks <= 0 || Repo.IsEmpty() || OutPath.IsEmpty())
     {
         UE_LOG(LogTemp, Error, TEXT("UppercutLiveArena: need -seed= -ticks= -repo= -out="));
@@ -36,6 +51,12 @@ int32 UUppercutLiveArenaCommandlet::Main(const FString& Params)
         // The subsystem loads canon from the project's parent on Initialize.
         // Loading again from an explicit repo makes the proof independent of
         // where the commandlet happened to be run from.
+        // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 05:15 UTC | START edit ]
+        // Set BEFORE LoadCanon: the subsystem decides there and then whether to
+        // load the integrated pack, and flipping the flag afterwards would
+        // leave a session that had already chosen.
+        Fight->bIntegratedOneRound = (Integrated != 0);
+        // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 05:15 UTC | END edit ]
         FString Error;
         if (!Fight->LoadCanon(Repo, Error))
         {
