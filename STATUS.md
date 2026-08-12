@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-12 04:02 UTC** at `c9a9a29 fix: restore full .gitignore (LF) with snyk ignores`.
+Generated **2026-08-12 04:33 UTC** at `852e3b6 Merge remote-tracking branch 'origin/main' into cursor/live-arena-ring-presentation-877b`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **1432 passed** |
+| Test suite | **1434 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |
