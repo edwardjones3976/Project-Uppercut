@@ -6,6 +6,9 @@
 #include "UppercutFightSubsystem.h"
 #include "UppercutFighterBase.generated.h"
 
+class USkeletalMeshComponent;
+class UAnimSequence;
+
 // A FIGHTER YOU CAN SEE. Not a fighter you can move.
 //
 // This actor reads one index out of the fight subsystem's snapshot and places
@@ -54,10 +57,15 @@ public:
     bool bFaceOpponent = true;
 
     // A placeholder body, so the arena shows two fighters the first time it is
-    // opened instead of two empty transforms. A Blueprint subclass is expected
-    // to replace it; nothing about the fight depends on it existing.
+    // opened instead of two empty transforms. Soft-replaced by Manny/Quinn when
+    // BoxingAttacks is present; nothing about the fight depends on either mesh.
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Uppercut")
     TObjectPtr<class UStaticMeshComponent> Body = nullptr;
+
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Uppercut")
+    TObjectPtr<USkeletalMeshComponent> Mannequin = nullptr;
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
 
     // --- what presentation is told -----------------------------------------
 
@@ -87,6 +95,11 @@ protected:
     TObjectPtr<UUppercutFightSubsystem> Fight = nullptr;
 
 private:
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
+    void TryEnableMannequin();
+    void PlayActionClip(const FString& Action);
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
+
     // Last snapshot, so edges can be detected without the simulation having to
     // announce them.
     int32 LastActionTick = 0;
@@ -94,5 +107,10 @@ private:
     bool bWasPunching = false;
     FString LastPunchMove;
     int32 LastSeenTick = -1;
+
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
+    bool bMannequinOn = false;
+    TMap<FString, UAnimSequence*> ActionClips;
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
 };
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 20:40 UTC | END ]

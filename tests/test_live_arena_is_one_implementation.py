@@ -251,6 +251,9 @@ def test_wall_clock_does_not_scale_a_tick():
     "UppercutFighterBase.cpp",
     "UppercutMatchDirector.cpp",
     "UppercutLiveArenaCommandlet.cpp",
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
+    "UppercutArenaPresentation.cpp",
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
 ))
 def test_every_arena_file_is_tagged(name):
     """The owner's identifying-tag procedure, on the files this work added."""
@@ -273,4 +276,17 @@ def test_the_fighter_actor_cannot_write_to_the_fight():
             "the fighter actor calls %s - a presentation actor that can drive "
             "the fight is not a presentation actor" % forbidden
         )
+
+
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
+def test_arena_presentation_cannot_drive_the_fight():
+    """Fab ring / mannequin helpers are presentation-only."""
+    text = read(PRIVATE, "UppercutArenaPresentation.cpp")
+    for forbidden in ("StartFight", "SingleStep", "Restart(", "Reseed",
+                      "SetSpeed", "Session", "1664525", "1013904223"):
+        assert forbidden not in text, (
+            "arena presentation contains %s - presentation must not own the fight"
+            % forbidden
+        )
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 22:10 UTC | END ]

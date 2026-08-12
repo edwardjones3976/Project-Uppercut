@@ -1,7 +1,13 @@
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 20:40 UTC | START ]
 #include "UppercutFighterBase.h"
 
+#include "UppercutArenaPresentation.h"
+
+#include "Animation/AnimSequence.h"
+#include "Animation/AnimSingleNodeInstance.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Engine/SkeletalMesh.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "UObject/ConstructorHelpers.h"
@@ -22,6 +28,14 @@ AUppercutFighterBase::AUppercutFighterBase()
     Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
     Body->SetupAttachment(Pivot);
     Body->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
+    Mannequin = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mannequin"));
+    Mannequin->SetupAttachment(Pivot);
+    Mannequin->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    Mannequin->SetHiddenInGame(true);
+    Mannequin->SetVisibility(false);
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
 
     // An engine primitive, so the arena is watchable before anybody authors a
     // character. If it is missing the actor is simply invisible - a placeholder
@@ -50,7 +64,61 @@ void AUppercutFighterBase::BeginPlay()
                TEXT("UppercutFighter %d: no fight subsystem in this world"),
                FighterIndex);
     }
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
+    TryEnableMannequin();
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
 }
+
+// [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
+void AUppercutFighterBase::TryEnableMannequin()
+{
+    USkeletalMesh* Mesh = UppercutLoadFighterMannequinMesh(FighterIndex);
+    if (!Mesh || !Mannequin)
+    {
+        return;
+    }
+    Mannequin->SetSkeletalMeshAsset(Mesh);
+    Mannequin->SetMobility(EComponentMobility::Movable);
+    Mannequin->VisibilityBasedAnimTickOption =
+        EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+    Mannequin->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+    Mannequin->SetHiddenInGame(false);
+    Mannequin->SetVisibility(true);
+    if (Body)
+    {
+        Body->SetHiddenInGame(true);
+        Body->SetVisibility(false);
+    }
+    bMannequinOn = true;
+    if (UppercutLoadFighterActionClips(ActionClips))
+    {
+        PlayActionClip(TEXT("guard"));
+        UE_LOG(LogTemp, Display,
+               TEXT("UppercutFighter %d: mannequin ON (%d clips)"),
+               FighterIndex, ActionClips.Num());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Display,
+               TEXT("UppercutFighter %d: mannequin mesh ON (clips off)"),
+               FighterIndex);
+    }
+}
+
+void AUppercutFighterBase::PlayActionClip(const FString& Action)
+{
+    if (!bMannequinOn || !Mannequin || ActionClips.Num() == 0) { return; }
+    UAnimSequence* A = ActionClips.FindRef(Action);
+    if (!A) { A = ActionClips.FindRef(TEXT("guard")); }
+    if (!A) { return; }
+    UAnimSingleNodeInstance* SN = Mannequin->GetSingleNodeInstance();
+    if (!SN || SN->GetAnimationAsset() != A)
+    {
+        Mannequin->SetAnimation(A);
+    }
+    Mannequin->Play(true);
+}
+// [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
 
 FUppercutFighterView AUppercutFighterBase::GetFighterView() const
 {
@@ -100,6 +168,9 @@ void AUppercutFighterBase::Tick(float DeltaSeconds)
     {
         LastActionTick = F.LastActionTick;
         OnActionCommitted(F.LastAction, F.bPunchInFlight);
+        // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
+        PlayActionClip(F.LastAction);
+        // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
     }
 
     if (F.bPunchInFlight && !bWasPunching)
