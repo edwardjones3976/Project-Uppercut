@@ -16,6 +16,30 @@ A decision gate exists only while a bounded product, design, rules, or architect
 | G6 | Guard values on the interception threshold | **CLOSED** | Decisions 0014 and 0020 | Issue #9: canon validator still required |
 | G7 | Stamina economy cannot pay for a round of boxing | **CLOSED** | Decision 0021: Wind over Reserve | Issue #12 |
 
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 06:40 UTC | START ] -->
+## Combat authority and authenticity — Decision 0040
+
+Ruled on Issue #12, recorded in `0040-the-cpp-round-is-the-fight-and-neither-outcome-is-authentic.md`.
+**No gate is opened by it** — it is a disposition, not a question awaiting one —
+but it binds anyone touching the integrated round, so it is stated where gates
+are read rather than left in an issue comment.
+
+| | Ruling |
+|---|---|
+| Combat authority | the shared C++ `INTEGRATED_1R` session |
+| Python `IntegratedBout` | reference and tooling only; it converges to C++, not the reverse |
+| Current outcomes | **neither** accepted — C++ `kd=0-0`, Python `kd=17`/`21`; both are wrong |
+| Waivers | `authenticity_waivers.json` stays empty; a waiver needs its own numbered decision |
+| `pressure_threshold` | frozen at 0.57 (Decisions 0035–0037) |
+| `feat/authenticity-program` | **HOLD** — not merge-ready |
+
+Calibration is not discussable until, in order: CI blockers repaired, the first
+C++/Python divergence traced tick-by-tick, UE and live proofs re-run on the tree
+being judged, and a matched 30-seed scorecard across both runtimes. Two seeds
+cannot carry an authenticity claim.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-12 06:40 UTC | END ] -->
+
 ## Integrated-contract ruling
 
 The former hidden architecture question inside “integrate the phases” is also decided:
