@@ -37,17 +37,33 @@ namespace
         (*Auth)->TryGetNumberField(TEXT("tick_rate_hz"), Hz);
         return (Hz > 0.0) ? (int32)Hz : 60;
     }
+
+    // Clean home: data/ next to the .uproject.
+    // Legacy sandbox: data/ one level above sandbox/UppercutSandbox.uproject.
+    FString InferRepoDir()
+    {
+        const FString Project = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
+        if (FPaths::FileExists(Project / TEXT("data/movement_model.json")))
+        {
+            return Project;
+        }
+        const FString Parent = FPaths::ConvertRelativePathToFull(Project / TEXT(".."));
+        if (FPaths::FileExists(Parent / TEXT("data/movement_model.json")))
+        {
+            return Parent;
+        }
+        return Project;
+    }
 }
 
 void UUppercutFightSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
-    // The project lives at <repo>/sandbox, so the repository is one level up.
-    // Failing here is not fatal - the arena comes up with no fight and says so,
-    // which is more useful than a crash on a machine with a different layout.
-    const FString InferredRepo = FPaths::ConvertRelativePathToFull(
-        FPaths::ProjectDir() / TEXT(".."));
+    // Prefer ProjectDir when data/ sits next to the .uproject; otherwise parent
+    // (sandbox layout). Failing here is not fatal - the arena comes up with no
+    // fight and says so, which is more useful than a crash on a different layout.
+    const FString InferredRepo = InferRepoDir();
     FString Error;
     if (!LoadCanon(InferredRepo, Error))
     {

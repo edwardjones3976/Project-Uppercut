@@ -67,6 +67,11 @@ public:
     TObjectPtr<USkeletalMeshComponent> Mannequin = nullptr;
     // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
 
+    // Presentation-only: loop one authored clip and ignore the fight snapshot.
+    // Enabled by -UppercutPoseStudio (and optional -UppercutPoseFighter=N).
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Uppercut|PoseStudio")
+    bool bPoseStudio = false;
+
     // --- what presentation is told -----------------------------------------
 
     // A new commitment was drawn this tick. `Action` is the canon move id, or
@@ -98,6 +103,8 @@ private:
     // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
     void TryEnableMannequin();
     void PlayActionClip(const FString& Action);
+    void EnterPoseStudioIfRequested();
+    void PlayPoseStudioLoop(const FString& ClipPath);
     // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
 
     // Last snapshot, so edges can be detected without the simulation having to
