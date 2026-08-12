@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-12 19:14 UTC** at `e19fae4 Merge pull request #35 from edwardjones3976/docs/decision-0040-combat-authority`.
+Generated **2026-08-12 19:57 UTC** at `f34c2bb test(convergence): cover all ten quantizer owners`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **1436 passed** |
+| Test suite | **1437 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |

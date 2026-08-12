@@ -178,6 +178,64 @@ def test_every_quantizer_definition_is_byte_identical():
     )
 
 
+# [ Claude Fable 5 (claude-fable-5) | 2026-08-12 19:50 UTC | START ]
+# The backstop the enumerated owner test above cannot provide. That test proves
+# the KNOWN quantizer owners agree - but it only reads the files it lists, so a
+# divergent q10000 conversion appearing in a file OUTSIDE that list is invisible
+# to it, and a quantizer copied somewhere new is the whole risk. Verified: a
+# truncating `(int64)(V * 10000.0)` added to UppercutRangeStream.cpp passed the
+# owner test untouched. This one scans every source and would catch it.
+_Q10000 = "* 10000.0"
+_ROUND = "RoundToDouble"
+_NON_ROUND = ("FloorToDouble", "CeilToDouble", "TruncToDouble",
+              "FloorToInt", "CeilToInt", "TruncToInt", "RoundToInt")
+
+
+def _q10000_conversions(text):
+    """Each statement scaling a value into q10000, comments stripped and lines
+    re-joined so a split conversion (the probe's hysteresis line) reads whole."""
+    flat = re.sub(r"\s+", " ", re.sub(r"//[^\n]*|/\*.*?\*/", " ", text, flags=re.S))
+    idx = 0
+    while True:
+        hit = flat.find(_Q10000, idx)
+        if hit == -1:
+            return
+        cut = max(flat.rfind(";", 0, hit), flat.rfind("{", 0, hit),
+                  flat.rfind("}", 0, hit))
+        yield flat[cut + 1:hit + len(_Q10000)].strip()
+        idx = hit + len(_Q10000)
+
+
+def test_no_q10000_conversion_anywhere_rounds_differently():
+    """No file - listed as an owner or not - quantizes to q10000 by truncating.
+
+    Complements test_every_quantizer_definition_is_byte_identical: that proves
+    the enumerated owners agree; this proves no OTHER file introduced a q10000
+    conversion that rounds differently. Together they leave nowhere for a second
+    quantizer to hide. Name-agnostic and inline-aware: it reads the operation at
+    every `* 10000.0`, not a helper by name.
+    """
+    conversions, offenders = 0, {}
+    for name in _cpp_files():
+        for stmt in _q10000_conversions(read(name)):
+            conversions += 1
+            if _ROUND not in stmt or any(bad in stmt for bad in _NON_ROUND):
+                offenders.setdefault(name, []).append(stmt)
+
+    assert conversions >= 10, (
+        "only %d q10000 conversions found (was 15). If the quantizer sprawl "
+        "shrank, lower this floor and say so; if the scale is now spelled a way "
+        "this scan misses, it has gone blind - the failure mode this backstop "
+        "exists to prevent." % conversions
+    )
+    assert not offenders, (
+        "a q10000 conversion does not round with FMath::%s - a second quantizer "
+        "by another name or an inline truncation, in a file the owner test does "
+        "not enumerate: %s" % (_ROUND, {n: s for n, s in offenders.items()})
+    )
+# [ Claude Fable 5 (claude-fable-5) | 2026-08-12 19:50 UTC | END ]
+
+
 def test_every_inline_band_reader_uses_the_same_open_ended_sentinel():
     """The six inline readers agree on the top band's ceiling - checked, not assumed.
 
