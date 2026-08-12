@@ -93,3 +93,10 @@ research/raw/
 .nightly.log
 .nightly_report.txt
 # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-07 19:10 UTC | END edit ]
+
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:34 UTC | START ]
+# Snyk CLI droppings. The MCP plugin may unpack snyk.exe into the repo root.
+snyk.exe
+snyk_debug.log
+snyk_debug*.log
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:34 UTC | END ]
