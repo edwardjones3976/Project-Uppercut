@@ -117,6 +117,53 @@ on the first clean prove_core_range.
 - Prior Linear checklist: `docs/implementation/linear_update_2026-08-12_one_round.md`
 - Tooling map: `docs/implementation/agent_tooling.md`, `AGENTS.md`
 - Dev log: `docs/development-log/2026-08-12-one-round-and-opponent-read.md`
+- Dev log (pose studio): `docs/development-log/2026-08-12-pose-studio-lit-capture.md`
 
+---
+
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 23:05 UTC | START append: pose-studio slice ] -->
+
+## Append — lit pose studio (PR #42) + gate fix-forward
+
+| Field | Value |
+|---|---|
+| When | 2026-08-12 (UTC) |
+| Substance PR | https://github.com/edwardjones3976/Project-Uppercut/pull/42 (`45762f8`) |
+| Director disposition | https://github.com/edwardjones3976/Project-Uppercut/pull/42#issuecomment-5273783768 |
+| Failed merge-head | https://github.com/edwardjones3976/Project-Uppercut/actions/runs/31648976805 (`windows-authority` / `check_core_compiles`) |
+| Fix-forward | branch `fix/pose-studio-gate-green` (this append) |
+
+### What landed (substance)
+
+Presentation-only `-UppercutPoseStudio`: isolate one fighter, loop authored
+overhand-right (or explicit rear hook), spawn key/fill lights + floor, lock
+camera, capture via `FScreenshotRequest`. `InferRepoDir` supports clean-home and
+sandbox layouts. Combat authority untouched.
+
+### Why `main` was red
+
+`check_core_compiles` rejected bare `#include "EngineUtils.h"` and
+`#include "TimerManager.h"` in `UppercutMatchDirector.cpp`. Local UBT compile
+had succeeded; the repository gate had not.
+
+### Fix-forward (binding)
+
+1. Replace those includes with whitelist-safe APIs: `GetAllActorsOfClass` +
+   Tick-armed capture delay (no whitelist stretch).
+2. `tools/engine/pose_fighter0_overhand.ps1` defaults `$Repo` from
+   `$PSScriptRoot\..\..`; `-Repo` remains an override; contribution tags added.
+3. Capture filenames `fighter{N}_{clipSlug}_orthodox.png`, or refuse unsupported
+   `-UppercutPoseClip=` values (fighter + director agree).
+4. Dev log: `docs/development-log/2026-08-12-pose-studio-lit-capture.md`.
+
+### Channel disposition (this append)
+
+| Channel | Posted? | Where / why not |
+|---|---|---|
+| **Local repo** | Yes | This append + development-log entry |
+| **GitHub** | Pending | Fix-forward PR comment on merge |
+| **Slack / Linear** | No — not required for this gate repair | Paste unused |
+
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 23:05 UTC | END append ] -->
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:05 UTC | END edit ] -->
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:34 UTC | END ] -->
