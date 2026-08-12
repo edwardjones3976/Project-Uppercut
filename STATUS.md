@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-12 04:33 UTC** at `852e3b6 Merge remote-tracking branch 'origin/main' into cursor/live-arena-ring-presentation-877b`.
+Generated **2026-08-12 19:14 UTC** at `e19fae4 Merge pull request #35 from edwardjones3976/docs/decision-0040-combat-authority`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **1434 passed** |
+| Test suite | **1436 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |
