@@ -9,13 +9,44 @@
 # never been linked here and currently fails with nine unresolved Core externals
 # (GInternalProjectName, FMemory_Malloc, ...); packaging it is a later job, not a
 # blocker for evidence runs.
+#
+# [ Auto (Cursor Agent) | 2026-08-12 | path authority ]
+# Defaults are repo-relative (this script lives at tools/engine/). CI must pass
+# -Engine/-Project/-Log explicitly from GITHUB_WORKSPACE so a self-hosted runner
+# never silently builds a hard-coded clone path.
 param(
     [string]$Target = "UppercutSandboxEditor",
     [string]$Config = "Development",
-    [string]$Engine = "C:\Program Files\Epic Games\UE_5.8",
-    [string]$Project = "C:\Users\edwar\project-uppercut\sandbox\UppercutSandbox.uproject",
-    [string]$Log = "C:\Users\edwar\project-uppercut\sandbox\Saved\build_last.txt"
+    [string]$Engine = "",
+    [string]$Project = "",
+    [string]$Log = ""
 )
+
+$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+if (-not $Engine) {
+    if ($env:UPPERCUT_ENGINE) { $Engine = $env:UPPERCUT_ENGINE }
+    else { $Engine = "C:\Program Files\Epic Games\UE_5.8" }
+}
+if (-not $Project) {
+    $Project = Join-Path $RepoRoot "sandbox\UppercutSandbox.uproject"
+}
+if (-not $Log) {
+    $Log = Join-Path $RepoRoot "sandbox\Saved\build_last.txt"
+}
+
+Write-Host "UBT Engine=$Engine"
+Write-Host "UBT Project=$Project"
+Write-Host "UBT Log=$Log"
+Write-Host "UBT Target=$Target Config=$Config"
+
+if (-not (Test-Path $Engine)) {
+    Write-Host "BUILD EXIT: 1 (engine missing: $Engine)"
+    exit 1
+}
+if (-not (Test-Path $Project)) {
+    Write-Host "BUILD EXIT: 1 (project missing: $Project)"
+    exit 1
+}
 
 $dotnet = Join-Path $Engine "Engine\Binaries\ThirdParty\DotNet\10.0\win-x64\dotnet.exe"
 $ubt = Join-Path $Engine "Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll"
