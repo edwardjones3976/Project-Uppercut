@@ -1,4 +1,5 @@
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:34 UTC | START ] -->
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:05 UTC | START edit ] -->
 
 # Cross-platform notes procedure
 
@@ -51,8 +52,10 @@ platforms), create:
 ## Do not
 
 - Dump a different story per channel.
-- Close PRO-10 without Windows AV B/C evidence.
+- Close PRO-10 without Windows AV A/B/C evidence (packet now present under
+  `evidence/2026-08-12-bitdefender-allowlist/` — board close is Director/Linear).
 - Retune `pressure_threshold` in a status note (Decision 0035–0037).
 - Treat Slack reactions as Linear state.
 
+<!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 04:05 UTC | END edit ] -->
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:34 UTC | END ] -->

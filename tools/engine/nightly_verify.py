@@ -103,7 +103,13 @@ def head():
     try:
         out = subprocess.run(["git", "log", "--oneline", "-1"], cwd=REPO,
                              stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-        return out.stdout.decode("utf-8", "replace").strip() or "(unknown)"
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:58 UTC | START ]
+        # Strip a UTF-8 BOM some commit subjects have carried (\ufeff). On a
+        # Windows cp1252 console that character crashes print() and looks like
+        # a hang after the branch line (evidence/2026-08-12-bitdefender-allowlist).
+        text = out.stdout.decode("utf-8", "replace").strip() or "(unknown)"
+        return text.lstrip("\ufeff")
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:58 UTC | END ]
     except Exception:
         return "(unknown)"
 
@@ -221,7 +227,15 @@ def main(argv=None):
 
     def say(s=""):
         lines.append(s)
-        print(s, flush=True)
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:58 UTC | START ]
+        # Prefer a replace write on UnicodeEncodeError so a BOM or non-cp1252
+        # subject cannot kill the non-engine gate on Windows redirected consoles.
+        try:
+            print(s, flush=True)
+        except UnicodeEncodeError:
+            sys.stdout.buffer.write((s + "\n").encode("utf-8", "replace"))
+            sys.stdout.buffer.flush()
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:58 UTC | END ]
 
     say("Project Uppercut nightly verification")
     say("  branch  %s" % branch())

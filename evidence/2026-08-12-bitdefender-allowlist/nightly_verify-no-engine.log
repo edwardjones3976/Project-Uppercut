@@ -1,0 +1,13 @@
+Project Uppercut nightly verification
+  branch  feat/agent-tool-integrations
+  head    5167eb7 ﻿docs: route agents through Linear, Slack, Snyk, and gh
+  tree    clean
+
+PASS tests        217.8s
+PASS validators     1.2s
+PASS golden         0.3s
+PASS research       0.2s
+SKIP phase Q     (--no-engine)
+SKIP phase matrix (--no-engine)
+
+all 4 gate(s) green - phase Q, phase matrix skipped
