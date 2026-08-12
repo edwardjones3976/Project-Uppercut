@@ -84,11 +84,33 @@ bool UUppercutFightSubsystem::LoadCanon(const FString& InRepoDir, FString& OutEr
     RepoDir = InRepoDir;
     const FString& RepoDirRef = RepoDir;
     TickRateHz = ReadTickRateHz(RepoDirRef);
+
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+    bIntegratedLoaded = false;
+    if (bIntegratedOneRound)
+    {
+        FString IntError;
+        if (Integrated.Load(RepoDir, FighterCardA, FighterCardB, RulesetId, IntError))
+        {
+            bIntegratedLoaded = true;
+            Sources = Integrated.Sources;
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning,
+                   TEXT("UppercutFight: integrated load failed (%s); falling back to Phase Q"),
+                   *IntError);
+            bIntegratedOneRound = false;
+        }
+    }
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
+
     ResetSession(Seed);
     State = EUppercutFightState::Ready;
     UE_LOG(LogTemp, Display,
-           TEXT("UppercutFight: canon loaded from %s, %d bands, %d moves, %d Hz"),
-           *RepoDir, Canon.BandKey.Num(), Canon.Moves.Num(), TickRateHz);
+           TEXT("UppercutFight: canon loaded from %s, %d bands, %d moves, %d Hz, integrated=%d"),
+           *RepoDir, Canon.BandKey.Num(), Canon.Moves.Num(), TickRateHz,
+           bIntegratedLoaded ? 1 : 0);
     return true;
 }
 
@@ -107,7 +129,16 @@ void UUppercutFightSubsystem::GetCanonSources(TArray<FString>& OutLabels,
 
 void UUppercutFightSubsystem::ResetSession(uint32 InSeed)
 {
-    Session.Reset(Canon, InSeed);
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+    if (bIntegratedLoaded)
+    {
+        Integrated.Reset(InSeed, TickBudget);
+    }
+    else
+    {
+        Session.Reset(Canon, InSeed);
+    }
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
     Fnv = UppercutFnv1a64Offset();
     RowCount = 0;
     Accumulator = 0.0;
@@ -161,7 +192,9 @@ void UUppercutFightSubsystem::SingleStep(int32 NumTicks)
     Accumulator = 0.0;
     for (int32 i = 0; i < FMath::Max(1, NumTicks); ++i)
     {
-        if (TickBudget > 0 && Session.Tick >= TickBudget) { break; }
+        const int32 CurTick = bIntegratedLoaded ? Integrated.Tick : Session.Tick;
+        if (TickBudget > 0 && CurTick >= TickBudget) { break; }
+        if (bIntegratedLoaded && Integrated.IsFinished()) { break; }
         AdvanceOneTick();
     }
 }
@@ -203,16 +236,27 @@ void UUppercutFightSubsystem::Tick(float DeltaSeconds)
     while (Accumulator >= TickSeconds && Budget-- > 0)
     {
         Accumulator -= TickSeconds;
-        if (TickBudget > 0 && Session.Tick >= TickBudget)
+        const int32 CurTick = bIntegratedLoaded ? Integrated.Tick : Session.Tick;
+        if (bIntegratedLoaded && Integrated.IsFinished())
+        {
+            State = EUppercutFightState::Finished;
+            break;
+        }
+        if (TickBudget > 0 && CurTick >= TickBudget && !bIntegratedLoaded)
         {
             State = EUppercutFightState::Finished;
             break;
         }
         AdvanceOneTick();
+        if (bIntegratedLoaded && Integrated.IsFinished())
+        {
+            State = EUppercutFightState::Finished;
+            break;
+        }
     }
     if (Budget <= 0) { Accumulator = 0.0; }
 
-    if (TickBudget > 0 && Session.Tick >= TickBudget)
+    if (!bIntegratedLoaded && TickBudget > 0 && Session.Tick >= TickBudget)
     {
         State = EUppercutFightState::Finished;
     }
@@ -221,7 +265,16 @@ void UUppercutFightSubsystem::Tick(float DeltaSeconds)
 void UUppercutFightSubsystem::AdvanceOneTick()
 {
     Scratch.Reset();
-    Session.Step(&Scratch);
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+    if (bIntegratedLoaded)
+    {
+        Integrated.Step(&Scratch);
+    }
+    else
+    {
+        Session.Step(&Scratch);
+    }
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
 
     for (const FString& Row : Scratch)
     {
@@ -237,10 +290,48 @@ FUppercutFightView UUppercutFightSubsystem::GetView() const
 {
     FUppercutFightView V;
     V.State = State;
-    V.Tick = Session.Tick;
     V.TickBudget = TickBudget;
     V.Seed = (int32)Seed;
     V.SpeedMultiplier = Speed;
+    V.MarkerHash = FString::Printf(TEXT("%016llx"), Fnv);
+    V.RowCount = (int32)RowCount;
+
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+    if (bIntegratedLoaded)
+    {
+        V.Tick = Integrated.Tick;
+        V.SeparationRu = Ru(Integrated.Separation());
+        V.Decisions = (int32)Integrated.Decisions;
+        V.Punches = (int32)Integrated.Punches;
+        V.Landed = (int32)Integrated.Landed;
+        V.RoundMethod = Integrated.Round.Method;
+        V.CardRed = Integrated.Round.Card[0];
+        V.CardBlue = Integrated.Round.Card[1];
+        V.bRoundFinished = Integrated.IsFinished();
+        V.CardIdA = Integrated.Fighter[0].Card.Id;
+        V.CardIdB = Integrated.Fighter[1].Card.Id;
+        for (int32 i = 0; i < 2; ++i)
+        {
+            const FUppercutRangeFighter& F = Integrated.Fighter[i].Range;
+            FUppercutFighterView W;
+            W.PositionRu = Ru(F.Pos);
+            W.PendingRu = Ru(F.Pending);
+            W.BandIndex = F.Band;
+            W.BandKey = Integrated.RangeCanon.BandKey.IsValidIndex(F.Band)
+                ? Integrated.RangeCanon.BandKey[F.Band] : FString();
+            W.LastAction = F.LastAction;
+            W.LastActionTick = F.LastActionTick;
+            W.BusyTicks = F.Busy;
+            W.bPunchInFlight = F.bInFlight;
+            W.PunchMove = F.PunchMove;
+            W.bPunchIsInRange = F.bPunchLegal;
+            V.Fighters.Add(W);
+        }
+        return V;
+    }
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
+
+    V.Tick = Session.Tick;
     V.SeparationRu = Ru(Session.Separation());
 
     for (int32 i = 0; i < 2; ++i)
@@ -268,9 +359,6 @@ FUppercutFightView UUppercutFightSubsystem::GetView() const
     V.BandTransitions = (int32)Session.Transitions;
     V.Steps = (int32)Session.Steps;
     V.RopeBlockedRetreats = (int32)Session.Roped;
-
-    V.MarkerHash = FString::Printf(TEXT("%016llx"), Fnv);
-    V.RowCount = (int32)RowCount;
     return V;
 }
 
@@ -292,21 +380,41 @@ bool UUppercutFightSubsystem::DumpStream(const FString& Path, FString& OutError)
     // actually run keeps the file honest when a fight is dumped mid-round; it
     // also means a mid-round dump will not match a full-round pin, which is
     // correct - they are not the same run.
-    FString Out = UppercutRangeStreamHeader(Canon, Sources, Seed, Session.Tick,
-                                            RepoDir);
-    for (const FString& Row : CapturedRows) { Out += Row; }
-
-    // The property rows are hashed, so a dump has to fold them in exactly where
-    // the commandlet does: after the last tick, before the trailer.
-    uint64 EndFnv = Fnv;
-    int64 EndRows = RowCount;
-    for (const FString& Row : UppercutRangePropertyRows(Canon))
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+    FString Out;
+    if (bIntegratedLoaded)
     {
-        Out += Row;
-        EndFnv = UppercutFnv1a64(EndFnv, Row);
-        ++EndRows;
+        Out = UppercutFightStreamHeader(Integrated, Seed, Integrated.Tick, RepoDir);
+        for (const FString& Row : CapturedRows) { Out += Row; }
+        Out += UppercutFightStreamTrailer(Integrated, RowCount, Fnv);
     }
-    Out += UppercutRangeStreamTrailer(Session, EndRows, EndFnv);
+    else
+    {
+        Out = UppercutRangeStreamHeader(Canon, Sources, Seed, Session.Tick,
+                                        RepoDir);
+        for (const FString& Row : CapturedRows) { Out += Row; }
+
+        uint64 EndFnv = Fnv;
+        int64 EndRows = RowCount;
+        for (const FString& Row : UppercutRangePropertyRows(Canon))
+        {
+            Out += Row;
+            EndFnv = UppercutFnv1a64(EndFnv, Row);
+            ++EndRows;
+        }
+        Out += UppercutRangeStreamTrailer(Session, EndRows, EndFnv);
+        IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
+        if (!FFileHelper::SaveStringToFile(Out, *Path,
+                FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM))
+        {
+            OutError = FString::Printf(TEXT("cannot write %s"), *Path);
+            return false;
+        }
+        UE_LOG(LogTemp, Display, TEXT("UppercutFight: wrote %lld rows to %s"),
+               (long long)EndRows, *Path);
+        return true;
+    }
+    // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
 
     IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
     if (!FFileHelper::SaveStringToFile(Out, *Path,
@@ -315,7 +423,8 @@ bool UUppercutFightSubsystem::DumpStream(const FString& Path, FString& OutError)
         OutError = FString::Printf(TEXT("cannot write %s"), *Path);
         return false;
     }
-    UE_LOG(LogTemp, Display, TEXT("UppercutFight: wrote %lld rows to %s"), EndRows, *Path);
+    UE_LOG(LogTemp, Display, TEXT("UppercutFight: wrote %lld rows to %s"),
+           (long long)RowCount, *Path);
     return true;
 }
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 20:20 UTC | END ]

@@ -200,4 +200,11 @@ UPPERCUTCORE_API FString UppercutRangeStreamTrailer(
 // place the marker hash is defined.
 UPPERCUTCORE_API uint64 UppercutFnv1a64(uint64 Running, const FString& Row);
 UPPERCUTCORE_API uint64 UppercutFnv1a64Offset();
+
+// [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+// Shared LCG step (Decision 0022). New callers must use these rather than
+// paste 1664525 / 1013904223 - the live-arena copy-count test fails a rise.
+UPPERCUTCORE_API uint32 UppercutLcgNext(uint32& X);
+UPPERCUTCORE_API uint32 UppercutMixSeed(uint32 Seed, const FString& Name);
+// [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 14:10 UTC | END ]

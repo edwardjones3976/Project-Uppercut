@@ -354,6 +354,13 @@ class Manifest(object):
     def load(cls, path):
         with io.open(path, "r", encoding="utf-8", newline="") as fh:
             text = fh.read()
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+        # Provenance is repository bytes (LF). A Windows checkout may present
+        # CRLF for the same commit; normalize before hashing so roles_raw is
+        # platform-stable and goldens do not drift on windows-authority.
+        if "\r" in text:
+            text = text.replace("\r\n", "\n").replace("\r", "\n")
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
         return cls(parse(text), text)
 
     # -- global policy --------------------------------------------------------

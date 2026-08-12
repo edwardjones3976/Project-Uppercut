@@ -51,6 +51,9 @@ from tools.uppercut_integrated import resolution as RES  # noqa: E402
 from tools.uppercut_integrated import judging as J       # noqa: E402
 from tools.uppercut_units import quantities as U        # noqa: E402
 from tools.uppercut_units import rates as RATES         # noqa: E402
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+from tools.uppercut_integrated import attributes as ATTR  # noqa: E402
+# [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
 
 # How a tactical answer becomes a movement INTENT the range core can price.
 # Advance closes separation, retreat opens it, and a lateral step is the
@@ -96,7 +99,8 @@ class IntegratedBout(object):
 
     def __init__(self, repo=REPO, seed=4242, rounds=12, round_ticks=180 * 60,
                  profiles=None, start_separation=None,
-                 referee="nkiru_okafor", ruleset=C.DEFAULT_RULESET):
+                 referee="nkiru_okafor", ruleset=C.DEFAULT_RULESET,
+                 fighter_cards=None):
         self.repo = repo
         self.econ = E.economy_pack()
         if self.econ["errors"]:
@@ -226,6 +230,22 @@ class IntegratedBout(object):
         # every fighter-local stream from the identity string alone.
         self.fighters = [F.FighterState(who, self.econ, profiles[who])
                          for who in self.state.participants]
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+        # Optional complete Rule-10 cards keyed by participant id. Defaults to
+        # the Unreal 1-round test pairing when fighter_cards is the string
+        # "default_pair". Empty cards keep the baseline (multiplier 1.0).
+        if fighter_cards == "default_pair":
+            fighter_cards = {
+                C.DEFAULT_PARTICIPANTS[0]: "test_pressure_power",
+                C.DEFAULT_PARTICIPANTS[1]: "test_range_timing",
+            }
+        fighter_cards = fighter_cards or {}
+        for f in self.fighters:
+            card_id = fighter_cards.get(f.id)
+            if card_id:
+                f.attrs = ATTR.load_card_attrs(card_id, root=repo)
+                f.attrs["_card_id"] = card_id
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
         self.streams = {f.id: self.rng.stream("policy_intent", f.id)
                         for f in self.fighters}
 
@@ -371,6 +391,26 @@ class IntegratedBout(object):
         return (f.evasion is not None
                 and f.evasion[1] <= t < f.evasion[2])
 
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+    def _evasion_active_for_read(self, f, t, readiness):
+        """Evasion window, opened earlier by opponent_read when readiness > ONE.
+
+        Bookkeeping (_tick_evasions / open-close rows) still uses authored
+        open_at. Only the punch resolver asks whether the window was already
+        live against a pattern the defender has read. readiness==ONE is
+        bit-identical to _evasion_active.
+        """
+        if f.evasion is None:
+            return False
+        ev, open_at, close_at, _used = f.evasion
+        if readiness <= PUNCHECON.ONE:
+            return open_at <= t < close_at
+        spec = self.evade["evasions"].get(ev) or {}
+        early = (int(spec.get("startup", 0))
+                 * (readiness - PUNCHECON.ONE)) // PUNCHECON.ONE
+        return (open_at - early) <= t < close_at
+    # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
+
     def _tick_evasions(self, t):
         for f in self.fighters:
             if f.evasion is None:
@@ -418,7 +458,13 @@ class IntegratedBout(object):
                                  % (t, me.id, foe.id, move, band))
                 continue
 
-            active = foe.evasion[0] if self._evasion_active(foe, t) else None
+            # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+            # Decision 0037: defender readiness against this offered pattern.
+            readiness = PUNCHECON.readiness_q(self.rep, foe.reads, move)
+            active = (foe.evasion[0]
+                      if self._evasion_active_for_read(foe, t, readiness)
+                      else None)
+            # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
             arrived, reason, region = EVADE.resolve(
                 self.evade, C.PUNCHES, move, active)
             self.contact[reason] += 1
@@ -460,8 +506,11 @@ class IntegratedBout(object):
                 # different tests - and both are canon's, not this file's.)
                 d_committed = (foe.punch is not None
                                or foe.evasion is not None)
+                # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
                 blocked = GUARD.intercepts(self.guard, C.PUNCHES,
-                                           foe.posture, d_committed, move)
+                                           foe.posture, d_committed, move,
+                                           readiness)
+                # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
             # TWO STAGES, TWO WORDS, and the row says both. The verdict is
             # what the EVASION stage decided - did the punch get past the
             # movement - and the outcome is what the punch finally did. A
@@ -518,6 +567,10 @@ class IntegratedBout(object):
         self.evidence[me.id]["landed"] += 1
         self.unanswered[me.id] = 0
         force = self.cond_pack["efforts"][move]
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+        force = ATTR.apply_q(force, me.attrs, "delivered_impact")
+        force = ATTR.apply_q(force, foe.attrs, "condition_accumulation")
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
         cond = self.condition[foe.id]
         cond.absorb(region, force)
         self.rows.append("C|%d|%s|%s|%s|%s|solid|dmg=%d"
@@ -545,8 +598,17 @@ class IntegratedBout(object):
             self.cond_pack, move, cond, wind_frac,
             defender_committed=foe.punch is not None or foe.recovery_ticks > 0,
             defender_evading=self._evasion_active(foe, t))
-        if pressure >= self.cond_pack["pressure_threshold"]:
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | START ]
+        # Power scales delivered force into pressure; chin scales the threshold.
+        # Same sites as tools.uppercut_sim.engine.Bout._attr. Threshold stays
+        # canon's 0.57 until Decision 0035 says otherwise - only the card moves.
+        pressure = ATTR.apply_q(pressure, me.attrs, "delivered_impact")
+        threshold = ATTR.apply_q(
+            self.cond_pack["pressure_threshold"], foe.attrs,
+            "knockdown_pressure_threshold")
+        if pressure >= threshold:
             self._knockdown(t, me, foe, move)
+        # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ]
 
     def _knockdown(self, t, me, foe, move):
         self.kd_round[foe.id] += 1
@@ -803,6 +865,12 @@ class IntegratedBout(object):
                                         me.pos + away * ceded))
                     self.ceded_ru += ceded
                 me.stepped_since_throw = False
+                # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | START ]
+                # The offer is what the defender observes - made before the
+                # outcome, so a pattern is read for having been shown, not for
+                # having worked (Decision 0037 / Rule 4).
+                PUNCHECON.observe_offer(self.rep, foe.reads, d.execution)
+                # [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:13 UTC | END ]
                 # [ ... | 2026-08-09 16:15 UTC | END edit ]
             elif d.tactical == P.EVADE and d.execution:
                 if self._commit_evasion(me, t, d.execution):

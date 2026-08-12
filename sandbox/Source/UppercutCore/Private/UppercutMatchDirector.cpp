@@ -125,7 +125,7 @@ void AUppercutMatchDirector::DumpRound()
     {
         UE_LOG(LogTemp, Display,
                TEXT("UppercutMatchDirector: round written to %s - check it with "
-                    "python -m tools.engine.prove_core_range"), *Path);
+                    "python -m tools.engine.prove_one_round"), *Path);
     }
     else
     {
@@ -148,8 +148,9 @@ void AUppercutMatchDirector::Tick(float DeltaSeconds)
         bAnnouncedFinish = true;
         UE_LOG(LogTemp, Display,
                TEXT("UppercutMatchDirector: round over at tick %d - %d punches, "
-                    "%d landed, marker %s"),
-               V.Tick, V.Punches, V.Landed, *V.MarkerHash);
+                    "%d landed, method=%s cards=%d-%d marker %s"),
+               V.Tick, V.Punches, V.Landed, *V.RoundMethod,
+               V.CardRed, V.CardBlue, *V.MarkerHash);
         OnRoundFinished(V);
     }
 }
