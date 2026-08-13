@@ -1,0 +1,79 @@
+# [ Codex | GPT-5 | 2026-08-13 23:33 UTC | START: imported from director-orchestrator@110e403 and specialized for Project Uppercut ]
+name: project-uppercut-director
+
+services:
+  orchestrator:
+    build: .
+    restart: unless-stopped
+    env_file: ${DIRECTOR_ENV_FILE:-.env}
+    ports:
+      - "127.0.0.1:${DIRECTOR_HOST_PORT:-18080}:8080"
+    volumes:
+      - director-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  slackbot:
+    build: .
+    restart: unless-stopped
+    command: ["python", "-m", "director_orchestrator.slack_bot"]
+    env_file: ${DIRECTOR_ENV_FILE:-.env}
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+
+  n8n-db:
+    image: postgres:17-alpine@sha256:d4bb0a8c1b7bb2e29f976d099e7bfb9a5d8858cffe9e46b35cd302cd1f1f8168
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: n8n
+      POSTGRES_DB: n8n
+      POSTGRES_PASSWORD: ${N8N_POSTGRES_PASSWORD}
+    volumes:
+      - n8n-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n -d n8n"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  n8n:
+    image: ${N8N_IMAGE:-docker.n8n.io/n8nio/n8n:latest}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${N8N_HOST_PORT:-15678}:5678"
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: n8n-db
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER: n8n
+      DB_POSTGRESDB_PASSWORD: ${N8N_POSTGRES_PASSWORD}
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      N8N_SECURE_COOKIE: "false"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_PERSONALIZATION_ENABLED: "false"
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      GENERIC_TIMEZONE: ${TZ:-America/Los_Angeles}
+      ORCHESTRATOR_BASE_URL: http://orchestrator:8080
+    depends_on:
+      n8n-db:
+        condition: service_healthy
+    volumes:
+      - n8n-data:/home/node/.n8n
+
+volumes:
+  director-data:
+    name: project-uppercut-director-state
+  n8n-data:
+    name: project-uppercut-director-n8n
+  n8n-db-data:
+    name: project-uppercut-director-postgres
+# [ Codex | GPT-5 | 2026-08-13 23:37 UTC | END: imported from director-orchestrator@110e403 and specialized for Project Uppercut ]

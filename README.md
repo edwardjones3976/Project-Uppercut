@@ -47,6 +47,14 @@ document deliberately carries no volatile numbers; `tests/test_doc_drift.py` enf
 external review caught this paragraph three revisions stale.
 <!-- [ Claude (Cowork) | Claude Fable 5 (claude-fable-5) | 2026-08-03 21:58 UTC | edit: strip volatile tallies per doc-drift guard; supersedes 09:07 status sync ] -->
 
+<!-- [ Codex | GPT-5 | 2026-08-13 23:33 UTC | START: embedded multi-agent Director profile ] -->
+
+## Director automation
+
+The bounded [Project Uppercut Director Orchestrator](director-orchestrator/README.md) is embedded in this repository. It coordinates Cursor, Claude, Gemini, Perplexity, and an OpenAI Director through private Slack intake while keeping paid execution off by default. Its deterministic policy fixes the project and repository to Project Uppercut, preserves owner approval gates, limits hops/revisions/spend, and sends code work to isolated branches. The checkout contains no provider credentials and does not claim that the service is deployed.
+
+<!-- [ Codex | GPT-5 | 2026-08-13 23:33 UTC | END: embedded multi-agent Director profile ] -->
+
 ## Vision and active focus
 
 Three documents keep the destination vivid without letting new ideas derail the active slice:

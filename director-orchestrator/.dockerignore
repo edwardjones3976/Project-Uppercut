@@ -1,0 +1,16 @@
+# [ Codex | GPT-5 | 2026-08-13 23:45 UTC | START: keep local environments, secrets, state, and caches out of Docker build contexts ]
+.env
+.env.*
+!.env.example
+.venv/
+.venv*/
+.git/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+data/
+*.db
+*.sqlite3
+# [ Codex | GPT-5 | 2026-08-13 23:45 UTC | END: keep local environments, secrets, state, and caches out of Docker build contexts ]

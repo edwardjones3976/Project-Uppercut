@@ -1,0 +1,7 @@
+# [ Codex | GPT-5 | 2026-08-13 23:33 UTC | START: imported from director-orchestrator@110e403 and specialized for Project Uppercut ]
+fastapi>=0.115,<1
+httpx>=0.28,<1
+pydantic>=2.10,<3
+slack-bolt>=1.23,<2
+uvicorn[standard]>=0.34,<1
+# [ Codex | GPT-5 | 2026-08-13 23:37 UTC | END: imported from director-orchestrator@110e403 and specialized for Project Uppercut ]
