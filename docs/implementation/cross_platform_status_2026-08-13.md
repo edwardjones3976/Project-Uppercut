@@ -8,7 +8,7 @@
 |---|---|
 | Branch | `codex/embed-director-orchestrator` |
 | Source | `edwardjones3976/director-orchestrator@110e403` |
-| Pull request | Pending initial push |
+| Pull request | https://github.com/edwardjones3976/Project-Uppercut/pull/45 (draft) |
 | Paid provider calls | **0** |
 | Deployment | **Not started** |
 | Project suite | **1,437 passed** |
@@ -49,7 +49,7 @@ authority, authenticity band, waiver, or `pressure_threshold`.
 | Channel | Status | Evidence |
 |---|---|---|
 | Local repo | Done | Embedded runtime, source record, dev log, this packet |
-| GitHub | Pending | Draft PR will carry this exact status after validation |
+| GitHub | Posted | Draft PR #45 carries this status; Actions pending at packet update |
 | Linear | N/A | No existing PRO issue was changed or closed |
 | Slack `#uppercut-ops` | N/A | User requested repository duplication, not an external post |
 | Provider dashboards | N/A | Paid execution remains disabled; no provider dispatched |
@@ -63,4 +63,4 @@ authority, authenticity band, waiver, or `pressure_threshold`.
 - `docs/governance/DIRECTOR_OPERATING_CHARTER.md`
 - Decision 0040 (C++ authority and authenticity HOLD)
 
-<!-- [ Codex | GPT-5 | 2026-08-13 23:55 UTC | END ] -->
+<!-- [ Codex | GPT-5 | 2026-08-13 23:57 UTC | END ] -->
