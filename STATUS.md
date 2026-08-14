@@ -5,11 +5,11 @@
 
 # Status
 
-Generated **2026-08-12 19:57 UTC** at `f34c2bb test(convergence): cover all ten quantizer owners`.
+Generated **2026-08-14 09:50 UTC** at `86ef88e chore(evidence): drop a dead line from the integrated analyzer`.
 
 | Evidence | Result |
 |---|---|
-| Test suite | **1437 passed** |
+| Test suite | **1479 passed** |
 | Validators (`cli all`) | **all green** |
 | Required Phase 1A gate checks | **11 of 11 green** |
 | Latest engine phase proven | Phase R — the head is not where the punch is going (UppercutCoreEvade) |
