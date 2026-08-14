@@ -50,4 +50,67 @@ says otherwise. Re-run that first, then re-bless in the same commit as the chang
 that caused the drift.
 
 See `docs/decisions/OPEN_GATES.md` for G1–G6.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-14 10:30 UTC | START ] -->
+## The integrated round — a different kind of pin
+
+| File | Run | State |
+|---|---|---|
+| `integrated_1r_4242_10800.stream` | seed 4242, full round | **AUTHORITY**, recorded from C++ |
+| `integrated_1r_777_10800.stream` | seed 777, full round | **AUTHORITY**, recorded from C++ |
+| `integrated_1r_4242_1200.stream` | seed 4242, 1200 ticks | **AUTHORITY**, ends mid-round |
+
+    python -m tools.engine.prove_integrated_arena           # needs UE, ~1 min
+    python -m tools.engine.prove_integrated_arena --write   # re-bless
+
+**These three are pinned in the opposite direction from the ones above, and the
+difference matters.** O, Q and R are pins on an *analyzer*: a Python contract
+predicts the bytes and the C++ port must reproduce them, so `golden.py` can
+regenerate and check them with no engine at all. Decision 0040 R1 makes the
+shared C++ `INTEGRATED_1R` session the combat authority and R2 makes Python
+reference-only. There is therefore nothing that can predict these bytes, and
+writing something that could would BE the second implementation of the rules
+that the convergence rule exists to prevent.
+
+So these files are **recordings, not predictions**. Checking them needs Unreal,
+because the only thing that can produce them is the authority itself. What the
+committed bytes still buy without an engine is the readable diff — a drift shows
+up as `tick 1195: fighter 0 LANDS hook_lead` against `... and it is slipped`,
+not as a changed hash.
+
+**Why they were recorded on 2026-08-14.** Until then the combat authority was
+the one artifact in this repository with nothing watching it: `prove_live_arena`
+asks for `-integrated=0` because it pins Phase Q, `golden.py` covers O/Q/R, and
+the two tests that appeared to cover the integrated arena existed on `main` only
+as orphaned `.pyc` files with no `.py` beside them — their sources sit on
+`feat/authenticity-program`, which Decision 0040 R6 holds as not merge-ready,
+together with that branch's own `analyze_integrated_arena.py`,
+`prove_integrated_arena.py` and streams under
+`tools/engine/golden_integrated_arena/`. **That name collision is unresolved and
+is a Director call**, compared in
+`docs/development-log/2026-08-14-the-combat-authority-had-nothing-watching-it.md`.
+The cost was already on the
+record — Decision 0040 quotes the C++ round at `punches=123 landed=51` for seed
+4242 over 10800 ticks, and the same configuration on `86d3ef1` produces
+`punches=153 landed=153`. No gate could have reported that, because no gate was
+looking.
+
+**The one normalised field, declared.** The C++ header carries
+`repo=<absolute path>`, so the same fight produces different bytes in a
+different checkout — including on the self-hosted Windows runner Issue #14 is
+building. `prove_integrated_arena` normalises that single field to
+`repo=<repo>` before comparing and the pins are stored normalised;
+`tests/test_integrated_arena_analyzer.py` fails if a machine path ever reaches a
+pin. The real fix is for the authoritative header to stop carrying an
+environment path at all, which changes the artifact's bytes and belongs to
+whoever owns the header rather than to its checker.
+
+**When one of these fails, it is not automatically wrong.** A pin on an
+authority moves whenever the authority is deliberately improved — and the
+integrated round has a great deal of deliberate improvement still owed to it
+(Issue #12). Re-bless with `--write`, in the same commit as the change that
+caused it, and say in the message what about the fight changed. A re-bless with
+no explanation attached is how `123 landed=51` became `153 landed=153` with
+nobody noticing.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-14 10:30 UTC | END ] -->
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-05 23:00 UTC | END ] -->
