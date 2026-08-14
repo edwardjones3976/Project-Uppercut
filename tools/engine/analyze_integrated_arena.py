@@ -163,8 +163,7 @@ def analyse(path_or_text):
     kd_rows = collections.Counter()    # fighter index -> knockdowns
     per_fighter_landed = collections.Counter()
     counting = {"who": None, "n": 0}
-    ids = list(header.get("cards", [])) and None  # participant ids come from D rows
-    participants = []
+    participants = []  # in first-seen order, so an A row's index resolves
 
     for r in rows:
         k = r.kind
