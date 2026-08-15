@@ -235,6 +235,14 @@ void FUppercutFightSession::ResolveContacts(TArray<FString>* OutRows)
         // Landed: witness + knockdown pressure from card-scaled threshold.
         ++Landed;
         Round.WitnessLanding(Atk);
+        // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+        //   2026-08-15 17:15 UTC | START edit: view-facing impact telemetry ]
+        // The defender is told he was hit. Telemetry for presentation only -
+        // set AFTER the outcome is decided, read by nothing in this file, and
+        // the row emitted below is unchanged, so the stream cannot move.
+        Def.LastImpactTick = Tick;
+        Def.LastImpactMove = A.PunchMove;
+        // [ ... | 2026-08-15 17:15 UTC | END edit ]
         const int64 ForceQ = AttrCanon.Apply(5000, Fighter[Atk].Card,
                                              TEXT("delivered_impact"));
         const int64 PressureQ = ForceQ; // simplified product for live MVP
