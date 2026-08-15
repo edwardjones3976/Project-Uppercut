@@ -1,8 +1,8 @@
-# [ Codex | GPT-5 | 2026-08-13 23:33 UTC | START: imported from director-orchestrator@110e403 and specialized for Project Uppercut ]
 from __future__ import annotations
 
 import re
 from copy import deepcopy
+from urllib.parse import urlparse
 
 from .config import Settings
 from .models import Assignment, DirectorPlan, ProviderName, RiskLevel
@@ -23,48 +23,74 @@ def deterministic_approval_reasons(text: str) -> list[str]:
     return [label for label, pattern in _GATES if pattern.search(text)]
 
 
-def normalize_repository(repository: str) -> str:
-    normalized = repository.strip().rstrip("/")
-    if normalized.startswith("git@github.com:"):
-        normalized = "https://github.com/" + normalized.removeprefix("git@github.com:")
-    if normalized.lower().endswith(".git"):
-        normalized = normalized[:-4]
-    return normalized.lower()
+def canonical_repository(value: str) -> str:
+    candidate = value.strip().rstrip("/")
+    parsed = urlparse(candidate)
+    if parsed.scheme and parsed.netloc:
+        if parsed.netloc.lower() != "github.com":
+            return candidate.lower()
+        candidate = parsed.path.strip("/")
+    if candidate.lower().startswith("github.com/"):
+        candidate = candidate[len("github.com/") :]
+    if candidate.lower().endswith(".git"):
+        candidate = candidate[:-4]
+    return candidate.strip("/").lower()
+
+
+def execution_policy_errors(plan: DirectorPlan, settings: Settings) -> list[str]:
+    errors: set[str] = set()
+    allowed_projects = {item.strip().lower() for item in settings.project_allowlist}
+    project = plan.project.strip().lower()
+    if not allowed_projects:
+        errors.add("project allowlist is not configured")
+    elif project not in allowed_projects:
+        errors.add(f"project is not allowlisted: {plan.project}")
+
+    sequences = [item.sequence for item in plan.assignments]
+    sequence_set = set(sequences)
+    if len(sequence_set) != len(sequences):
+        errors.add("assignment sequences must be unique")
+
+    allowed_repositories = {
+        canonical_repository(item) for item in settings.repository_allowlist
+    }
+    allowed_refs = set(settings.allowed_starting_refs)
+    for assignment in plan.assignments:
+        if assignment.agent == ProviderName.CURSOR and not assignment.repository:
+            errors.add(f"assignment {assignment.sequence}: Cursor requires an explicit repository")
+        if assignment.repository:
+            repository = canonical_repository(assignment.repository)
+            if not allowed_repositories:
+                errors.add("repository allowlist is not configured")
+            elif repository not in allowed_repositories:
+                errors.add(
+                    f"assignment {assignment.sequence}: repository is not allowlisted: {repository}"
+                )
+            if not allowed_refs:
+                errors.add("starting-ref allowlist is not configured")
+            elif assignment.starting_ref not in allowed_refs:
+                errors.add(
+                    f"assignment {assignment.sequence}: starting ref is not allowlisted: {assignment.starting_ref}"
+                )
+        for dependency in assignment.depends_on:
+            if dependency not in sequence_set:
+                errors.add(
+                    f"assignment {assignment.sequence}: dependency {dependency} does not exist"
+                )
+            elif dependency >= assignment.sequence:
+                errors.add(
+                    f"assignment {assignment.sequence}: dependency {dependency} must be an earlier assignment"
+                )
+    return sorted(errors)
 
 
 def enforce_plan(plan: DirectorPlan, source_text: str, settings: Settings) -> DirectorPlan:
     safe = deepcopy(plan)
-    safe.project = settings.director_project_name
     safe.max_hops = min(safe.max_hops, settings.max_agent_hops)
     safe.max_revisions = min(safe.max_revisions, settings.max_revisions)
 
     reasons = set(safe.approval_reasons)
     reasons.update(deterministic_approval_reasons(source_text))
-
-    allowed = {
-        normalize_repository(repository)
-        for repository in settings.director_allowed_repositories
-    }
-    assignments: list[Assignment] = []
-    outside_scope: list[str] = []
-    for item in safe.assignments:
-        repository = item.repository or settings.director_default_repository
-        starting_ref = item.starting_ref or settings.director_default_starting_ref
-        if repository and normalize_repository(repository) not in allowed:
-            outside_scope.append(repository)
-        assignments.append(
-            item.model_copy(
-                update={"repository": repository, "starting_ref": starting_ref}
-            )
-        )
-    safe.assignments = assignments
-    if outside_scope:
-        reasons.add("repository outside Project Uppercut allowlist")
-        safe.owner_question = (
-            "The plan targets a repository outside the Project Uppercut allowlist: "
-            + ", ".join(sorted(set(outside_scope)))
-            + ". Change the reviewed deployment allowlist before dispatching it."
-        )
     if safe.risk_level in {RiskLevel.HIGH, RiskLevel.CRITICAL}:
         reasons.add(f"{safe.risk_level.value}-risk plan")
     if sum(item.estimated_cost_usd for item in safe.assignments) > settings.max_task_budget_usd:
@@ -88,10 +114,10 @@ def preview_plan(text: str, settings: Settings) -> DirectorPlan:
         provider = ProviderName.PERPLEXITY
     elif any(word in lowered for word in ("prototype", "browser", "visual", "alternate implementation")):
         provider = ProviderName.GEMINI
-    elif any(word in lowered for word in ("review", "document", "presentation", "analysis")):
-        provider = ProviderName.CLAUDE
-    else:
+    elif any(word in lowered for word in ("cursor", "background agent", "independent coding pass", "second coding pass")):
         provider = ProviderName.CURSOR
+    else:
+        provider = ProviderName.CLAUDE
 
     project = "unspecified"
     match = re.search(r"(?im)^\s*project\s*:\s*(.+)$", text)
@@ -103,8 +129,6 @@ def preview_plan(text: str, settings: Settings) -> DirectorPlan:
         agent=provider,
         task=text.strip(),
         acceptance=["Owner-defined outcome is demonstrably satisfied", "Evidence and unresolved risks are reported"],
-        repository=settings.director_default_repository,
-        starting_ref=settings.director_default_starting_ref,
         requires_approval=False,
         estimated_cost_usd=0,
     )
@@ -121,4 +145,3 @@ def preview_plan(text: str, settings: Settings) -> DirectorPlan:
         owner_question=None,
     )
     return enforce_plan(plan, text, settings)
-# [ Codex | GPT-5 | 2026-08-13 23:37 UTC | END: imported from director-orchestrator@110e403 and specialized for Project Uppercut ]

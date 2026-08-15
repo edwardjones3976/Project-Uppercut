@@ -1,4 +1,3 @@
-# [ Codex | GPT-5 | 2026-08-13 23:33 UTC | START: imported from director-orchestrator@110e403 and specialized for Project Uppercut ]
 from __future__ import annotations
 
 import logging
@@ -96,7 +95,7 @@ def message_handler(event, client):
     _forward(event, client, require_prefix=True)
 
 
-@app.command(settings.slack_command)
+@app.command("/director")
 def command_handler(ack, command, client, respond):
     ack()
     if command.get("channel_id") != settings.slack_channel_id or command.get("user_id") != settings.slack_owner_user_id:
@@ -122,7 +121,7 @@ def command_handler(ack, command, client, respond):
 
     if not text:
         respond(
-            f"Usage: `{settings.slack_command} Outcome: … Constraints: …` or `{settings.slack_command} approve DIR-… <optional clarification>`.",
+            "Usage: `/director Project: … Outcome: … Constraints: …` or `/director approve DIR-… <optional clarification>`.",
             response_type="ephemeral",
         )
         return
@@ -146,14 +145,21 @@ def approval_button_handler(ack, body, client):
     ack()
     user_id = body.get("user", {}).get("id")
     channel_id = body.get("channel", {}).get("id")
-    task_id = body.get("actions", [{}])[0].get("value", "")
+    # The button value is "<task_id>" for a plan-level approval, or
+    # "<task_id>|<assignment_sequence>" for an assignment the owner was shown.
+    # Sending the sequence back lets the orchestrator reject a stale button.
+    raw_value = body.get("actions", [{}])[0].get("value", "")
+    task_id, _, raw_sequence = raw_value.partition("|")
+    payload = {"owner_user_id": user_id, "note": "Approved from Slack"}
+    if raw_sequence.isdigit():
+        payload["assignment_sequence"] = int(raw_sequence)
     if user_id != settings.slack_owner_user_id or channel_id != settings.slack_channel_id:
         return
     try:
         response = httpx.post(
             f"{settings.orchestrator_base_url}/v1/tasks/{task_id}/approve",
             headers={"Authorization": f"Bearer {settings.shared_secret}"},
-            json={"owner_user_id": user_id, "note": "Approved from Slack"},
+            json=payload,
             timeout=20,
         )
         response.raise_for_status()
@@ -179,4 +185,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-# [ Codex | GPT-5 | 2026-08-13 23:37 UTC | END: imported from director-orchestrator@110e403 and specialized for Project Uppercut ]

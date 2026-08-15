@@ -1,18 +1,17 @@
-<!-- [ Codex | GPT-5 | 2026-08-13 23:33 UTC | START: imported from director-orchestrator@110e403 and specialized for Project Uppercut ] -->
-# Project Uppercut Director Orchestrator
+# Director Orchestrator
 
-A bounded, event-driven control plane for keeping paid specialist AI agents focused on Project Uppercut from a private Slack channel. It is embedded in the Project Uppercut monorepo and hard-scoped to `edwardjones3976/Project-Uppercut`. The first deployment target is an always-on Windows desktop using Docker Desktop. Paid execution is disabled by default.
-
-This directory is derived from [`director-orchestrator`](https://github.com/edwardjones3976/director-orchestrator) commit `110e403`. See [SOURCE_SNAPSHOT.md](SOURCE_SNAPSHOT.md) for provenance and the deliberate Project Uppercut differences.
+A bounded, event-driven control plane for coordinating specialist AI agents from a private Slack channel. The first deployment target is an always-on Windows desktop using Docker Desktop. Paid execution is disabled by default.
 
 ## What is included
 
 - A Slack Socket Mode gateway, so the desktop does not need a public inbound port.
 - A FastAPI orchestration service with idempotent task intake and durable SQLite state.
-- Deterministic approval gates and a repository allowlist that model output cannot remove.
+- Deterministic approval gates that model output cannot remove.
 - Adapters for Cursor Cloud Agents, Claude Code Routines, Gemini Antigravity Managed Agents, and the Perplexity Agent API.
 - An OpenAI Director planner/reviewer using Structured Outputs.
-- An optional local n8n deployment and importable authenticated pass-through workflow.
+- A primary OpenAI–Claude–Cursor team, with Claude Pro 20x as the coding/general workhorse and Gemini/Perplexity retained as optional specialists.
+- A durable periodic provider-prompt monitor that records returned token metadata and posts bounded status summaries.
+- A local n8n deployment and an importable intake workflow.
 - A reusable Slack app manifest and a Claude routine prompt.
 - Dry-run previews for testing without provider spending.
 
@@ -20,28 +19,29 @@ Detailed operations notes live in `docs/always-on-runbook.md`, `docs/provider-se
 
 ## Architecture
 
-1. Aesop posts `DIRECTOR` in private `#uppercut-ops`, or uses `/uppercut-director`.
+1. Aesop posts `DIRECTOR` in the private Slack channel.
 2. The Slack gateway accepts only the configured owner and channel, ignores bot messages, and forwards a stable Slack event ID.
-3. By default the gateway calls the constant-time-authenticated orchestrator directly. If enabled, n8n transparently preserves that bearer header instead of granting its own authority.
+3. n8n passes the normalized event to the orchestrator.
 4. The orchestrator deduplicates it, creates a task record, applies hard limits, and builds a preview or live Director plan.
 5. Specialist runs are dispatched sequentially unless the plan explicitly marks independent work.
 6. Results are reviewed against acceptance checks. Revision loops are capped.
-7. Slack receives the terminal state or a narrowly scoped owner decision request. Approval-gated plans include a confirm button; ambiguity requires a written `/uppercut-director approve DIR-… <clarification>` response.
+7. Slack receives the terminal state or a narrowly scoped owner decision request. Approval-gated plans include a confirm button; ambiguity requires a written `/director approve DIR-… <clarification>` response.
 8. In-progress tasks resume after an orchestrator restart without redispatching an already-recorded provider run.
+9. When live execution is enabled, the usage monitor prompts each configured provider no more often than the configured interval and persists its latest status.
 
 ## Windows desktop quick start
 
 Prerequisites: Docker Desktop with Linux containers and PowerShell 7 or Windows PowerShell 5.1.
 
 ```powershell
-git clone https://github.com/edwardjones3976/Project-Uppercut.git
-cd Project-Uppercut\director-orchestrator
+git clone https://github.com/edwardjones3976/director-orchestrator.git
+cd director-orchestrator
 powershell -ExecutionPolicy Bypass -File .\scripts\windows-bootstrap.ps1
 ```
 
 The bootstrap script creates `.env` with random local secrets and starts the stack. It does not create or store provider credentials.
 
-The orchestrator health endpoint is `http://localhost:18080/health`. Optional n8n is available at `http://localhost:15678`; create its local owner login and import `n8n/workflows/director-intake.json` only if you want that pass-through, then set `N8N_DIRECTOR_WEBHOOK_URL`. Direct authenticated intake remains the safer default. These host ports avoid colliding with the standalone shared Director profile.
+Open `http://localhost:5678`, create the local n8n owner login, and import `n8n/workflows/director-intake.json`. Activate that workflow after inspection.
 
 For always-on operation, enable Docker Desktop's start-on-sign-in option, disable sleep/hibernation for the host while plugged in, keep Windows and Docker auto-restart behavior enabled, and use a UPS if this desktop is expected to act as infrastructure. Containers use `restart: unless-stopped`; in-progress provider polls resume from durable task state after the orchestrator restarts.
 
@@ -51,7 +51,7 @@ For always-on operation, enable Docker Desktop's start-on-sign-in option, disabl
 2. Install it to the workspace.
 3. Generate an app-level token with `connections:write` for Socket Mode.
 4. Put the app token in `SLACK_APP_TOKEN` and the bot token in `SLACK_BOT_TOKEN` inside `.env`.
-5. Invite the app to private `#uppercut-ops` (`C0BP62MBFNK`).
+5. Invite the app to the private `#project-director` channel.
 6. Restart only the Slack gateway: `docker compose restart slackbot`.
 
 Never paste tokens into Slack, chat, source control, screenshots, or issue bodies.
@@ -62,8 +62,8 @@ Keep `ALLOW_PAID_RUNS=false`, then post:
 
 ```text
 DIRECTOR
-Project: Project Uppercut
-Outcome: Produce a dry-run plan for reviewing the current Project Uppercut parity HOLD.
+Project: director-orchestrator
+Outcome: Produce a dry-run plan for adding a /version health field.
 Constraints: Do not edit GitHub and do not call paid providers.
 ```
 
@@ -75,11 +75,36 @@ Add credentials one provider at a time. Verify each adapter independently before
 
 1. `OPENAI_API_KEY` and the configured Director model.
 2. At least one specialist credential.
-3. Confirm the checked-in repository allowlist and starting branch. The default profile permits only Project Uppercut.
+3. A repository URL and starting branch in the work order.
 4. Provider-side spending limits.
-5. `ALLOW_PAID_RUNS=true`, followed by a low-risk test task.
+5. Exact `PROJECT_ALLOWLIST`, `REPOSITORY_ALLOWLIST`, and `ALLOWED_STARTING_REFS` values for this deployment profile.
+6. A separate `CLAUDE_CALLBACK_SECRET` installed in both the orchestrator and the trusted Claude callback sender when callbacks are enabled.
+7. `ALLOW_PAID_RUNS=true`, followed by a low-risk test task.
 
 ChatGPT Plus, Claude Pro, Cursor Pro, Gemini subscriptions, and Perplexity Pro do not necessarily include API usage. Claude Code Routine triggers are the exception represented here: they use the routine-specific URL and token supplied by Claude's routine UI.
+
+## Periodic provider usage checks
+
+Periodic prompts are opt-in. After provider-side spend limits are configured, set `USAGE_CHECK_ENABLED=true` to schedule a short availability prompt that instructs the provider not to use tools or perform project work. The default list is the primary team: OpenAI, Claude, and Cursor. Gemini and Perplexity can be added explicitly when their supplemental lanes should also be monitored. Checks are additionally gated by `ALLOW_PAID_RUNS=true`; either switch being false prevents every monitor-initiated model call. The default interval is six hours, with providers prompted sequentially rather than simultaneously and an unbypassable 15-minute per-provider minimum.
+
+The monitor stores provider-returned token metadata in SQLite and posts a concise status summary to `#project-director`. A model reply is an availability signal, not authoritative proof of an account or subscription balance. Cursor documents plan usage in its dashboard, and other providers may likewise expose authoritative quota only in their account consoles.
+
+Authenticated operator endpoints:
+
+```text
+GET  /v1/usage-checks/latest
+POST /v1/usage-checks/run
+```
+
+The manual POST respects both safety switches and the 15-minute minimum; it returns `409` while paid execution or periodic checks are disabled.
+
+## Execution profiles and handoffs
+
+Live plans fail closed unless their project is listed in `PROJECT_ALLOWLIST`. Every explicit repository and starting ref must match `REPOSITORY_ALLOWLIST` and `ALLOWED_STARTING_REFS`; Cursor assignments must always name a repository so they cannot fall back to an account-level default. Use separate deployments and databases when projects require different repositories, credentials, budgets, or Slack destinations.
+
+After OpenAI accepts an assignment, the orchestrator persists a bounded outcome containing its result, review summary, and evidence. Later assignments receive prior accepted outcomes and their declared `depends_on` results inside a marked untrusted-data envelope. Missing, forward, or unknown dependencies block execution rather than being ignored.
+
+Claude completion callbacks use `CLAUDE_CALLBACK_SECRET`, not the general orchestrator bearer secret. A callback must identify the exact pending Claude `run_id`; duplicate identical callbacks are idempotent and conflicting results are rejected.
 
 ## Cloud hosting later
 
@@ -89,39 +114,23 @@ The desktop design intentionally keeps Slack on Socket Mode and stores state loc
 - Put n8n and the orchestrator behind HTTPS with restricted ingress.
 - Replace long-lived cloud credentials with OIDC or narrowly scoped service credentials where supported.
 - Use a managed secret store, encrypted backups, centralized logs, uptime monitoring, and provider webhook verification.
-- Review and deliberately advance the checked-in container digests; do not replace them with floating tags.
+- Pin container images by version or digest before production.
 - Keep the Slack channel, task schema, approval policy, and provider adapters unchanged.
 
 Do not expose the local n8n editor or orchestrator port directly to the internet.
 
-## Project Uppercut scope lock
+## Project Uppercut reiteration
 
-This embedded copy is the separate Project Uppercut deployment profile. It has its own Compose project and volumes, host ports, Slack channel/command, task database, provider budgets, prompt policy, and repository allowlist. Missing repository values are filled with Project Uppercut; any other repository stops in `OWNER_DECISION_REQUIRED` and requires a reviewed configuration change before dispatch. Do not commingle its credentials, task data, or provider sessions with the standalone Director deployment.
+Project Uppercut runs as a separate Compose project using `.env.uppercut`, dedicated ports, volumes, task state, Slack routing, budgets, and callback secrets. The supervised Windows script never edits the primary `.env`. See [the Uppercut runbook](docs/project-uppercut-reiteration.md) and [the framework transition plan](docs/framework-transition-plan.md).
 
-The checkout does not contain secrets and this change does not start containers or paid runs. Bootstrap creates a local `.env`; enabling provider credentials and `ALLOW_PAID_RUNS=true` remains an owner operation after the dry-run and one reversible live proof.
-
-<!-- [ Codex | GPT-5 | 2026-08-13 23:45 UTC | START: reproducible isolated Python setup and secret-safe validation ] -->
-## Local Python setup and validation
-
-Use Python 3.12 to match the container runtime. The virtual environment is local to this directory and ignored by Git; these commands do not change the global Python installation. `requirements.txt` is the human-maintained compatibility contract, while `requirements.lock.txt` is the exact transitive resolution validated for Python 3.12.
-
-From `director-orchestrator` in PowerShell:
+## Local validation
 
 ```powershell
 py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.lock.txt
-.\.venv\Scripts\python.exe -m pip check
-
-$env:PYTHONPATH = (Resolve-Path .\src).Path
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+$env:PYTHONPATH = "src"
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
-Remove-Item Env:PYTHONPATH
-
-.\.venv\Scripts\python.exe -m json.tool n8n\workflows\director-intake.json | Out-Null
-$env:DIRECTOR_ENV_FILE = '.env.example'
+.\.venv\Scripts\python.exe -m json.tool n8n\workflows\director-intake.json > $null
+$env:DIRECTOR_ENV_FILE = ".env.example"
 docker compose --env-file .env.example config --quiet
-Remove-Item Env:DIRECTOR_ENV_FILE
 ```
-
-The Compose command validates configuration against placeholders without starting containers, reading a real `.env`, or rendering secret-bearing configuration to the terminal.
-<!-- [ Codex | GPT-5 | 2026-08-13 23:45 UTC | END: reproducible isolated Python setup and secret-safe validation ] -->
-<!-- [ Codex | GPT-5 | 2026-08-13 23:37 UTC | END: imported from director-orchestrator@110e403 and specialized for Project Uppercut ] -->

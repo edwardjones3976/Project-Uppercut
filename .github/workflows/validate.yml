@@ -59,7 +59,7 @@ jobs:
         run: python3 -m tools.gen_decision_index --check
       # [ ... | 2026-08-09 21:32 UTC | END edit ]
 
-  # [ Codex | GPT-5 | 2026-08-13 23:33 UTC | START: validate embedded Project Uppercut Director profile ]
+  # [ Codex | GPT-5 | 2026-08-15 21:00 UTC | START: validate refreshed and isolated Project Uppercut Director profile ]
   director-orchestrator:
     runs-on: ubuntu-latest
     steps:
@@ -69,25 +69,24 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
         with:
           python-version: "3.12"
-      # [ Codex | GPT-5 | 2026-08-13 23:45 UTC | START: use the same validated dependency lock as local setup and Docker ]
       - name: Install locked Director dependencies
         run: |
           pip install -r director-orchestrator/requirements.lock.txt
           python -m pip check
-      # [ Codex | GPT-5 | 2026-08-13 23:45 UTC | END: use the same validated dependency lock as local setup and Docker ]
-      - name: Bounded orchestration tests
+      - name: Compile and run bounded orchestration tests
         working-directory: director-orchestrator
         env:
           PYTHONPATH: src
-        run: python -m unittest discover -s tests -v
-      - name: Workflow and Compose configuration
+        run: |
+          python -m compileall -q src tests
+          python -m unittest discover -s tests -v
+      - name: Validate workflow and both Compose profiles
         working-directory: director-orchestrator
-        env:
-          DIRECTOR_ENV_FILE: .env.example
         run: |
           python -m json.tool n8n/workflows/director-intake.json > /dev/null
-          docker compose --env-file .env.example config --quiet
-  # [ Codex | GPT-5 | 2026-08-13 23:33 UTC | END: validate embedded Project Uppercut Director profile ]
+          DIRECTOR_ENV_FILE=.env.example docker compose --env-file .env.example config --quiet
+          DIRECTOR_ENV_FILE=.env.uppercut.example DIRECTOR_COMPOSE_PROJECT_NAME=project-uppercut-director-ci docker compose --env-file .env.uppercut.example config --quiet
+  # [ Codex | GPT-5 | 2026-08-15 21:00 UTC | END: validate refreshed and isolated Project Uppercut Director profile ]
 
   # [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-09 21:35 UTC | START edit: issue #14, the Windows lane ]
   # WHY THIS EXISTS. Issue #14 and every audit of this repository have said the
@@ -113,6 +112,22 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
         with:
           python-version: "3.11"
+      # [ Codex | GPT-5 | 2026-08-15 21:00 UTC | START: parse the isolated Uppercut deployment entrypoint on Windows ]
+      - name: Director Uppercut PowerShell entrypoint parses
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path 'director-orchestrator/scripts/windows-uppercut-live-validation.ps1'),
+            [ref]$tokens,
+            [ref]$errors
+          ) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+      # [ Codex | GPT-5 | 2026-08-15 21:00 UTC | END: parse the isolated Uppercut deployment entrypoint on Windows ]
       - name: Install tooling dependencies
         run: pip install -r requirements-dev.txt
       - name: Full suite on Windows paths

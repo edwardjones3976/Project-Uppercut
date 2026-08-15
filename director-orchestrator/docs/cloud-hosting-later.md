@@ -1,4 +1,3 @@
-<!-- [ Codex | GPT-5 | 2026-08-13 23:33 UTC | START: imported from director-orchestrator@110e403 and specialized for Project Uppercut ] -->
 # Cloud Hosting Later
 
 Keep the first release on the always-on Windows desktop until the dry-run, approval, restart-recovery, and at least one live specialist flow are proven. Move to cloud hosting only to improve availability, remote callbacks, observability, or isolation—not merely to make the diagram look more sophisticated.
@@ -30,4 +29,4 @@ Retain Slack Socket Mode unless inbound HTTP materially improves the design. Kee
 ## Cloud go/no-go gate
 
 Do not migrate until there is a reviewed infrastructure plan, a monthly cost ceiling, a rollback path, secret-rotation procedure, backup/restore test, and explicit owner approval. Do not expose the n8n editor or orchestrator API directly to the public internet.
-<!-- [ Codex | GPT-5 | 2026-08-13 23:37 UTC | END: imported from director-orchestrator@110e403 and specialized for Project Uppercut ] -->
+

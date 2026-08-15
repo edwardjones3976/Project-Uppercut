@@ -61,3 +61,22 @@ blocks in the packet and post what you can (PR comment via ManagePullRequest).
 Do not claim Slack/Linear were updated when they were not.
 
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:34 UTC | END ] -->
+
+<!-- [ Codex | GPT-5 | 2026-08-15 21:00 UTC | START: coordinated Director transition contract ] -->
+
+## Coordinated Director transition contract
+
+Before changing orchestration frameworks, every model must read:
+
+1. `docs/implementation/director_framework_transition.md`
+2. `director-orchestrator/docs/framework-transition-plan.md`
+3. `director-orchestrator/AGENTS.md`
+
+The original three-provider loop is the acceptance gate: OpenAI directs and accepts, Claude is the primary coding and repository-reasoning workhorse, and Cursor independently reviews or implements on an isolated branch. These are responsibilities, not permission expansions. Every assignment remains bounded by repository/ref allowlists, assignment-scoped approval, budget, timeout, evidence, and callback identity.
+
+Do not begin the LangGraph cutover until Gate 0 in the transition plan is complete. During the transition, the existing deterministic engine is the execution default and rollback path. The LangGraph path runs in shadow mode first and must not dispatch providers, write Slack, push branches, or open pull requests until parity evidence is accepted.
+
+Project Uppercut's Python simulation is reference-only. Unreal Engine 5.8 on the designated Windows runner remains authoritative for editor, UBT, and live-bout evidence. No Linux or cloud result may be represented as an Unreal proof.
+
+<!-- [ Codex | GPT-5 | 2026-08-15 21:00 UTC | END: coordinated Director transition contract ] -->
+

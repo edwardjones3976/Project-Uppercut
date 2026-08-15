@@ -1,11 +1,5 @@
 {
-  "contribution": {
-    "agent": "Codex",
-    "model": "GPT-5",
-    "start": "2026-08-13 23:33 UTC",
-    "end": "2026-08-13 23:37 UTC",
-    "source": "director-orchestrator@110e403"
-  },
+  "id": "directorIntake",
   "name": "Director Intake",
   "nodes": [
     {
@@ -25,13 +19,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.ORCHESTRATOR_BASE_URL + '/v1/intake' }}",
+        "url": "http://orchestrator:8080/v1/intake",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ $json.headers?.authorization ?? $json.headers?.Authorization ?? '' }}"
+              "value": "={{ $json.headers.authorization }}"
             },
             {
               "name": "Content-Type",
@@ -103,3 +97,4 @@
   },
   "tags": []
 }
+

@@ -1,4 +1,3 @@
-# [ Codex | GPT-5 | 2026-08-13 23:33 UTC | START: imported from director-orchestrator@110e403 and specialized for Project Uppercut ]
 from __future__ import annotations
 
 import json
@@ -72,22 +71,38 @@ class OpenAIDirector:
         return model.model_validate(json.loads(_output_text(response.json())))
 
     async def plan(self, record: TaskRecord) -> DirectorPlan:
+        readiness = self.settings.readiness()
+        available_specialists = [
+            name
+            for name in ("claude", "cursor", "gemini", "perplexity")
+            if readiness.get(name, False)
+        ]
         request = {
             "owner_objective": record.intake.text,
-            "fixed_project": self.settings.director_project_name,
-            "default_repository": self.settings.director_default_repository,
-            "repository_allowlist": list(self.settings.director_allowed_repositories),
-            "default_starting_ref": self.settings.director_default_starting_ref,
             "hard_limits": {
                 "max_hops": self.settings.max_agent_hops,
                 "max_revisions": self.settings.max_revisions,
                 "max_task_budget_usd": self.settings.max_task_budget_usd,
             },
-            "available_agents": ["cursor", "claude", "gemini", "perplexity", "owner"],
-            "required_rules": [
-                "Use owner for ambiguity or approval-gated actions.",
-                "Keep every assignment inside the repository allowlist.",
-                "Read the target repository AGENTS.md and current numbered Decisions before acting.",
+            "execution_profile": {
+                "allowed_projects": list(self.settings.project_allowlist),
+                "allowed_repositories": list(self.settings.repository_allowlist),
+                "allowed_starting_refs": list(self.settings.allowed_starting_refs),
+                "instruction": (
+                    "Use only these exact execution targets. If the required project, repository, "
+                    "or starting ref is absent, assign the owner and ask one narrow question."
+                ),
+            },
+            "available_agents": [*available_specialists, "owner"],
+            "primary_team": list(self.settings.primary_team),
+            "supplemental_specialists": ["gemini", "perplexity"],
+            "provider_strategy": self.settings.provider_strategy(),
+            "routing_rules": [
+                "Treat OpenAI, Claude, and Cursor as the primary team.",
+                "Use Claude as the primary coding and general workhorse when configured.",
+                "Use Cursor as the other primary repository teammate for coding overflow, independent second passes, and cloud-agent automation.",
+                "Use Gemini or Perplexity only as supplemental specialists when their distinct sandbox, validation, research, or sourcing strengths materially help.",
+                "Use owner for ambiguity, unavailable specialists, quota exhaustion, or approval-gated actions.",
             ],
         }
         return await self._structured(json.dumps(request), DirectorPlan, "director_plan")
@@ -101,4 +116,3 @@ class OpenAIDirector:
             "instruction": "Judge only against explicit acceptance checks and reported evidence.",
         }
         return await self._structured(json.dumps(request), ReviewDecision, "review_decision")
-# [ Codex | GPT-5 | 2026-08-13 23:37 UTC | END: imported from director-orchestrator@110e403 and specialized for Project Uppercut ]

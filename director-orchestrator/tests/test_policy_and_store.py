@@ -1,4 +1,3 @@
-# [ Codex | GPT-5 | 2026-08-13 23:33 UTC | START: imported from director-orchestrator@110e403 and specialized for Project Uppercut ]
 from __future__ import annotations
 
 import tempfile
@@ -18,7 +17,7 @@ from director_orchestrator.models import (
 )
 from director_orchestrator.policy import (
     deterministic_approval_reasons,
-    enforce_plan,
+    execution_policy_errors,
     preview_plan,
 )
 from director_orchestrator.store import TaskStore
@@ -33,67 +32,91 @@ class PolicyTests(unittest.TestCase):
         self.assertIn("production deployment or public publishing", reasons)
         self.assertIn("merge or protected-branch change", reasons)
 
-    def test_dry_run_routes_research_clamps_limits_and_stays_on_uppercut(self):
+    def test_dry_run_routes_research_and_clamps_limits(self):
         plan = preview_plan("Project: RootWitness\nResearch current retention requirements with sources", self.settings)
-        self.assertEqual(plan.project, "Project Uppercut")
+        self.assertEqual(plan.project, "RootWitness")
         self.assertEqual(plan.assignments[0].agent.value, "perplexity")
-        self.assertEqual(
-            plan.assignments[0].repository,
-            "https://github.com/edwardjones3976/Project-Uppercut",
-        )
         self.assertLessEqual(plan.max_hops, 4)
         self.assertLessEqual(plan.max_revisions, 1)
 
-    def test_repository_outside_allowlist_stops_for_reviewed_config_change(self):
-        plan = DirectorPlan(
-            project="anything",
-            normalized_outcome="work elsewhere",
-            risk_level=RiskLevel.LOW,
-            approval_required=False,
-            max_hops=1,
-            max_revisions=0,
-            assignments=[
-                Assignment(
-                    sequence=1,
-                    agent=ProviderName.CURSOR,
-                    task="Change another repository",
-                    acceptance=["Change exists"],
-                    repository="https://github.com/example/other.git",
-                )
-            ],
-            final_acceptance=["Work reviewed"],
+    def test_dry_run_uses_claude_as_default_workhorse(self):
+        plan = preview_plan("Project: demo\nImplement and test a bounded API change", self.settings)
+        self.assertEqual(plan.assignments[0].agent.value, "claude")
+
+    def test_dry_run_can_request_cursor_second_pass_explicitly(self):
+        plan = preview_plan("Project: demo\nRun an independent coding pass in Cursor", self.settings)
+        self.assertEqual(plan.assignments[0].agent.value, "cursor")
+
+    def test_primary_team_is_openai_claude_cursor(self):
+        self.assertEqual(self.settings.primary_team, ("openai", "claude", "cursor"))
+        strategy = self.settings.provider_strategy()
+        self.assertTrue(all(strategy[name]["team"] == "primary" for name in self.settings.primary_team))
+        self.assertEqual(strategy["gemini"]["team"], "supplemental")
+        self.assertEqual(strategy["perplexity"]["team"], "supplemental")
+
+    def test_execution_targets_and_dependencies_are_strictly_allowlisted(self):
+        settings = replace(
+            self.settings,
+            project_allowlist=("project uppercut",),
+            repository_allowlist=("edwardjones3976/project-uppercut",),
+            allowed_starting_refs=("main", "release/first-bell"),
         )
-
-        safe = enforce_plan(plan, "Change another repository", self.settings)
-
-        self.assertTrue(safe.approval_required)
-        self.assertIn("repository outside Project Uppercut allowlist", safe.approval_reasons)
-        self.assertIn("example/other.git", safe.owner_question or "")
-
-    def test_equivalent_uppercut_git_url_is_allowed(self):
         plan = DirectorPlan(
             project="Project Uppercut",
-            normalized_outcome="inspect Uppercut",
+            normalized_outcome="Implement and independently review a bounded change",
             risk_level=RiskLevel.LOW,
             approval_required=False,
-            max_hops=1,
-            max_revisions=0,
+            max_hops=2,
+            max_revisions=1,
             assignments=[
                 Assignment(
                     sequence=1,
                     agent=ProviderName.CLAUDE,
-                    task="Review the project",
-                    acceptance=["Evidence is reported"],
-                    repository="git@github.com:edwardjones3976/Project-Uppercut.git",
-                )
+                    task="Implement",
+                    acceptance=["Tests pass"],
+                    repository="https://github.com/edwardjones3976/Project-Uppercut.git",
+                    starting_ref="main",
+                ),
+                Assignment(
+                    sequence=2,
+                    agent=ProviderName.CURSOR,
+                    task="Review",
+                    acceptance=["Evidence reviewed"],
+                    repository="edwardjones3976/Project-Uppercut",
+                    starting_ref="release/first-bell",
+                    depends_on=[1],
+                ),
             ],
-            final_acceptance=["Review complete"],
+            final_acceptance=["Both assignments accepted"],
         )
 
-        safe = enforce_plan(plan, "Review the project", self.settings)
+        self.assertEqual(execution_policy_errors(plan, settings), [])
 
-        self.assertFalse(safe.approval_required)
-        self.assertIsNone(safe.owner_question)
+        unsafe = plan.model_copy(
+            update={
+                "project": "Unlisted",
+                "assignments": [
+                    plan.assignments[0].model_copy(
+                        update={"repository": "other/private-repo", "starting_ref": "develop"}
+                    ),
+                    plan.assignments[1].model_copy(update={"depends_on": [3]}),
+                ],
+            }
+        )
+        errors = execution_policy_errors(unsafe, settings)
+        self.assertTrue(any("project is not allowlisted" in item for item in errors))
+        self.assertTrue(any("repository is not allowlisted" in item for item in errors))
+        self.assertTrue(any("starting ref is not allowlisted" in item for item in errors))
+        self.assertTrue(any("dependency 3 does not exist" in item for item in errors))
+
+    def test_cursor_cannot_fall_back_to_an_implicit_repository(self):
+        settings = replace(self.settings, project_allowlist=("demo",))
+        plan = preview_plan("Project: demo\nRun an independent coding pass in Cursor", settings)
+
+        self.assertIn(
+            "assignment 1: Cursor requires an explicit repository",
+            execution_policy_errors(plan, settings),
+        )
 
 
 class StoreTests(unittest.TestCase):
@@ -137,4 +160,3 @@ class StoreTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-# [ Codex | GPT-5 | 2026-08-13 23:37 UTC | END: imported from director-orchestrator@110e403 and specialized for Project Uppercut ]

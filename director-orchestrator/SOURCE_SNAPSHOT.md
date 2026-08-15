@@ -1,26 +1,15 @@
-<!-- [ Codex | GPT-5 | 2026-08-13 23:33 UTC | START ] -->
+<!-- [ Codex | GPT-5 | 2026-08-15 21:00 UTC | START: refreshed Director source provenance ] -->
 
-# Source snapshot and synchronization
+# Director Orchestrator source snapshot
 
-This embedded runtime was imported from the private repository
-[`edwardjones3976/director-orchestrator`](https://github.com/edwardjones3976/director-orchestrator)
-at commit `110e403` (`Merge pull request #1 from edwardjones3976/agent/initial-director-setup`).
-The source repository's `.git` directory, history, runtime data, caches, and secrets were not copied.
+- Canonical repository: `edwardjones3976/director-orchestrator`
+- Source pull request: [#20](https://github.com/edwardjones3976/director-orchestrator/pull/20)
+- Source commit: `eaaa1a90dad684c9810ce8e83287f348d3bd02ce`
+- Refreshed: 2026-08-15
+- Project Uppercut pull request: [#45](https://github.com/edwardjones3976/Project-Uppercut/pull/45)
 
-The import preserves the standalone runtime and then applies a Project Uppercut profile:
+The files under this directory mirror the source commit above. Project Uppercut retains `requirements.lock.txt` as a repository-specific reproducibility overlay; it is not part of the canonical source tree. No populated environment file, provider credential, Slack credential, runtime database, cache, or Git history is included.
 
-- Project and repository defaults are fixed to Project Uppercut.
-- A deterministic allowlist prevents dispatch to another repository.
-- Direct API intake, Slack intake, the slash command, Compose project, ports, and durable volumes are isolated for Project Uppercut.
-- Direct authenticated intake is the default. Optional n8n forwards the caller's bearer header and has no copy of the orchestrator shared secret.
-- The Director and Claude prompts require current repository instructions and numbered Decisions, including live C++ combat authority and the current authenticity HOLD.
-- Python dependencies are locked for 3.12, Docker excludes local secrets/environments, deployment images are pinned by digest, and bootstrap forces dry-run with checked native exit codes.
-- SQLite connections are explicitly closed so restart/idempotency tests and task databases behave correctly on Windows.
-- Project Uppercut CI runs the embedded unit tests and validates its n8n and Compose configuration.
+The standalone Director repository remains canonical. Make orchestration changes there first, validate them there, then refresh this snapshot and this provenance file. Keep Project Uppercut PR #45 draft until PR #20 is merged and this source commit is refreshed to the resulting merge commit.
 
-Future upstream synchronization should be a reviewed diff from the last recorded source commit. Do
-not replace this directory wholesale: retain the scope enforcement, Project Uppercut prompts,
-deployment isolation, local contribution tags, and tests unless a new Director ruling deliberately
-changes them.
-
-<!-- [ Codex | GPT-5 | 2026-08-13 23:55 UTC | END ] -->
+<!-- [ Codex | GPT-5 | 2026-08-15 21:00 UTC | END: refreshed Director source provenance ] -->
