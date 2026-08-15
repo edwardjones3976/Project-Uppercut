@@ -341,6 +341,11 @@ FUppercutFightView UUppercutFightSubsystem::GetView() const
             W.bPunchInFlight = F.bInFlight;
             W.PunchMove = F.PunchMove;
             W.bPunchIsInRange = F.bPunchLegal;
+            // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+            //   2026-08-15 17:15 UTC | START edit: impact telemetry crosses ]
+            W.LastImpactTick = Integrated.Fighter[i].LastImpactTick;
+            W.LastImpactMove = Integrated.Fighter[i].LastImpactMove;
+            // [ ... | 2026-08-15 17:15 UTC | END edit ]
             V.Fighters.Add(W);
         }
         return V;

@@ -128,6 +128,35 @@ baked into `L_UppercutDevArena.umap`.
 Default maps in `sandbox/Config/DefaultEngine.ini` point at
 `/Game/ProjectUppercut/Maps/L_UppercutDevArena` — if you see Untitled landscape,
 you opened the wrong level.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-15 17:40 UTC | START ] -->
+### How the mannequins are driven (2026-08-15)
+
+Three defects fixed on 2026-08-15 define the current playback rules:
+
+- **Being hit is visible.** It is not an action a fighter commits, so it can
+  never appear in `LastAction` — the four reaction clips were loaded and
+  unreachable. The session now stamps view-facing impact telemetry
+  (`LastImpactTick`, `LastImpactMove`) on the defender when a punch lands; the
+  view carries it; the actor edge-detects it exactly as it does
+  `LastActionTick`, plays `hit_high`/`hit_body` (by the move's own `body_`
+  prefix), and fires `OnHitTaken`. The stream is untouched — the P row already
+  recorded the landing, and the parity proofs were re-run to hold that claim.
+- **Every commitment restarts its clip, and one-shots do not loop.** Punches
+  and reactions play once and hand the body back to a looping guard when they
+  finish (checked in real time, so a paused fight does not freeze a fist
+  mid-air forever). Guard and steps loop. The old code resumed the running
+  clip on identical actions and looped everything, which is where the missing
+  second jab and the self-repeating punches came from.
+- **The mesh counter-rotation exists.** Mannequin-family meshes are authored
+  facing +Y; the component now carries the standard −90° relative yaw, so the
+  fighters face each other along the axis instead of both facing a side wall.
+  The actor-facing maths was always right; the mesh under it was not.
+- A hit reaction briefly owns the body: sustained actions do not stomp it, a
+  new punch commitment always does. `block_high`/`block_body` remain loaded
+  and unused — the simulation has no blocking yet, and playing one would be
+  presentation inventing a defence that never happened.
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-15 17:40 UTC | END ] -->
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ] -->
 
 ## What this arena does not do yet
