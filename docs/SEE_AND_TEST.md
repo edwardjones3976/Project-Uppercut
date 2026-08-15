@@ -47,6 +47,40 @@ Decision 0037 path: the integrated bout now reads `opponent_read` (defender
 
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 02:53 UTC | END ] -->
 
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-14 10:35 UTC | START ] -->
+
+## Check the integrated round is still the fight it was
+
+The round you press Play on is the combat authority (Decision 0040 R1), and
+since 2026-08-14 it has pins.
+
+```
+python -m tools.engine.prove_integrated_arena
+```
+
+Needs UE, about a minute for three runs. It drives the authoritative session
+headless at seeds 4242 and 777, and diffs the marker stream against
+`docs/phase1a/golden/integrated_1r_*.stream` byte for byte. A drift prints as a
+fight — `tick 1195: fighter 0 LANDS hook_lead` against `... and it is slipped` —
+and exits non-zero. Re-bless deliberately with `--write`, in the same commit as
+the change that caused it.
+
+Without an engine, two checks still run in the ordinary suite: the pins parse as
+coherent fights, and the coherence checker is mutation-proven against
+twenty-odd ways of breaking a stream.
+
+```
+python -m tools.engine.analyze_integrated_arena <stream>     # is this coherent?
+python -m tools.engine.trace_integrated_divergence           # C++ vs Python
+```
+
+`trace_integrated_divergence` answers Decision 0040's second calibration
+prerequisite. At seed 4242 the two runtimes make **1038** decisions on the same
+tick for the same fighter and **none of them agree**, so convergence is not a
+tuning problem. It needs no engine — it reads the C++ side from the pin.
+
+<!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-14 10:35 UTC | END ] -->
+
 ## Press Play on it (Phase Q distance — historical)
 
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 22:40 UTC | arena start ] -->
