@@ -61,3 +61,9 @@ blocks in the packet and post what you can (PR comment via ManagePullRequest).
 Do not claim Slack/Linear were updated when they were not.
 
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:34 UTC | END ] -->
+
+## Orchestration transition work
+
+Before accepting an orchestrated assignment, read `docs/implementation/orchestrator-transition-bridge.md` and use `docs/implementation/multi-model-handoff-template.md` together with the upstream machine-readable work packet.
+
+The transition is operational only. It cannot change Project Uppercut canon, C++ combat authority, Decision 0040, Issue 12 ordering, frozen values, evidence pins, or milestone status. During shadow and dual-run phases, agents must identify which engine owns dispatch and external writes; there may be only one writer for a task.
