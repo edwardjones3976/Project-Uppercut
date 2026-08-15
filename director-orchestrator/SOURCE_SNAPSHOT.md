@@ -1,11 +1,11 @@
-<!-- [ Codex | GPT-5 | 2026-08-15 21:20 UTC | START: refreshed Director source provenance ] -->
+<!-- [ Codex | GPT-5 | 2026-08-15 21:30 UTC | START: refreshed Director source provenance ] -->
 
 # Director Orchestrator source snapshot
 
 - Canonical repository: `edwardjones3976/director-orchestrator`
 - Isolation remediation: [PR #20](https://github.com/edwardjones3976/director-orchestrator/pull/20)
-- Source commit: `15c2a8b3e01399840f8291ea8f637324a58c9f79`
-- Source tree: `0d96c78af1429df8ef6c4d77bad7940845545dd2`
+- Source commit: `e72fa0dc6a1d9582a933b649c98d7f85cf5daecb`
+- Source tree: `959982dacf39be625207574098d60a52ebbfadcf`
 - Transition plan: [director-orchestrator PR #18](https://github.com/edwardjones3976/director-orchestrator/pull/18)
 - Project bridge: [Project-Uppercut PR #47](https://github.com/edwardjones3976/Project-Uppercut/pull/47)
 - Acceptance tracker: [Project-Uppercut issue #48](https://github.com/edwardjones3976/Project-Uppercut/issues/48)
@@ -18,4 +18,4 @@ Every upstream blob at the source tree above was copied under `director-orchestr
 
 The standalone Director repository is canonical. Orchestration changes originate there and are refreshed here only after review. This PR must remain draft until PR #20 merges, the source commit is updated to its merge commit, both exact heads pass CI, and the Windows operator dry-run succeeds.
 
-<!-- [ Codex | GPT-5 | 2026-08-15 21:20 UTC | END: refreshed Director source provenance ] -->
+<!-- [ Codex | GPT-5 | 2026-08-15 21:30 UTC | END: refreshed Director source provenance ] -->
