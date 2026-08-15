@@ -131,3 +131,7 @@ Every phase must pass a defined quality gate before the next phase begins.
 ## Technical foundation
 
 The accepted default production baseline is Unreal Engine with Blueprints for early prototyping, Python for tools and analysis, C++ for later performance-critical or architecture-heavy systems, GitHub for version control, and Blender plus properly licensed assets for content production. The engine baseline is pinned — Unreal Engine 5.8.1 (CL 56057345), recorded with the rest of the toolchain in [technical_baseline](docs/phase0/technical_baseline.md) — and each remaining choice stays subject to validation in the technical sandbox, with no implementation claimed until repository evidence exists.
+
+## Orchestration transition
+
+The Project Uppercut bridge for the proposed LangGraph migration is [docs/implementation/orchestrator-transition-bridge.md](docs/implementation/orchestrator-transition-bridge.md). Multi-model assignments use the [handoff template](docs/implementation/multi-model-handoff-template.md) and the upstream provider-neutral packet schemas. The bridge is operational guidance and does not modify combat or product canon.
