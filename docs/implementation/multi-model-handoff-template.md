@@ -1,3 +1,5 @@
+<!-- [ Codex | GPT-5 | 2026-08-16 03:50 UTC | START ] -->
+
 # Multi-model handoff template
 
 Use this template for Project Uppercut work during the orchestration transition. The machine-readable packet remains authoritative.
@@ -24,8 +26,8 @@ One bounded outcome.
 
 ## Non-goals
 
-- 
-- 
+-
+-
 
 ## Authority snapshot
 
@@ -52,8 +54,8 @@ One bounded outcome.
 
 ## Acceptance checks
 
-1. 
-2. 
+1.
+2.
 
 ## Evidence required
 
@@ -77,3 +79,5 @@ One bounded outcome.
 - Recommended next assignment:
 
 A handoff is incomplete when it omits failed or unexecuted checks.
+
+<!-- [ Codex | GPT-5 | 2026-08-16 03:50 UTC | END ] -->

@@ -1,8 +1,10 @@
+<!-- [ Codex | GPT-5 | 2026-08-16 03:50 UTC | START ] -->
+
 # Director Orchestrator to LangGraph transition bridge
 
-**Status:** Proposed operational bridge; no combat or product authority  
-**Project baseline:** `main@86d3ef101906591ee099046ad93c435ace646c92`  
-**Orchestrator baseline under repair:** `director-orchestrator@9981208862c991a127ca7400d687230a2153b688`  
+**Status:** Proposed operational bridge; no combat or product authority
+**Project baseline:** `main@322930c4e17ac1614499e135a5841ed4c5c6d448`
+**Orchestrator baseline:** `director-orchestrator@b54efdb749bda656adf6a8135d828da3165d34f7`
 **Binding combat disposition:** Decision 0040
 
 ## Purpose
@@ -17,7 +19,7 @@ No LangGraph-controlled Uppercut work begins until both original deployment task
 
 ### 1. Isolate the Uppercut deployment
 
-The merged Director Orchestrator PR 17 must be remediated upstream. The accepted replacement must:
+Director Orchestrator PR 20 merged the upstream isolation remediation. Acceptance still requires live Windows evidence that the deployment:
 
 - use `.env.uppercut`, never rewrite the shared `.env`;
 - run as Compose project `project-uppercut-director`;
@@ -28,7 +30,7 @@ The merged Director Orchestrator PR 17 must be remediated upstream. The accepted
 
 ### 2. Refresh draft PR 45
 
-PR 45 currently vendors source commit `110e403` and is stale. After the upstream isolation fix merges, regenerate the snapshot from that repaired commit, update its provenance/digest, and repeat both repositories' validation on the exact PR head.
+PR 45 now vendors merged source commit `b54efdb749bda656adf6a8135d828da3165d34f7`. Its refreshed snapshot, provenance, both repositories' validation, and live Windows deployment evidence must all be accepted on the exact PR head before transition work begins.
 
 The embedded runtime is a pinned compatibility mirror. Development occurs upstream in `edwardjones3976/director-orchestrator`; Project Uppercut must not become a divergent orchestrator fork.
 
@@ -178,3 +180,5 @@ The transition is complete only when the owner accepts:
 - observation window with no unresolved safety or correctness defect.
 
 Until then, the migration remains reversible and explicitly in transition.
+
+<!-- [ Codex | GPT-5 | 2026-08-16 03:50 UTC | END ] -->
