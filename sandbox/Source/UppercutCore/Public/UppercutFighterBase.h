@@ -92,6 +92,14 @@ public:
     UFUNCTION(BlueprintImplementableEvent, Category = "Uppercut|Presentation")
     void OnBandChanged(const FString& OldBand, const FString& NewBand);
 
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-15 17:15 UTC | START ]
+    // This fighter was hit. `MoveId` is the attacker's move. Fires on the edge
+    // of the snapshot's LastImpactTick, exactly as OnActionCommitted fires on
+    // LastActionTick - being hit is the one event a fighter never commits to.
+    UFUNCTION(BlueprintImplementableEvent, Category = "Uppercut|Presentation")
+    void OnHitTaken(const FString& MoveId);
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-15 17:15 UTC | END ]
+
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Uppercut")
     FUppercutFighterView GetFighterView() const;
 
@@ -102,7 +110,15 @@ protected:
 private:
     // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
     void TryEnableMannequin();
-    void PlayActionClip(const FString& Action);
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+    //   2026-08-15 17:15 UTC | START edit: restart + loop discipline ]
+    // bOneShot: a punch or a reaction plays once and hands the body back;
+    // everything sustained (guard, steps, idle) loops. Every call RESTARTS the
+    // clip - two jabs in a row are two commitments (the comment in Tick already
+    // said so; the old implementation resumed the running clip instead).
+    void PlayActionClip(const FString& Action, bool bOneShot);
+    void PlayHitReaction(const FString& AttackerMove);
+    // [ ... | 2026-08-15 17:15 UTC | END edit ]
     void EnterPoseStudioIfRequested();
     void PlayPoseStudioLoop(const FString& ClipPath);
     // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
@@ -114,6 +130,15 @@ private:
     bool bWasPunching = false;
     FString LastPunchMove;
     int32 LastSeenTick = -1;
+
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-15 17:15 UTC | START ]
+    // Edge memory for the impact snapshot, and the reaction's brief ownership
+    // of the body: while a hit reaction plays, sustained actions do not stomp
+    // it (they are visually near-idle anyway), but a new PUNCH commitment
+    // always takes the body back - offence must never be invisible.
+    int32 LastImpactTick = -1;
+    bool bReactionHold = false;
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-15 17:15 UTC | END ]
 
     // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
     bool bMannequinOn = false;

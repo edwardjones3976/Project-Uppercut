@@ -73,6 +73,19 @@ struct UPPERCUTCORE_API FUppercutFighterView
     // Movement still owed, capped per tick so nobody teleports.
     UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Fighter")
     float PendingRu = 0.f;
+
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-15 17:15 UTC | START ]
+    // The last punch that resolved against THIS fighter: the tick it landed,
+    // and the attacker's move. -1 until first hit. Being hit is not an action
+    // a fighter commits, so it can never appear in LastAction - without these
+    // two fields a hit reaction has nothing truthful to fire from. Integrated
+    // session only; the Phase Q distance session leaves them at defaults.
+    UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Fighter")
+    int32 LastImpactTick = -1;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Fighter")
+    FString LastImpactMove;
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-15 17:15 UTC | END ]
 };
 
 USTRUCT(BlueprintType)

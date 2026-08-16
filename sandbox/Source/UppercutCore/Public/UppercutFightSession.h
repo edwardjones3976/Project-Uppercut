@@ -30,6 +30,17 @@ struct UPPERCUTCORE_API FUppercutFightFighter
     int64 WindMax = 100000000;     // filled from stamina canon
     uint32 PolicyStream = 0;
     int32 DecisionBusy = 0;
+
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-15 17:15 UTC | START ]
+    // The last punch that resolved AGAINST this fighter: the tick it landed and
+    // the attacker's move. View-facing telemetry ONLY - the stream already
+    // recorded it as a P row, no decision reads it, and no row is emitted from
+    // it. It exists because being hit is not an action a fighter commits, so a
+    // presentation layer reading only LastAction can never see it - which left
+    // the four reaction clips loaded and unreachable. -1 = never hit.
+    int32 LastImpactTick = -1;
+    FString LastImpactMove;
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-15 17:15 UTC | END ]
 };
 
 struct UPPERCUTCORE_API FUppercutFightSession

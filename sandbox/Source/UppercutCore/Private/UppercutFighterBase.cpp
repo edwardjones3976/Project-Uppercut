@@ -34,6 +34,16 @@ AUppercutFighterBase::AUppercutFighterBase()
     // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
     Mannequin = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mannequin"));
     Mannequin->SetupAttachment(Pivot);
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+    //   2026-08-15 17:15 UTC | START edit: the mesh faces the actor's forward ]
+    // UE mannequin-family skeletal meshes are authored facing +Y; every stock
+    // character setup counter-rotates the mesh component by -90 yaw so the
+    // character faces the actor's +X. This component had no relative rotation,
+    // so both fighters stood bladed 90 degrees off the ring axis - facing the
+    // same side wall, never each other - no matter what the (correct) facing
+    // maths in Tick computed for the ACTOR.
+    Mannequin->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+    // [ ... | 2026-08-15 17:15 UTC | END edit ]
     Mannequin->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     Mannequin->SetHiddenInGame(true);
     Mannequin->SetVisibility(false);
@@ -95,7 +105,9 @@ void AUppercutFighterBase::TryEnableMannequin()
     bMannequinOn = true;
     if (UppercutLoadFighterActionClips(ActionClips))
     {
-        PlayActionClip(TEXT("guard"));
+        // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+        //   2026-08-15 17:15 UTC | edit: guard is sustained, so it loops ]
+        PlayActionClip(TEXT("guard"), /*bOneShot=*/false);
         UE_LOG(LogTemp, Display,
                TEXT("UppercutFighter %d: mannequin ON (%d clips)"),
                FighterIndex, ActionClips.Num());
@@ -199,20 +211,55 @@ void AUppercutFighterBase::PlayPoseStudioLoop(const FString& ClipPath)
            FighterIndex, *ClipPath);
 }
 
-void AUppercutFighterBase::PlayActionClip(const FString& Action)
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+//   2026-08-15 17:15 UTC | START edit: restart discipline + hit reactions ]
+void AUppercutFighterBase::PlayActionClip(const FString& Action, bool bOneShot)
 {
     if (bPoseStudio) { return; }
     if (!bMannequinOn || !Mannequin || ActionClips.Num() == 0) { return; }
+
+    // While a hit reaction owns the body, sustained actions wait - they are
+    // visually near-idle and the reaction is the truth worth showing. A punch
+    // commitment always takes the body back: offence must never be invisible.
+    if (bReactionHold)
+    {
+        if (!bOneShot) { return; }
+        bReactionHold = false;
+    }
+
     UAnimSequence* A = ActionClips.FindRef(Action);
     if (!A) { A = ActionClips.FindRef(TEXT("guard")); }
     if (!A) { return; }
-    UAnimSingleNodeInstance* SN = Mannequin->GetSingleNodeInstance();
-    if (!SN || SN->GetAnimationAsset() != A)
-    {
-        Mannequin->SetAnimation(A);
-    }
-    Mannequin->Play(true);
+
+    // Unconditionally restart. The old code skipped SetAnimation when the
+    // asset matched and resumed the running clip, so the second of two
+    // identical commitments played nothing - while the comment at the call
+    // site correctly explained why it must not. And one-shots do not loop:
+    // Play(true) here is where the self-repeating punches and the hard cuts
+    // ("random body jerking") came from.
+    Mannequin->SetAnimation(A);
+    Mannequin->SetPosition(0.f, false);
+    Mannequin->Play(!bOneShot);
 }
+
+void AUppercutFighterBase::PlayHitReaction(const FString& AttackerMove)
+{
+    if (bPoseStudio) { return; }
+    if (!bMannequinOn || !Mannequin || ActionClips.Num() == 0) { return; }
+    // The move's own name says where it went: body_* downstairs, the rest
+    // upstairs. Presentation vocabulary, derived at the boundary - canon's
+    // region model stays where it lives.
+    const bool bBody = AttackerMove.StartsWith(TEXT("body_"));
+    const FString Key = bBody ? TEXT("hit_body") : TEXT("hit_high");
+    UAnimSequence* A = ActionClips.FindRef(Key);
+    if (!A) { return; }
+    Mannequin->SetAnimation(A);
+    Mannequin->SetPosition(0.f, false);
+    Mannequin->Play(false);
+    bReactionHold = true;
+}
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+//   2026-08-15 17:15 UTC | END edit ]
 // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
 
 FUppercutFighterView AUppercutFighterBase::GetFighterView() const
@@ -247,6 +294,19 @@ void AUppercutFighterBase::Tick(float DeltaSeconds)
         SetActorRotation((Axis * Sign).Rotation());
     }
 
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+    //   2026-08-15 17:15 UTC | START edit: a finished one-shot hands back ]
+    // Runs every frame, BEFORE the tick guard below: clips play in real time,
+    // so a punch can finish while the simulation is paused, and a fighter
+    // frozen on the last frame of a jab is a statue, not a boxer.
+    if (bMannequinOn && !bPoseStudio && Mannequin && ActionClips.Num() > 0
+        && !Mannequin->IsPlaying())
+    {
+        bReactionHold = false;
+        PlayActionClip(TEXT("guard"), /*bOneShot=*/false);
+    }
+    // [ ... | 2026-08-15 17:15 UTC | END edit ]
+
     // ---- edges, only when the simulation actually advanced ----------------
     // Guarding on the tick means a paused fight does not re-fire an animation
     // every frame, and a single-step fires it exactly once.
@@ -266,9 +326,30 @@ void AUppercutFighterBase::Tick(float DeltaSeconds)
         LastActionTick = F.LastActionTick;
         OnActionCommitted(F.LastAction, F.bPunchInFlight);
         // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | START ]
-        PlayActionClip(F.LastAction);
+        // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+        //   2026-08-15 17:15 UTC | edit: punches are one-shots; the snapshot
+        //   already says whether this commitment threw one ]
+        PlayActionClip(F.LastAction, /*bOneShot=*/F.bPunchInFlight);
         // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
     }
+
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+    //   2026-08-15 17:15 UTC | START edit: the hit edge ]
+    // After the action edge on purpose: if a fighter is hit on the same tick
+    // he commits, the hit is what the audience must see. Being hit is the one
+    // event LastAction can never carry - the four reaction clips sat loaded
+    // and unreachable until this edge existed.
+    if (F.LastImpactTick != LastImpactTick)
+    {
+        LastImpactTick = F.LastImpactTick;
+        if (LastImpactTick >= 0)
+        {
+            OnHitTaken(F.LastImpactMove);
+            PlayHitReaction(F.LastImpactMove);
+        }
+    }
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+    //   2026-08-15 17:15 UTC | END edit ]
 
     if (F.bPunchInFlight && !bWasPunching)
     {
