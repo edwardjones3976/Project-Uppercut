@@ -156,6 +156,34 @@ Three defects fixed on 2026-08-15 define the current playback rules:
   new punch commitment always does. `block_high`/`block_body` remain loaded
   and unused — the simulation has no blocking yet, and playing one would be
   presentation inventing a defence that never happened.
+
+### Look-at (2026-08-16)
+
+A boxer never takes his eyes off the other one; a clip does not know that, so
+every punch and hit reaction turned the head wherever the animator put it.
+`AUppercutFighterBase::ApplyLookAt` bends the head — and `LookAtSpineShare` of
+the turn through `spine_03` — back onto the opponent's eye line **after** the
+clip has been evaluated, every frame, guarded by `LookAtMaxDegrees` so a neck
+still has limits.
+
+Three things about it are deliberate:
+
+- **The face axis is measured, not assumed.** Calibration asks the reference
+  skeleton which bone-local direction points out of the face, because a
+  hard-coded axis is a guess about an asset and the asset may change. It runs
+  once and logs `look-at ON (head 'head' +N children …)`.
+- **Descendants are carried.** Turning a bone in component space turns only
+  that bone's skinning; its children keep their old transforms and the mesh
+  tears at the neck. Every descendant gets the same delta about the same pivot.
+- **It writes bones and nothing else.** It runs at `TG_PostPhysics`, after
+  animation has been evaluated, reads the fight snapshot, and touches only
+  `GetEditableComponentSpaceTransforms`. The three integrated pins re-proved
+  byte-identical with it on, which is that claim made checkable.
+
+Its effect is real but modest today, and worth saying plainly: the fight is
+one-dimensional, so the fighters already face each other exactly and the
+correction is only ever undoing what a clip did to the head. It will matter far
+more when Decision 0013's lateral axis lands and "facing" stops being binary.
 <!-- [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-15 17:40 UTC | END ] -->
 <!-- [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ] -->
 
