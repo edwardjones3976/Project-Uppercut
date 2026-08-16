@@ -86,6 +86,35 @@ struct UPPERCUTCORE_API FUppercutFighterView
     UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Fighter")
     FString LastImpactMove;
     // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-15 17:15 UTC | END ]
+
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 02:30 UTC | START ]
+    // THE VITALS, as the Fighter Vitals Telemetry Panel reads them. Decision
+    // 0021's two layers, kept separate here because they are separate in the
+    // model: Wind is the breath that comes back, Reserve is the well that does
+    // not. Fractions are q10000 so the boundary converts once, in the same
+    // place every other number does.
+    //
+    // There is deliberately NO head or body condition here. The integrated
+    // session has no damage model yet (Issue #12, "Integrate regional
+    // condition"), and a meter reading zero because nothing computes it is
+    // worse than no meter - it reads as a fighter who is unhurt.
+    UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Vitals")
+    int32 WindFractionQ = 0;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Vitals")
+    int32 ReserveFractionQ = 0;
+
+    // Landings SCORED BY this fighter - the number the round is decided on.
+    UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Vitals")
+    int32 Landings = 0;
+
+    // Knockdowns SUFFERED BY this fighter, this round.
+    UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Vitals")
+    int32 KnockdownsAgainst = 0;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Uppercut|Fighter")
+    FString CardId;
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 02:30 UTC | END ]
 };
 
 USTRUCT(BlueprintType)

@@ -408,6 +408,89 @@ void AUppercutMatchDirector::FirePoseStudioCapture()
            *PoseShotPath);
 }
 
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 02:30 UTC | START ]
+namespace
+{
+    // A meter, in text. Ten cells of q10000.
+    FString UppercutBar(int32 FractionQ)
+    {
+        const int32 Filled = FMath::Clamp(FMath::RoundToInt(FractionQ / 1000.f), 0, 10);
+        FString Out = TEXT("[");
+        for (int32 I = 0; I < 10; ++I)
+        {
+            Out += (I < Filled) ? TEXT("|") : TEXT(".");
+        }
+        return Out + FString::Printf(TEXT("] %3d%%"), FMath::Clamp(FractionQ / 100, 0, 100));
+    }
+}
+
+void AUppercutMatchDirector::DrawVitalsPanel(const FUppercutFightView& View)
+{
+    if (!bShowVitalsPanel || !GEngine) { return; }
+
+    // The on-screen debug channel stacks by INSERTION order and draws the
+    // first message lowest, so a panel written top-down renders upside down.
+    // Two attempts confirmed it: ascending keys, then descending keys - the
+    // key does not decide the order at all. Lines are collected here and
+    // emitted in reverse below. Stable keys keep each row updating in place
+    // instead of scrolling; the block is reserved from 9100 upward.
+    TArray<TPair<FColor, FString>> Lines;
+    auto Line = [&](const FColor& Colour, const FString& Text)
+    {
+        Lines.Emplace(Colour, Text);
+    };
+
+    Line(FColor::White, TEXT("-- FIGHTER VITALS TELEMETRY ---------------"));
+    Line(FColor::Silver, FString::Printf(
+        TEXT("  seed %d   tick %d / %d   x%.2f   %s"),
+        View.Seed, View.Tick, View.TickBudget, View.SpeedMultiplier,
+        View.bRoundFinished ? *View.RoundMethod : TEXT("boxing")));
+
+    for (int32 I = 0; I < View.Fighters.Num(); ++I)
+    {
+        const FUppercutFighterView& F = View.Fighters[I];
+        const FColor Corner = (I == 0) ? FColor(255, 120, 120) : FColor(120, 170, 255);
+        Line(Corner, FString::Printf(TEXT("  %-11s %s"),
+             (I == 0) ? TEXT("RED") : TEXT("BLUE"), *F.CardId));
+        Line(Corner, FString::Printf(TEXT("    wind    %s"),
+             *UppercutBar(F.WindFractionQ)));
+        Line(Corner, FString::Printf(TEXT("    reserve %s"),
+             *UppercutBar(F.ReserveFractionQ)));
+        Line(Corner, FString::Printf(
+            TEXT("    landed %-4d  kd against %d   band %s   %s%s"),
+            F.Landings, F.KnockdownsAgainst, *F.BandKey, *F.LastAction,
+            F.bPunchInFlight ? (F.bPunchIsInRange ? TEXT(" (in flight)")
+                                                  : TEXT(" (in flight, short)"))
+                             : TEXT("")));
+    }
+
+    // The counters the trailer will end with, live - so what is on screen and
+    // what the marker stream says are checkably the same fight.
+    Line(FColor::Silver, FString::Printf(
+        TEXT("  punches %d  landed %d  cards %d-%d"),
+        View.Punches, View.Landed, View.CardRed, View.CardBlue));
+    Line(FColor::Silver, FString::Printf(TEXT("  marker %s  rows %d"),
+        *View.MarkerHash, View.RowCount));
+
+    // Said out loud rather than drawn as an empty meter. Two of the three
+    // meters a boxing HUD normally carries cannot exist yet: the integrated
+    // session has no damage model (Issue #12). A head bar sitting at 100%
+    // would be presentation inventing a fighter who is unhurt.
+    Line(FColor(150, 150, 150),
+         TEXT("  head/body condition: NOT MODELLED YET (Issue #12)"));
+
+    int32 Key = 9100;
+    for (int32 I = Lines.Num() - 1; I >= 0; --I)
+    {
+        // 1 second, not 0: the same key every frame replaces the row
+        // rather than repeating it, so the panel looks identical either way -
+        // but a zero-second message can expire across a frame boundary and
+        // drop out of a screenshot.
+        GEngine->AddOnScreenDebugMessage(Key++, 1.f, Lines[I].Key, Lines[I].Value);
+    }
+}
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 02:30 UTC | END ]
+
 void AUppercutMatchDirector::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
@@ -463,7 +546,11 @@ void AUppercutMatchDirector::Tick(float DeltaSeconds)
                 FString::Printf(TEXT("fight_t%03d.png"),
                                 (int32)LiveShotTimes[LiveShotsFired]));
             IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
-            FScreenshotRequest::RequestScreenshot(Path, false, false);
+            // bShowUI=true: a capture of the live fight that omits the
+            // Fighter Vitals Telemetry Panel throws away the most useful half
+            // of the frame. Pose studio still captures clean - there the
+            // subject IS the clip.
+            FScreenshotRequest::RequestScreenshot(Path, true, false);
             ++LiveShotsFired;
             UE_LOG(LogTemp, Display,
                    TEXT("UppercutMatchDirector: live capture %d/%d -> %s"),
@@ -473,8 +560,15 @@ void AUppercutMatchDirector::Tick(float DeltaSeconds)
     // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 02:35 UTC |
     //   END edit ]
 
-    if (!Fight || bAnnouncedFinish) { return; }
+    if (!Fight) { return; }
     const FUppercutFightView V = Fight->GetView();
+
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 02:30 UTC |
+    //   edit: drawn BEFORE the finish guard, so the panel still reads out the
+    //   round that just ended instead of vanishing at the bell ]
+    DrawVitalsPanel(V);
+
+    if (bAnnouncedFinish) { return; }
     if (V.State == EUppercutFightState::Finished)
     {
         bAnnouncedFinish = true;

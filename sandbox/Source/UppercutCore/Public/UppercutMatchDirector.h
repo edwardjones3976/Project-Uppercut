@@ -67,6 +67,21 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Uppercut|Controls")
     bool bBindDefaultKeys = true;
 
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 02:30 UTC | START ]
+    // THE FIGHTER VITALS TELEMETRY PANEL (Director's name, 2026-08-16).
+    //
+    // Developer-only, and named apart from any future player-facing HUD on
+    // purpose: this shows what the SIMULATION holds, including the marker hash
+    // of the round in progress, so a fight can be read while it is still
+    // happening rather than after it is dumped.
+    //
+    // It draws on the engine's on-screen debug channel - no UMG asset, no HUD
+    // class, no game-mode override, no change to the map - which is also an
+    // honest signal that it is instrumentation and not product.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Uppercut|Telemetry")
+    bool bShowVitalsPanel = true;
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 02:30 UTC | END ]
+
     UFUNCTION(BlueprintCallable, Category = "Uppercut|Controls")
     void StartRound();
 
@@ -125,6 +140,10 @@ private:
     // tools.engine.check_core_compiles stays on its observed UE whitelist.
     void ArmPoseStudioCapture(ACameraActor* Cam, const FString& ShotPath);
     void FirePoseStudioCapture();
+
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 02:30 UTC | START ]
+    void DrawVitalsPanel(const FUppercutFightView& View);
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 02:30 UTC | END ]
 
     bool bAnnouncedFinish = false;
     float SpeedNow = 1.f;
