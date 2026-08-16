@@ -21,8 +21,13 @@ struct UPPERCUTCORE_API FUppercutArenaRingSpawn
 
 // AxisCm must match how AUppercutFighterBase places fighters
 // (GetRingAxisRu() * WorldUnitsPerRingUnit, default 100 cm/ru).
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 03:05 UTC |
+//   edit: SpanMultiplier scales the VISUAL ring beyond the fight axis
+//   (Director request 2026-08-16: "make the ring bigger"). 1.0 = ropes meet
+//   the axis exactly, the old look. Presentation only: fighters, canon and
+//   the axis itself do not move. ]
 UPPERCUTCORE_API FUppercutArenaRingSpawn UppercutSpawnFabRing(
-    UWorld* World, double AxisCm);
+    UWorld* World, double AxisCm, double SpanMultiplier = 1.0);
 
 UPPERCUTCORE_API USkeletalMesh* UppercutLoadFighterMannequinMesh(int32 FighterIndex);
 

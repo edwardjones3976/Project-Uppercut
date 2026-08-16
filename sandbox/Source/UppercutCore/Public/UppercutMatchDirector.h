@@ -49,6 +49,13 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Uppercut|Round")
     bool bAutoStart = true;
 
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 03:05 UTC |
+    //   edit: how much wider the VISUAL ring is than the fight axis. 1.0 =
+    //   ropes meet the axis (the old look); the Director asked for bigger.
+    //   Presentation only - nothing about the fight moves with it. ]
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Uppercut|Presentation")
+    float RingSpanMultiplier = 1.5f;
+
     // Keep every marker row so the round can be dumped and proven afterwards.
     // Costs memory and buys the only thing that makes this arena more than a
     // demo.
@@ -127,5 +134,16 @@ private:
     float PoseShotDelayRemaining = 0.f;
     TWeakObjectPtr<ACameraActor> PoseCamera;
     FString PoseShotPath;
+
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 02:35 UTC | START ]
+    // -UppercutShotAfter=12,60,178 : render-target captures of the LIVE fight
+    // at those wall-clock seconds, to Saved/live_shots/. The same
+    // FScreenshotRequest the pose studio uses, so it works headless-windowed
+    // and does not care what is in front of the window. Presentation only.
+    TArray<float> LiveShotTimes;
+    float LiveShotClock = 0.f;
+    int32 LiveShotsFired = 0;
+    TWeakObjectPtr<ACameraActor> LiveCamera;
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 02:35 UTC | END ]
 };
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 20:50 UTC | END ]
