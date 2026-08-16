@@ -72,6 +72,41 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Uppercut|PoseStudio")
     bool bPoseStudio = false;
 
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 01:50 UTC | START ]
+    // LOOK-AT. A boxer never takes his eyes off the other one, and a clip does
+    // not know that: every punch and every hit reaction turns the head wherever
+    // the animator put it. This bends the head (and a share of the upper spine)
+    // back onto the opponent AFTER the clip has been evaluated.
+    //
+    // It reads the fight snapshot and writes only to the skeletal mesh's
+    // component-space transforms. It cannot reach the simulation - Decision
+    // 0012, and the pins are what make that checkable rather than promised.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Uppercut|Presentation")
+    bool bLookAtOpponent = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Uppercut|Presentation")
+    FName LookAtHeadBone = FName(TEXT("head"));
+
+    // The upper spine takes a share of the turn before the neck finishes it,
+    // because a boxer turns his chest into the man, not just his face.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Uppercut|Presentation")
+    FName LookAtSpineBone = FName(TEXT("spine_03"));
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Uppercut|Presentation")
+    float LookAtSpineShare = 0.3f;
+
+    // A neck has limits. Past this the head stops following and the fighter has
+    // genuinely lost sight of him, which is information worth being able to see.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Uppercut|Presentation")
+    float LookAtMaxDegrees = 60.f;
+
+    // Where on the opponent the eyes go, above his floor position. Canon has no
+    // opinion about eye height; this is a presentation number and nothing reads
+    // it back.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Uppercut|Presentation")
+    float LookAtTargetHeightCm = 165.f;
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 01:50 UTC | END ]
+
     // --- what presentation is told -----------------------------------------
 
     // A new commitment was drawn this tick. `Action` is the canon move id, or
@@ -144,5 +179,23 @@ private:
     bool bMannequinOn = false;
     TMap<FString, UAnimSequence*> ActionClips;
     // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
+
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 01:50 UTC | START ]
+    void ApplyLookAt(const FUppercutFightView& View);
+    bool CalibrateLookAt();
+
+    bool bLookAtCalibrated = false;
+    bool bLookAtRefused = false;      // calibration failed once; do not retry per frame
+    int32 LookAtHeadIndex = INDEX_NONE;
+    int32 LookAtSpineIndex = INDEX_NONE;
+    // The bone-local axis that points out of the face in the reference pose,
+    // measured from the skeleton rather than assumed. A hard-coded axis is a
+    // guess about an asset, and the asset is allowed to change.
+    FVector LookAtHeadAxis = FVector::ForwardVector;
+    FVector LookAtSpineAxis = FVector::ForwardVector;
+    // Descendants move with their parent or the mesh tears. Precomputed once.
+    TArray<int32> LookAtHeadChildren;
+    TArray<int32> LookAtSpineChildren;
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 01:50 UTC | END ]
 };
 // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-06 20:40 UTC | END ]

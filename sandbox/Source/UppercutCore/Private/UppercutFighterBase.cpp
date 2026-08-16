@@ -242,6 +242,162 @@ void AUppercutFighterBase::PlayActionClip(const FString& Action, bool bOneShot)
     Mannequin->Play(!bOneShot);
 }
 
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 01:50 UTC | START ]
+namespace
+{
+    // A bone's reference-pose transform in COMPONENT space, by walking to root.
+    // FTransform A * B reads "A, then B", so multiplying childward-to-rootward
+    // accumulates exactly the component-space pose.
+    bool UppercutRefBoneCS(const FReferenceSkeleton& Ref, int32 Index,
+                           FTransform& Out)
+    {
+        if (!Ref.IsValidIndex(Index)) { return false; }
+        Out = FTransform::Identity;
+        for (int32 I = Index; I != INDEX_NONE; I = Ref.GetParentIndex(I))
+        {
+            Out = Out * Ref.GetRefBonePose()[I];
+        }
+        return true;
+    }
+
+    bool UppercutIsDescendantOf(const FReferenceSkeleton& Ref, int32 Bone,
+                                int32 Ancestor)
+    {
+        for (int32 I = Ref.GetParentIndex(Bone); I != INDEX_NONE;
+             I = Ref.GetParentIndex(I))
+        {
+            if (I == Ancestor) { return true; }
+        }
+        return false;
+    }
+}
+
+bool AUppercutFighterBase::CalibrateLookAt()
+{
+    if (bLookAtRefused) { return false; }
+    if (!Mannequin) { bLookAtRefused = true; return false; }
+    USkeletalMesh* Mesh = Mannequin->GetSkeletalMeshAsset();
+    if (!Mesh) { bLookAtRefused = true; return false; }
+    const FReferenceSkeleton& Ref = Mesh->GetRefSkeleton();
+
+    LookAtHeadIndex = Mannequin->GetBoneIndex(LookAtHeadBone);
+    LookAtSpineIndex = Mannequin->GetBoneIndex(LookAtSpineBone);
+    if (LookAtHeadIndex == INDEX_NONE)
+    {
+        bLookAtRefused = true;
+        UE_LOG(LogTemp, Warning,
+               TEXT("UppercutFighter %d: look-at OFF (no bone '%s')"),
+               FighterIndex, *LookAtHeadBone.ToString());
+        return false;
+    }
+
+    // Which way is "out of the face"? Measured, not assumed. Inside component
+    // space the mesh sits as authored - facing +Y - because the -90 yaw this
+    // class puts on the component maps component space to the actor, and does
+    // not move anything within it.
+    const FVector FacingCS(0.f, 1.f, 0.f);
+    FTransform RefCS;
+    if (UppercutRefBoneCS(Ref, LookAtHeadIndex, RefCS))
+    {
+        LookAtHeadAxis =
+            RefCS.GetRotation().Inverse().RotateVector(FacingCS).GetSafeNormal();
+    }
+    if (LookAtSpineIndex != INDEX_NONE && UppercutRefBoneCS(Ref, LookAtSpineIndex, RefCS))
+    {
+        LookAtSpineAxis =
+            RefCS.GetRotation().Inverse().RotateVector(FacingCS).GetSafeNormal();
+    }
+
+    // Turning a bone in component space turns ONLY that bone's skinning: its
+    // children keep their old transforms and the mesh tears at the neck. So
+    // every descendant is carried by the same delta, gathered once here.
+    LookAtHeadChildren.Reset();
+    LookAtSpineChildren.Reset();
+    for (int32 B = 0; B < Ref.GetNum(); ++B)
+    {
+        if (UppercutIsDescendantOf(Ref, B, LookAtHeadIndex))
+        {
+            LookAtHeadChildren.Add(B);
+        }
+        if (LookAtSpineIndex != INDEX_NONE
+            && UppercutIsDescendantOf(Ref, B, LookAtSpineIndex))
+        {
+            LookAtSpineChildren.Add(B);
+        }
+    }
+
+    bLookAtCalibrated = true;
+    UE_LOG(LogTemp, Display,
+           TEXT("UppercutFighter %d: look-at ON (head '%s' +%d children, "
+                "spine '%s' +%d children)"),
+           FighterIndex, *LookAtHeadBone.ToString(), LookAtHeadChildren.Num(),
+           *LookAtSpineBone.ToString(), LookAtSpineChildren.Num());
+    return true;
+}
+
+void AUppercutFighterBase::ApplyLookAt(const FUppercutFightView& View)
+{
+    if (!bLookAtOpponent || bPoseStudio || !bMannequinOn || !Mannequin) { return; }
+    if (!bLookAtCalibrated && !CalibrateLookAt()) { return; }
+    if (!View.Fighters.IsValidIndex(1 - FighterIndex)) { return; }
+
+    const FVector Axis = AxisDirection.GetSafeNormal();
+    const FVector FoeEyes =
+        AxisOrigin
+        + Axis * (View.Fighters[1 - FighterIndex].PositionRu * WorldUnitsPerRingUnit)
+        + FVector(0.f, 0.f, LookAtTargetHeightCm);
+
+    TArray<FTransform>& CS = Mannequin->GetEditableComponentSpaceTransforms();
+    if (!CS.IsValidIndex(LookAtHeadIndex)) { return; }
+    const FVector TargetCS =
+        Mannequin->GetComponentTransform().InverseTransformPosition(FoeEyes);
+
+    const float MaxRad = FMath::DegreesToRadians(FMath::Max(0.f, LookAtMaxDegrees));
+
+    // Aim one bone at the target and carry its descendants with it.
+    auto Aim = [&](int32 Bone, const FVector& LocalAxis,
+                   const TArray<int32>& Carried, float Share)
+    {
+        if (Bone == INDEX_NONE || !CS.IsValidIndex(Bone) || Share <= KINDA_SMALL_NUMBER)
+        {
+            return;
+        }
+        FTransform& T = CS[Bone];
+        const FVector Pivot = T.GetLocation();
+        const FVector Have = T.GetRotation().RotateVector(LocalAxis).GetSafeNormal();
+        const FVector Want = (TargetCS - Pivot).GetSafeNormal();
+        if (Have.IsNearlyZero() || Want.IsNearlyZero()) { return; }
+
+        FQuat Delta = FQuat::FindBetweenNormals(Have, Want);
+        FVector DeltaAxis;
+        float DeltaAngle = 0.f;
+        Delta.ToAxisAndAngle(DeltaAxis, DeltaAngle);
+        if (DeltaAxis.IsNearlyZero()) { return; }
+        DeltaAngle = FMath::Clamp(DeltaAngle * Share, -MaxRad, MaxRad);
+        if (FMath::IsNearlyZero(DeltaAngle)) { return; }
+        Delta = FQuat(DeltaAxis, DeltaAngle);
+
+        T.SetRotation((Delta * T.GetRotation()).GetNormalized());
+        for (int32 Child : Carried)
+        {
+            if (!CS.IsValidIndex(Child)) { continue; }
+            FTransform& C = CS[Child];
+            C.SetLocation(Pivot + Delta.RotateVector(C.GetLocation() - Pivot));
+            C.SetRotation((Delta * C.GetRotation()).GetNormalized());
+        }
+    };
+
+    // Chest first, then the neck finishes whatever is left over - which is why
+    // the head is aimed AFTER the spine has already moved it partway.
+    Aim(LookAtSpineIndex, LookAtSpineAxis, LookAtSpineChildren,
+        FMath::Clamp(LookAtSpineShare, 0.f, 1.f));
+    Aim(LookAtHeadIndex, LookAtHeadAxis, LookAtHeadChildren, 1.f);
+
+    Mannequin->FinalizeBoneTransform();
+    Mannequin->MarkRenderDynamicDataDirty();
+}
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 01:50 UTC | END ]
+
 void AUppercutFighterBase::PlayHitReaction(const FString& AttackerMove)
 {
     if (bPoseStudio) { return; }
@@ -306,6 +462,17 @@ void AUppercutFighterBase::Tick(float DeltaSeconds)
         PlayActionClip(TEXT("guard"), /*bOneShot=*/false);
     }
     // [ ... | 2026-08-15 17:15 UTC | END edit ]
+
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 01:50 UTC |
+    //   START edit: the eyes stay on him ]
+    // Also before the tick guard, and for the same reason: the clip that is
+    // turning the head away is playing in real time, so the correction has to
+    // be applied in real time or it stutters at the simulation's cadence. This
+    // actor ticks at TG_PostPhysics, after animation has been evaluated, which
+    // is what makes writing finalized bone transforms here legitimate.
+    ApplyLookAt(V);
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 01:50 UTC |
+    //   END edit ]
 
     // ---- edges, only when the simulation actually advanced ----------------
     // Guarding on the tick means a paused fight does not re-fire an animation
