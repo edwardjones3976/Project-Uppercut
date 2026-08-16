@@ -346,6 +346,18 @@ FUppercutFightView UUppercutFightSubsystem::GetView() const
             W.LastImpactTick = Integrated.Fighter[i].LastImpactTick;
             W.LastImpactMove = Integrated.Fighter[i].LastImpactMove;
             // [ ... | 2026-08-15 17:15 UTC | END edit ]
+            // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) |
+            //   2026-08-16 02:30 UTC | START edit: vitals cross the boundary ]
+            const FUppercutFightFighter& FF = Integrated.Fighter[i];
+            W.CardId = FF.Card.Id;
+            W.WindFractionQ = (FF.WindMax > 0)
+                ? (int32)((FF.Wind * 10000) / FF.WindMax) : 0;
+            const int64 ReserveMax = Integrated.StaminaCanon.ReserveMax;
+            W.ReserveFractionQ = (ReserveMax > 0)
+                ? (int32)((FF.Reserve * 10000) / ReserveMax) : 0;
+            W.Landings = Integrated.Round.Landed[i];
+            W.KnockdownsAgainst = Integrated.Round.KdRound[i];
+            // [ ... | 2026-08-16 02:30 UTC | END edit ]
             V.Fighters.Add(W);
         }
         return V;
