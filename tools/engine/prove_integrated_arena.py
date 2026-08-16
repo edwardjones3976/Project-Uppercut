@@ -38,20 +38,18 @@ judgement, and this file deliberately does not encode an opinion about it.
     python -m tools.engine.prove_integrated_arena          # needs UE, ~1 min
     python -m tools.engine.prove_integrated_arena --write  # re-bless, deliberately
 
-THE NORMALISED FIELD, DECLARED. The C++ header carries `repo=<absolute path>`,
-so the same fight produces different bytes in a different checkout - including
-on the self-hosted runner Issue #14 is building, which checks out somewhere
-else entirely. This file therefore normalises that ONE field to `repo=<repo>`
-before comparing, and the pins are stored normalised. Nothing else is touched.
-The real fix is for the header to stop carrying an environment path at all;
-that is a change to the authoritative artifact's bytes and belongs to whoever
-owns the header, not to its checker.
+THE NORMALISATION IS GONE, AND WHY. Until 2026-08-16 the C++ header carried
+`repo=<absolute path>`, so the same fight produced different bytes in a
+different checkout, and this file normalised that one field as a declared
+stopgap. The header no longer records where it was run - the durable fix
+landed in the artifact itself - so this file now compares raw bytes and the
+pins are stored exactly as the engine wrote them. If a `repo=` field ever
+reappears in a pin, `tests/test_integrated_arena_analyzer.py` fails.
 """
 import argparse
 import hashlib
 import io
 import os
-import re
 import subprocess
 import sys
 import time
@@ -76,16 +74,6 @@ GOLDEN = os.path.join(REPO, "docs", "phase1a", "golden")
 # its place by ending mid-round, which is the only configuration in the set that
 # exercises a punch still in flight when the stream stops.
 RUNS = ((4242, 10800), (777, 10800), (4242, 1200))
-
-REPO_FIELD = re.compile(r"^(H\|phase=[^|]*\|contract=[^|]*\|seed=\d+\|ticks=\d+\|repo=).*$",
-                        re.MULTILINE)
-
-
-def normalise(text):
-    """Replace the header's absolute repo path with a fixed token. See the
-    module docstring: this is the only normalisation, and it is declared."""
-    return REPO_FIELD.sub(r"\1<repo>", text)
-
 
 def golden_path(seed, ticks):
     return os.path.join(GOLDEN, "integrated_1r_%d_%d.stream" % (seed, ticks))
@@ -114,7 +102,7 @@ def run_arena(seed, ticks):
         raise SystemExit("the integrated round never finished (seed %d)" % seed)
     if not os.path.exists(out):
         raise SystemExit("the arena wrote no stream (seed %d)" % seed)
-    return normalise(io.open(out, "r", encoding="utf-8", newline="").read())
+    return io.open(out, "r", encoding="utf-8", newline="").read()
 
 
 def first_difference(got, want):

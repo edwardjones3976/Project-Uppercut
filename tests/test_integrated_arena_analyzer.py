@@ -44,10 +44,12 @@ def test_the_pinned_stream_is_a_coherent_fight(path):
 @pytest.mark.parametrize("path", PINS, ids=[os.path.basename(p) for p in PINS])
 def test_the_pin_carries_no_machine_path(path):
     """A pin with an absolute path in it proves only that the fight was run on
-    one laptop. Issue #14's Windows lane checks out somewhere else."""
+    one laptop. Issue #14's Windows lane checks out somewhere else. Since
+    2026-08-16 the authoritative header carries no repo field at all - this
+    fails if one ever comes back, normalised or otherwise."""
     head = io.open(path, "r", encoding="utf-8", newline="").read().splitlines()[0]
-    assert "repo=<repo>" in head, (
-        "%s must store the normalised header; found %r"
+    assert "repo=" not in head, (
+        "%s: the header records its checkout again: %r"
         % (os.path.basename(path), head))
     assert ":\\" not in head and ":/" not in head, (
         "%s carries an absolute path: %r" % (os.path.basename(path), head))
@@ -81,8 +83,7 @@ def minimal(rows=None, trailer=None, verdict=None):
         "S|rows=%d|fnv=0000000000000000|ticks=10|punches=1|landed=1|"
         "result=decision|cards=10-9|kd=0-0" % len(body))
     return "\n".join([
-        "H|phase=INTEGRATED_1R|contract=uppercut-integrated-v3|seed=1|"
-        "ticks=10|repo=<repo>",
+        "H|phase=INTEGRATED_1R|contract=uppercut-integrated-v3|seed=1|ticks=10",
         "H|cards=test_alpha,test_beta",
     ] + body + ([s] if s else [])) + "\n"
 
