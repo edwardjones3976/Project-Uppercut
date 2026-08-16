@@ -52,7 +52,11 @@ struct UPPERCUTCORE_API FUppercutRoundState
     int32 KdBout[2] = {0, 0};
     int32 Landed[2] = {0, 0};
     int32 Card[2] = {0, 0};          // sealed until Finished
-    bool bCardsSealed = true;
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 00:50 UTC |
+    //   edit: a round STARTS unsealed; SealDecision is what seals it. The flag
+    //   was inverted at all three sites and nothing read it, which is the only
+    //   reason it was harmless. ]
+    bool bCardsSealed = false;
     int32 Winner = -1;               // 0/1, or -1 draw
     FString Method;
 
