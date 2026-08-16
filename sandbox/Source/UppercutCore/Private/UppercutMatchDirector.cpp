@@ -10,6 +10,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/DirectionalLight.h"
 #include "Engine/Engine.h"
+#include "Engine/GameViewportClient.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
 #include "Engine/World.h"
@@ -183,9 +184,91 @@ void AUppercutMatchDirector::BeginPlay()
     // Axis scale matches AUppercutFighterBase's default 100 cm per ring unit.
     {
         const double AxisCm = (double)Fight->GetRingAxisRu() * 100.0;
-        UppercutSpawnFabRing(GetWorld(), AxisCm);
+        // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 03:05
+        //   UTC | edit: the Director's ring-size dial rides through ]
+        UppercutSpawnFabRing(GetWorld(), AxisCm, (double)RingSpanMultiplier);
     }
     // [ Auto (Cursor Agent) | Auto (Cursor Agent) | 2026-08-12 03:53 UTC | END ]
+
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 01:55 UTC |
+    //   START edit: standalone gets a broadcast camera ]
+    // In the editor, Play uses the editor viewport and the Director flies it
+    // himself - that stays untouched (PIE worlds skip this). A standalone
+    // -game world had NO camera at all outside pose studio: the fight ran,
+    // provably, behind a black screen. One fixed ringside frame, wide enough
+    // for the whole axis. Presentation only; the commandlet never runs this
+    // class, so no stream can move.
+    if (GetWorld() && GetWorld()->WorldType == EWorldType::Game)
+    {
+        // The same key + fill rig the pose studio spawns, for the same
+        // reason: PR #42 exists because captures were black until it lit its
+        // own subject, and a standalone arena world is exactly as unlit.
+        if (ADirectionalLight* Sun = GetWorld()->SpawnActor<ADirectionalLight>(
+                FVector(200.f, -200.f, 500.f), FRotator(-55.f, -40.f, 0.f)))
+        {
+            if (ULightComponent* C = Sun->GetLightComponent())
+            {
+                C->SetIntensity(12.f);
+                C->SetVisibility(true);
+            }
+        }
+        if (ADirectionalLight* Fill = GetWorld()->SpawnActor<ADirectionalLight>(
+                FVector(-200.f, 200.f, 300.f), FRotator(-35.f, 140.f, 0.f)))
+        {
+            if (ULightComponent* C = Fill->GetLightComponent())
+            {
+                C->SetIntensity(4.f);
+                C->SetVisibility(true);
+            }
+        }
+
+        // Framed for the widened ring (RingSpanMultiplier), centred on the
+        // AXIS MIDPOINT - the ring is centred there, not on the world origin,
+        // and the first framing looked at the origin and put the ring in the
+        // left third of the shot.
+        const float MidX = (float)(Fight->GetRingAxisRu() * 100.0 * 0.5);
+        const FVector Focus(MidX, 0.f, 110.f);
+        const FVector CamLoc(MidX, -820.f, 250.f);
+        ACameraActor* Ringside = GetWorld()->SpawnActor<ACameraActor>(
+            CamLoc, (Focus - CamLoc).Rotation());
+        if (Ringside)
+        {
+            Ringside->SetActorLabel(TEXT("RingsideCamera"));
+            // NOT view-targeted here: in standalone this BeginPlay can run
+            // before the PlayerController exists, and the set would silently
+            // do nothing - which it did, and every capture came back black.
+            // Tick claims the view once the controller is real, the same
+            // reason FirePoseStudioCapture re-asserts its camera.
+            LiveCamera = Ringside;
+        }
+        UE_LOG(LogTemp, Display,
+               TEXT("UppercutMatchDirector: ringside camera and lights up (standalone)"));
+
+        // -UppercutShotAfter=12,60,178 - capture the live fight at those
+        // seconds, through the render target rather than the desktop, so the
+        // evidence does not depend on what is in front of the window.
+        FString ShotList;
+        // bShouldStopOnSeparator=false: the value is a comma list, and
+        // FParse::Value's default stops at the first comma - the whole list
+        // must survive to be split below.
+        if (FParse::Value(FCommandLine::Get(), TEXT("UppercutShotAfter="),
+                          ShotList, /*bShouldStopOnSeparator=*/false))
+        {
+            TArray<FString> Parts;
+            ShotList.ParseIntoArray(Parts, TEXT(","));
+            for (const FString& S : Parts)
+            {
+                const float T = FCString::Atof(*S);
+                if (T > 0.f) { LiveShotTimes.Add(T); }
+            }
+            LiveShotTimes.Sort();
+            UE_LOG(LogTemp, Display,
+                   TEXT("UppercutMatchDirector: %d live captures armed (%s)"),
+                   LiveShotTimes.Num(), *ShotList);
+        }
+    }
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 01:55 UTC |
+    //   END edit ]
 
     if (bBindDefaultKeys) { BindKeys(); }
     if (bAutoStart) { StartRound(); }
@@ -342,6 +425,53 @@ void AUppercutMatchDirector::Tick(float DeltaSeconds)
         }
         return;
     }
+
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 02:35 UTC |
+    //   START edit: timed live captures ]
+    if (ACameraActor* Cam = LiveCamera.Get())
+    {
+        if (APlayerController* PC =
+                UGameplayStatics::GetPlayerController(GetWorld(), 0))
+        {
+            if (PC->GetViewTarget() != Cam)
+            {
+                PC->bAutoManageActiveCameraTarget = false;
+                PC->SetViewTargetWithBlend(Cam, 0.f);
+                UE_LOG(LogTemp, Display,
+                       TEXT("UppercutMatchDirector: ringside view claimed"));
+            }
+        }
+    }
+    if (LiveShotsFired < LiveShotTimes.Num())
+    {
+        LiveShotClock += DeltaSeconds;
+        // A minimized window's backbuffer collapses to 8x8, and a screenshot
+        // copy from it asserts inside D3D12RHI and kills the process (seen
+        // 2026-08-16, 'Source width out of bounds for BackBuffer0 ...
+        // dimensions [8, 8, 1]'). Hold the capture until the viewport is real;
+        // the clock keeps running so the shot fires on restore.
+        FVector2D ViewportSize = FVector2D::ZeroVector;
+        if (GEngine && GEngine->GameViewport)
+        {
+            GEngine->GameViewport->GetViewportSize(ViewportSize);
+        }
+        if (ViewportSize.X >= 64.f && ViewportSize.Y >= 64.f
+            && LiveShotClock >= LiveShotTimes[LiveShotsFired])
+        {
+            const FString Path = FPaths::ConvertRelativePathToFull(
+                FPaths::ProjectSavedDir() / TEXT("live_shots") /
+                FString::Printf(TEXT("fight_t%03d.png"),
+                                (int32)LiveShotTimes[LiveShotsFired]));
+            IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
+            FScreenshotRequest::RequestScreenshot(Path, false, false);
+            ++LiveShotsFired;
+            UE_LOG(LogTemp, Display,
+                   TEXT("UppercutMatchDirector: live capture %d/%d -> %s"),
+                   LiveShotsFired, LiveShotTimes.Num(), *Path);
+        }
+    }
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 02:35 UTC |
+    //   END edit ]
 
     if (!Fight || bAnnouncedFinish) { return; }
     const FUppercutFightView V = Fight->GetView();

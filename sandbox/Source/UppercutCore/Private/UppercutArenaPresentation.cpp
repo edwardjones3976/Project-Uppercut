@@ -9,13 +9,18 @@
 #include "Components/StaticMeshComponent.h"
 #include "Misc/Paths.h"
 
-FUppercutArenaRingSpawn UppercutSpawnFabRing(UWorld* World, double AxisCm)
+FUppercutArenaRingSpawn UppercutSpawnFabRing(UWorld* World, double AxisCm,
+                                             double SpanMultiplier)
 {
     FUppercutArenaRingSpawn Out;
     if (!World || AxisCm <= 1.0)
     {
         return Out;
     }
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 03:05 UTC |
+    //   edit: the visual ring may be wider than the fight axis. The ring stays
+    //   centred on the axis midpoint, so the extra span is symmetric border. ]
+    const double SpanCm = AxisCm * FMath::Max(1.0, SpanMultiplier);
 
     // Ring five is a CLUSTER IN SPACE (measured with import_fab_bounds.py).
     // Same part list as AUppercutBoutDirector::BuildArena — one source of truth.
@@ -78,7 +83,7 @@ FUppercutArenaRingSpawn UppercutSpawnFabRing(UWorld* World, double AxisCm)
         return Out;
     }
 
-    const double Scale = (SpanWidth > 1.0) ? AxisCm / SpanWidth : 1.0;
+    const double Scale = (SpanWidth > 1.0) ? SpanCm / SpanWidth : 1.0;
     const FVector Centre = Bounds.GetCenter();
     const FVector Target(AxisCm / 2.0, 0.0, 0.0);
     const double DepthNudgeCm = 2.0;
