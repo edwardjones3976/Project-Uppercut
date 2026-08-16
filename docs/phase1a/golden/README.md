@@ -95,15 +95,15 @@ record — Decision 0040 quotes the C++ round at `punches=123 landed=51` for see
 `punches=153 landed=153`. No gate could have reported that, because no gate was
 looking.
 
-**The one normalised field, declared.** The C++ header carries
-`repo=<absolute path>`, so the same fight produces different bytes in a
+**The normalisation is gone (2026-08-16).** The C++ header used to carry
+`repo=<absolute path>`, so the same fight produced different bytes in a
 different checkout — including on the self-hosted Windows runner Issue #14 is
-building. `prove_integrated_arena` normalises that single field to
-`repo=<repo>` before comparing and the pins are stored normalised;
-`tests/test_integrated_arena_analyzer.py` fails if a machine path ever reaches a
-pin. The real fix is for the authoritative header to stop carrying an
-environment path at all, which changes the artifact's bytes and belongs to
-whoever owns the header rather than to its checker.
+building — and `prove_integrated_arena` normalised that single field as a
+declared stopgap. The durable fix landed in the artifact: the header no longer
+records where it was run, the prover compares raw bytes, the pins are stored
+exactly as the engine wrote them (re-blessed in the same commit as the header
+change), and `tests/test_integrated_arena_analyzer.py` fails if a `repo=`
+field or machine path ever reaches a pin again.
 
 **When one of these fails, it is not automatically wrong.** A pin on an
 authority moves whenever the authority is deliberately improved — and the

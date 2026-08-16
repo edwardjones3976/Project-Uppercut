@@ -1,4 +1,4 @@
-H|phase=INTEGRATED_1R|contract=uppercut-integrated-v3|seed=4242|ticks=1200|repo=<repo>
+H|phase=INTEGRATED_1R|contract=uppercut-integrated-v3|seed=4242|ticks=1200
 H|cards=test_pressure_power,test_range_timing
 D|0|red_corner|Advance||SEEK_PREFERRED_RANGE
 A|0|0|step_in

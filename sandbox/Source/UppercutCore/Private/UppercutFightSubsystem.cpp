@@ -405,7 +405,9 @@ bool UUppercutFightSubsystem::DumpStream(const FString& Path, FString& OutError)
     FString Out;
     if (bIntegratedLoaded)
     {
-        Out = UppercutFightStreamHeader(Integrated, Seed, Integrated.Tick, RepoDir);
+        // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 00:58
+        //   UTC | edit: the artifact no longer records its checkout path ]
+        Out = UppercutFightStreamHeader(Integrated, Seed, Integrated.Tick);
         for (const FString& Row : CapturedRows) { Out += Row; }
         Out += UppercutFightStreamTrailer(Integrated, RowCount, Fnv);
     }

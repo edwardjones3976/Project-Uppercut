@@ -83,9 +83,12 @@ private:
     void ResolveContacts(TArray<FString>* OutRows);
 };
 
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 00:58 UTC |
+//   edit: the header no longer takes or prints the checkout path - an
+//   authoritative artifact that embeds its machine location produces
+//   different bytes for the same fight on a different machine ]
 UPPERCUTCORE_API FString UppercutFightStreamHeader(
-    const FUppercutFightSession& Session, uint32 Seed, int32 Ticks,
-    const FString& RepoDir);
+    const FUppercutFightSession& Session, uint32 Seed, int32 Ticks);
 
 UPPERCUTCORE_API FString UppercutFightStreamTrailer(
     const FUppercutFightSession& Session, int64 Rows, uint64 Fnv);

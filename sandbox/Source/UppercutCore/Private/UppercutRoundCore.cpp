@@ -45,7 +45,9 @@ void FUppercutRoundState::Reset(int32 InBudget)
     KdBout[0] = KdBout[1] = 0;
     Landed[0] = Landed[1] = 0;
     Card[0] = Card[1] = 0;
-    bCardsSealed = true;
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 00:50 UTC |
+    //   edit: reset means the cards are open again ]
+    bCardsSealed = false;
     Winner = -1;
     Method.Reset();
 }
@@ -118,12 +120,21 @@ void FUppercutRoundState::SealDecision(TArray<FString>* OutRows)
     int32 Score[2] = {10, 10};
     if (Landed[0] > Landed[1]) { Score[1] = 9; }
     else if (Landed[1] > Landed[0]) { Score[0] = 9; }
-    else { Score[0] = 9; Score[1] = 9; } // draw round
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 00:50 UTC |
+    //   START edit: an even round is 10-10 ]
+    // The 10-point MUST system: somebody must get 10 unless a knockdown takes
+    // it away. The old branch scored a drawn round 9-9, which no judge has
+    // ever turned in, and it silently repriced what a knockdown costs on an
+    // even round. Untaken in every pinned fight (all end 10-9 on landings),
+    // which the byte-identical reproof of the pins confirms.
+    // [ ... | 2026-08-16 00:50 UTC | END edit ]
     Score[0] = FMath::Max(0, Score[0] - KdRound[0]);
     Score[1] = FMath::Max(0, Score[1] - KdRound[1]);
     Card[0] = Score[0];
     Card[1] = Score[1];
-    bCardsSealed = false;
+    // [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 00:50 UTC |
+    //   edit: sealing is what sets the seal ]
+    bCardsSealed = true;
     if (Card[0] > Card[1]) { Winner = 0; }
     else if (Card[1] > Card[0]) { Winner = 1; }
     else { Winner = -1; }

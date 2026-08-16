@@ -311,16 +311,23 @@ void FUppercutFightSession::Step(TArray<FString>* OutRows)
     }
 }
 
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 00:58 UTC |
+//   START edit: no machine path in the authoritative artifact ]
+// The header used to carry repo=<absolute path>, so the same fight produced
+// different bytes in a different checkout - including the self-hosted Windows
+// runner (Issue #14). prove_integrated_arena normalised that one field as a
+// declared stopgap; the durable fix is that the artifact never says where it
+// was recorded. Canon identity travels in the sources' hashes, not in a path.
 FString UppercutFightStreamHeader(const FUppercutFightSession& Session,
-                                  uint32 Seed, int32 Ticks,
-                                  const FString& RepoDir)
+                                  uint32 Seed, int32 Ticks)
 {
     return FString::Printf(
-        TEXT("H|phase=INTEGRATED_1R|contract=uppercut-integrated-v3|seed=%u|ticks=%d|repo=%s\n"
+        TEXT("H|phase=INTEGRATED_1R|contract=uppercut-integrated-v3|seed=%u|ticks=%d\n"
              "H|cards=%s,%s\n"),
-        Seed, Ticks, *RepoDir,
+        Seed, Ticks,
         *Session.Fighter[0].Card.Id, *Session.Fighter[1].Card.Id);
 }
+// [ Claude (Cowork) | Claude Opus 5 (claude-opus-5) | 2026-08-16 00:58 UTC | END edit ]
 
 FString UppercutFightStreamTrailer(const FUppercutFightSession& Session,
                                    int64 Rows, uint64 Fnv)
