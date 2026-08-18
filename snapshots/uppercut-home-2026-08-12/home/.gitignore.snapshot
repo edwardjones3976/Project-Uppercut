@@ -1,0 +1,27 @@
+﻿# Unreal
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+*.VC.db
+*.opensdf
+*.sdf
+*.sln
+*.suo
+*.xcodeproj
+*.xcworkspace
+.vs/
+Build/
+
+# Python
+__pycache__/
+.pytest_cache/
+.venv/
+*.pyc
+
+# Local secrets / vendor
+.env
+sandbox/Content/BoxingAttacks/
+sandbox/Content/FabImports/
+Content/BoxingAttacks/
+Content/FabImports/
