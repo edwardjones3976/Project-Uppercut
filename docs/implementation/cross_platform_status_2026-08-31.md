@@ -51,6 +51,23 @@ Control-plane disposition only. No new combat or Director runtime measurement.
 
 Director issue #81 is open. Director PR #60 is `state=closed`, `merged=false`.
 
+<!-- [ Cursor Grok 4.6 | cursor-grok-4.6 | 2026-08-31 09:33 UTC | START edit ] -->
+
+Local gates on this tracking slice: `pytest` 1479 passed; validators
+`RESULT: OK`; `gen_status --check` current.
+
+GitHub Actions `validate` on heads `6e35644` and `415a149` did **not start**.
+All three jobs (`phase0-validation`, `director-orchestrator`,
+`windows-authority`) failed in ~3s with:
+
+> The job was not started because recent account payments have failed or your
+> spending limit needs to be increased.
+
+This is org billing, not a test failure. The same workflow last succeeded on
+this branch on 2026-08-23 (run `32626489024`). Code cannot clear it.
+
+<!-- [ Cursor Grok 4.6 | cursor-grok-4.6 | 2026-08-31 09:33 UTC | END edit ] -->
+
 <!-- [ Cursor Grok 4.6 | cursor-grok-4.6 | 2026-08-31 09:28 UTC | START edit ] -->
 
 ## Channel disposition
