@@ -51,16 +51,20 @@ Control-plane disposition only. No new combat or Director runtime measurement.
 
 Director issue #81 is open. Director PR #60 is `state=closed`, `merged=false`.
 
+<!-- [ Cursor Grok 4.6 | cursor-grok-4.6 | 2026-08-31 09:28 UTC | START edit ] -->
+
 ## Channel disposition
 
 | Channel | Status | Evidence |
 |---|---|---|
-| Local repo | This packet | development log + superseded banners on 2026-08-23 files |
-| GitHub (Director) | Recorded | #60 closed by owner; #81 is replacement |
-| GitHub (Uppercut) | This tracking PR | body retitled to superseded; snapshot not refreshed |
-| Linear PRO-15 | Posted if MCP works | comment + paste block below |
-| Slack `#uppercut-ops` | Draft if MCP works | paste block below |
+| Local repo | Done | development log + superseded banners on 2026-08-23 files |
+| GitHub (Director) | Posted | owner close on #60; tracking comment `5476388501` |
+| GitHub (Uppercut) | Posted | PR #59 retitled; top-level comment on this packet |
+| Linear PRO-15 | Posted | comment `6539540d-8da8-4622-8643-954dcb7f5682` |
+| Slack `#uppercut-ops` | Draft | draft `Dr0BUN873JAC` in `C0BP62MBFNK` (not sent) |
 | Unreal / Snyk / Perseus | N/A | No engine or vuln work |
+
+<!-- [ Cursor Grok 4.6 | cursor-grok-4.6 | 2026-08-31 09:28 UTC | END edit ] -->
 
 ## Paste blocks
 
