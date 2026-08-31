@@ -1,4 +1,11 @@
 <!-- [ Cursor Grok 4.6 | cursor-grok-4.6 | 2026-08-23 07:46 UTC | START ] -->
+<!-- [ Cursor Grok 4.6 | cursor-grok-4.6 | 2026-08-31 09:25 UTC | START ] -->
+
+**SUPERSEDED 2026-08-31.** Owner closed Director PR #60 without merge and said
+no evidence transfers. Do not treat this folder as activation proof. Current
+record: `docs/implementation/cross_platform_status_2026-08-31.md`.
+
+<!-- [ Cursor Grok 4.6 | cursor-grok-4.6 | 2026-08-31 09:25 UTC | END ] -->
 
 # PRO-15 evidence
 

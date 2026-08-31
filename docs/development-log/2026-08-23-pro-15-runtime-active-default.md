@@ -1,4 +1,11 @@
 <!-- [ Cursor Grok 4.6 | cursor-grok-4.6 | 2026-08-23 07:46 UTC | START ] -->
+<!-- [ Cursor Grok 4.6 | cursor-grok-4.6 | 2026-08-31 09:25 UTC | START ] -->
+
+**SUPERSEDED 2026-08-31.** See
+`docs/development-log/2026-08-31-pro-15-superseded-by-director-81.md`.
+Director PR #60 closed without merge; no evidence transfers.
+
+<!-- [ Cursor Grok 4.6 | cursor-grok-4.6 | 2026-08-31 09:25 UTC | END ] -->
 
 # PRO-15 — runtime_active defaults on
 

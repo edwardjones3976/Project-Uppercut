@@ -1,4 +1,14 @@
 <!-- [ Cursor Grok 4.6 | cursor-grok-4.6 | 2026-08-23 07:46 UTC | START ] -->
+<!-- [ Cursor Grok 4.6 | cursor-grok-4.6 | 2026-08-31 09:25 UTC | START ] -->
+
+**SUPERSEDED 2026-08-31.** Director PR #60 was closed without merge. Proof-lane
+`runtime_active` without a complete top-level graph, Postgres durability, and
+writer transfer is not the current activation model. Replacement:
+[director-orchestrator#81](https://github.com/edwardjones3976/director-orchestrator/issues/81).
+No evidence transfers. Current packet:
+`docs/implementation/cross_platform_status_2026-08-31.md`.
+
+<!-- [ Cursor Grok 4.6 | cursor-grok-4.6 | 2026-08-31 09:25 UTC | END ] -->
 
 # Cross-platform status — PRO-15 runtime_active default (2026-08-23)
 
